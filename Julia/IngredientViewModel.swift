@@ -8,50 +8,70 @@
 
 
 import Combine
+import SwiftUI
+
 
 class IngredientViewModel : ObservableObject {
-    // var modelContext: ModelContext
-    var ingredients = [MockIngredient]()
-    
-    //init(modelContext: ModelContext) {
-        //self.modelContext = modelContext
-       // fetchIngredients()
-    //}
-    
-//    func fetchIngredients() {
-//        do {
-//            let descriptor = FetchDescriptor<Ingredient>(sortBy: [SortDescriptor(\.title)])
-//            ingredients = try modelContext.fetch(descriptor)
-//        } catch {
-//            print("Fetch Ingredients Failed")
-//        }
-//    }
-    
-    //@Published var ingredients: [Ingredient] = []
-    //@Published var groceries: [Ingredient] = []
-    
-    func moveToGroceries(ingredient: Ingredient) {
-//        if let index = ingredients.firstIndex(where: { $0.id == ingredient.id }) {
-//            let movedIngredient = ingredients.remove(at: index)
-//            groceries.append(movedIngredient)
-//        }
-    }
 
-    func moveToIngredients(grocery: Ingredient) {
-//        if let index = groceries.firstIndex(where: { $0.id == grocery.id }) {
-//            let movedGrocery = groceries.remove(at: index)
-//            ingredients.append(movedGrocery)
-//        }
+  @Published var selectedIngredients: Set<Ingredient> = []
+  
+  func toggleSelection(for ingredient: Ingredient) {
+    if selectedIngredients.contains(ingredient) {
+      selectedIngredients.remove(ingredient)
+    } else {
+      selectedIngredients.insert(ingredient)
     }
-    
+  }
+  
+  func clearSelection() {
+    selectedIngredients.removeAll()
+  }
+  
+  var hasSelection: Bool {
+    !selectedIngredients.isEmpty
+  }
+  
+
+  
+  // Example of new functionality made easier by having the full Ingredient
+//  func groupSelectedByFirstLetter() -> [Character: [Ingredient]] {
+//    Dictionary(
+//      grouping: selectedIngredients,
+//      by: { Character(String($0.name.prefix(1))) }
+//    )
+//  }
+  
+  func moveToGroceries(ingredient: Ingredient) {
+  }
+  
+  func moveToIngredients(grocery: Ingredient) {
+  }
 }
 
-extension IngredientViewModel{
-   convenience init(forPreview: Bool = true) {
-      self.init()
-      //Hard code your mock data for the preview here
-      self.ingredients = mockIngredients
-      // self.groceries = mockIngredients
-   }
+
+extension IngredientViewModel {
+  func isSelected(_ ingredient: Ingredient) -> Binding<Bool> {
+    Binding(
+      get: { self.selectedIngredients.contains(ingredient) },
+      //set: { _ in self.toggleSelection(for: ingredient) }
+      set: { isSelected in
+        if isSelected {
+          self.selectedIngredients.insert(ingredient)
+        } else {
+          self.selectedIngredients.remove(ingredient)
+        }
+      }
+    )
+  }
+  
 }
+
+// extension IngredientViewModel{
+//   convenience init(forPreview: Bool = true) {
+//      self.init()
+//      //Hard code your mock data for the preview here
+//     // self.ingredients = mockIngredients
+//      // self.groceries = mockIngredients
+//   }
+// }
 

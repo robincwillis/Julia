@@ -31,6 +31,9 @@
 		5228BD532C2362E7001C845E /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5228BD522C2362E7001C845E /* ContentView.swift */; };
 		5228BD552C2362EA001C845E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5228BD542C2362EA001C845E /* Assets.xcassets */; };
 		5228BD582C2362EB001C845E /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5228BD572C2362EB001C845E /* Preview Assets.xcassets */; };
+		526250C42CE0E221004EE6C7 /* AddRecipe.swift in Sources */ = {isa = PBXBuildFile; fileRef = 526250C32CE0E221004EE6C7 /* AddRecipe.swift */; };
+		526250C62CE28BFC004EE6C7 /* EditIngredient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 526250C52CE28BFC004EE6C7 /* EditIngredient.swift */; };
+		526250C82CE292A4004EE6C7 /* IngredientParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 526250C72CE292A4004EE6C7 /* IngredientParser.swift */; };
 		52EF0BB12CDBF8A300B8354A /* FloatingBottomSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52EF0BB02CDBF8A300B8354A /* FloatingBottomSheet.swift */; };
 		52EF0BB32CDC0C9100B8354A /* DataController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52EF0BB22CDC0C9100B8354A /* DataController.swift */; };
 		52EF0BB52CDC115000B8354A /* AddIngredient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52EF0BB42CDC115000B8354A /* AddIngredient.swift */; };
@@ -63,6 +66,9 @@
 		5228BD522C2362E7001C845E /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		5228BD542C2362EA001C845E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		5228BD572C2362EB001C845E /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		526250C32CE0E221004EE6C7 /* AddRecipe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddRecipe.swift; sourceTree = "<group>"; };
+		526250C52CE28BFC004EE6C7 /* EditIngredient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditIngredient.swift; sourceTree = "<group>"; };
+		526250C72CE292A4004EE6C7 /* IngredientParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = IngredientParser.swift; path = Julia/IngredientParser.swift; sourceTree = SOURCE_ROOT; };
 		52EF0BB02CDBF8A300B8354A /* FloatingBottomSheet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FloatingBottomSheet.swift; sourceTree = "<group>"; };
 		52EF0BB22CDC0C9100B8354A /* DataController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataController.swift; sourceTree = "<group>"; };
 		52EF0BB42CDC115000B8354A /* AddIngredient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddIngredient.swift; sourceTree = "<group>"; };
@@ -115,6 +121,7 @@
 		520DE6BA2C346A4F00CAF570 /* Utilities */ = {
 			isa = PBXGroup;
 			children = (
+				526250C72CE292A4004EE6C7 /* IngredientParser.swift */,
 				520DE6B82C346A4B00CAF570 /* Double+Extensions.swift */,
 				520DE6BB2C346BD900CAF570 /* String+Extensions.swift */,
 				520DE6B22C34641300CAF570 /* MockData.swift */,
@@ -151,6 +158,8 @@
 				520DE6C52C34713700CAF570 /* RecipeList.swift */,
 				520DE6BD2C346C9300CAF570 /* IngredientList.swift */,
 				52EF0BB42CDC115000B8354A /* AddIngredient.swift */,
+				526250C52CE28BFC004EE6C7 /* EditIngredient.swift */,
+				526250C32CE0E221004EE6C7 /* AddRecipe.swift */,
 				520DE6CB2C35B0CF00CAF570 /* PlaygroundView.swift */,
 				520DE6CD2C35BC1900CAF570 /* IngredientViewModel.swift */,
 				520DE6B62C3465AD00CAF570 /* Models */,
@@ -198,7 +207,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1430;
-				LastUpgradeCheck = 1430;
+				LastUpgradeCheck = 1520;
 				TargetAttributes = {
 					5228BD4C2C2362E7001C845E = {
 						CreatedOnToolsVersion = 14.3.1;
@@ -245,6 +254,7 @@
 				520DE6B92C346A4B00CAF570 /* Double+Extensions.swift in Sources */,
 				520DE6CE2C35BC1900CAF570 /* IngredientViewModel.swift in Sources */,
 				520DE6BC2C346BD900CAF570 /* String+Extensions.swift in Sources */,
+				526250C42CE0E221004EE6C7 /* AddRecipe.swift in Sources */,
 				520DE6A82C33210C00CAF570 /* GroceriesView.swift in Sources */,
 				520DE6CA2C3473DA00CAF570 /* IngredientDetails.swift in Sources */,
 				520DE6A02C3310B700CAF570 /* ImagePicker.swift in Sources */,
@@ -253,6 +263,8 @@
 				520DE6AD2C34603400CAF570 /* Ingredient.swift in Sources */,
 				520DE6CC2C35B0CF00CAF570 /* PlaygroundView.swift in Sources */,
 				520DE6A42C3320F000CAF570 /* RecipesView.swift in Sources */,
+				526250C62CE28BFC004EE6C7 /* EditIngredient.swift in Sources */,
+				526250C82CE292A4004EE6C7 /* IngredientParser.swift in Sources */,
 				52EF0BB32CDC0C9100B8354A /* DataController.swift in Sources */,
 				520DE6BE2C346C9300CAF570 /* IngredientList.swift in Sources */,
 				520DE6AF2C34604500CAF570 /* Recipe.swift in Sources */,
@@ -307,6 +319,7 @@
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -367,6 +380,7 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;

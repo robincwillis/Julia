@@ -3,30 +3,35 @@
         "id": "da710e3d-c8a9-4c08-bf9e-82f10a44073d",
         "name": "Flour",
         "quantity": 2.0,
+        "location": "grocery",
         "measurement": "cup"
     },
     {
         "id": "58865140-dbc2-4b52-a34d-8e5ce0631e08",
         "name": "Sugar",
         "quantity": 1.0,
+        "location": "grocery",
         "measurement": "cup"
     },
     {
         "id": "7ae75a4e-ccb6-4b0f-a3cc-ece6e81b3e8e",
         "name": "Butter",
         "quantity": 0.5,
+        "location": "pantry",
         "measurement": "cup"
     },
     {
         "id": "e7fc36d2-7903-4d93-a26f-ad553b31d1dc",
         "name": "Egg",
         "quantity": 3.0,
+        "location": "pantry",
         "comment": "large"
     },
     {
         "id": "67651907-6849-433c-9b13-a112d678ed2e",
         "name": "Milk",
         "quantity": 1.0,
+        "location": "pantry",
         "measurement": "cup"
     }
 ]

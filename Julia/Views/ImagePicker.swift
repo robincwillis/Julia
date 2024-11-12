@@ -33,7 +33,7 @@ struct ImagePicker: View {
                     .foregroundColor(.white)
                     .cornerRadius(12)
             }
-            .onChange(of: selectedItem) { newItem in
+            .onChange(of: selectedItem) { oldItem, newItem in
                 Task {
                     if let data = try? await newItem?.loadTransferable(type: Data.self),
                        let uiImage = UIImage(data: data) {
@@ -71,18 +71,12 @@ struct ImagePicker: View {
             
             
         }
-        //.padding()
-        //.frame(maxWidth: .infinity, maxHeight: 400)
-//        .background(Color.white)
-//        .clipShape(RoundedRectangle(cornerRadius: 20))
-//        .shadow(radius: 10)
-        //.padding()
+
         
     }
     
     
     private func clearState() {
-        print("Clearing State")
         image = nil
         recognizedText = []
         selectedItem = nil
@@ -124,9 +118,7 @@ func recognizeText(from image: UIImage, completion: @escaping ([String]) -> Void
 }
 
 
-struct ImagePicker_Previews: PreviewProvider {
-    @State static var showModal = true
-    static var previews: some View {
-        ImagePicker(showModal: $showModal)
-    }
-}
+//#Preview {
+//  @State var showModal = true
+//  ImagePicker(showModal: $showModal)
+//}

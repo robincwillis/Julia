@@ -11,61 +11,89 @@ import SwiftData
 struct IngredientsView: View {
   @Environment(\.modelContext) var modelContext
   @Query private var ingredients: [Ingredient]
-    
-  @State private var selectedIngredients: [Ingredient] = []
+  
+  @Binding var showBottomSheet: Bool
+
+  // Manage all Ingredient View State here
+  @StateObject private var ingredientManager = IngredientViewModel()
+  @State private var hasSelection = false
+
+  private var selectedIngredients: Set<Ingredient> {
+    ingredientManager.selectedIngredients
+  }
+
   
   var body: some View {
     NavigationStack {
       VStack {
-        IngredientList(ingredients: ingredients, onSelect: self.selectIngredient, onDeselect: self.deselectIngredient)
+        IngredientList(
+          ingredients: ingredients,
+          ingredientManager: ingredientManager
+        )
       }
       .navigationTitle("Ingredients")
       .navigationBarTitleDisplayMode(.large)
       .toolbar {
-        Button {
-          
-        } label : {
-          Image(systemName: "plus")
+        ToolbarItemGroup(placement: .navigationBarTrailing) {
+          HStack {
+            Button {
+              showAddSheet()
+            } label : {
+              Image(systemName: "plus")
+                .foregroundColor(.white)
+              
+                .frame(width: 40, height: 40)
+                .background(.blue)
+                .clipShape(Circle())
+                .animation(.snappy, value: hasSelection)
+                .transition(.move(edge: .leading))
+            }
+            if hasSelection {
+              Menu {
+                Button("Remove Ingredients", action: removeIngredients)
+                Button("Move to Groceries", action: moveToGroceries)
+              } label: {
+                Image(systemName: "ellipsis")
+                  .rotationEffect(.degrees(90))
+                  .foregroundColor(.blue)
+                  .frame(width: 40, height: 40)
+                  .background(.tertiary)
+                  .clipShape(Circle())
+                  .animation(.snappy, value: hasSelection)
+                  .transition(.opacity)
+              }
+            }
+          }
         }
-        Menu {
-          Button("Remove Ingredient", action: removeIngredients)
-          Button("Add Ingredient", action: addIngredient)
-          Button("Move to Groceries", action: moveToGroceries)
-        } label: {
-          Image(systemName: "ellipsis")
-            .rotationEffect(.degrees(90))
-        }
+      }
+      
+    }
+    .onChange(of: selectedIngredients) {
+      withAnimation {
+        hasSelection = !selectedIngredients.isEmpty
       }
     }
     
   }
   
-  private func selectIngredient(ingredient: Ingredient) {
-    
-  }
   
-  private func deselectIngredient(ingredient: Ingredient) {
-    
-  }
-  
-  func addIngredient() {
+  func showAddSheet() {
+    showBottomSheet = true
   }
   
   func moveToGroceries() {
-    print("Button was tapped")
   }
   
   func removeIngredients() {
+    print("remove these ingredients \(ingredientManager.selectedIngredients)");
+    
     
   }
   
 }
 
 #Preview {
-  do {
-    return IngredientsView()
+  @State var showBottomSheet = false
+  return IngredientsView(showBottomSheet: $showBottomSheet)
       .modelContainer(DataController.previewContainer)
-  } catch {
-    return Text("Failed to create container: \(error.localizedDescription)")
-  }
 }

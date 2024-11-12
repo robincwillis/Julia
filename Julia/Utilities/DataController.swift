@@ -14,7 +14,7 @@ class DataController {
       let config = ModelConfiguration(isStoredInMemoryOnly: true)
       let container = try ModelContainer(for: Ingredient.self, Recipe.self, configurations: config)
       for mockIngredient in mockIngredients {
-        let ingredient = Ingredient(name: mockIngredient.name, quantity: mockIngredient.quantity)
+        let ingredient = Ingredient(name: mockIngredient.name, location: mockIngredient.location, quantity: mockIngredient.quantity)
         container.mainContext.insert(ingredient)
       }
       for mockRecipe in mockRecipes {
@@ -22,7 +22,7 @@ class DataController {
         container.mainContext.insert(recipe)
         
         for mockIngredient in mockRecipe.ingredients {
-          let ingredient = Ingredient(name: mockIngredient.name, quantity: mockIngredient.quantity)
+          let ingredient = Ingredient(name: mockIngredient.name, location: IngredientLocation.recipe, quantity: mockIngredient.quantity)
           recipe.ingredients.append(ingredient)
         }
         
@@ -40,6 +40,5 @@ class DataController {
     } catch {
       fatalError("Failed to create ModelContainer for Ingredients.")
     }
-    
   }()
 }

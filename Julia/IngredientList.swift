@@ -10,17 +10,16 @@ import SwiftData
 
 struct IngredientList: View {
     let ingredients: [Ingredient]
-    var onSelect: (Ingredient) -> Void
-    var onDeselect: (Ingredient) -> Void
-    
-    //@Environment(\.modelContext) private var context
-    
+    @ObservedObject var ingredientManager: IngredientViewModel
+
     var body: some View {
         VStack (spacing: 32) {
-            List(ingredients, id: \.id) { ingredient in
-                IngredientRow(ingredient: ingredient)
+          List(ingredients) { ingredient in
+            IngredientRow(ingredient: ingredient)
+              .selectable(selected: ingredientManager.isSelected(ingredient))
             }
         }
+        //.padding(.top, 10)
     }
 }
 
@@ -28,7 +27,7 @@ struct IngredientList: View {
   let container = DataController.previewContainer
   let fetchDescriptor = FetchDescriptor<Ingredient>()
   let ingredients = try! container.mainContext.fetch(fetchDescriptor)
-  return IngredientList(ingredients:ingredients, onSelect: { _ in }, onDeselect: { _ in })
+  @StateObject var ingredientManager = IngredientViewModel()
+  return IngredientList(ingredients:Array(ingredients[0..<10]), ingredientManager: ingredientManager)
 }
-
 

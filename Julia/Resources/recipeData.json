@@ -8,44 +8,51 @@
                 "id": "67651907-6849-433c-9b13-a112d678ed2e",
                 "name": "Flour",
                 "quantity": 2,
-                "measurement": "cup"
+                "measurement": "cup",
+                "location": "recipe"
             },
             {
                 "id": "da710e3d-c8a9-4c08-bf9e-82f10a44073d",
                 "name": "Sugar",
                 "quantity": 2,
-                "measurement": "tbsp"
+                "measurement": "tbsp",
+                "location": "recipe"
             },
             {
                 "id": "58865140-dbc2-4b52-a34d-8e5ce0631e08",
                 "name": "Baking Powder",
                 "quantity": 2,
-                "measurement": "tsp"
+                "measurement": "tsp",
+                "location": "recipe"
             },
             {
                 "id": "7ae75a4e-ccb6-4b0f-a3cc-ece6e81b3e8e",
                 "name": "Salt",
                 "quantity": 0.5,
-                "measurement": "tsp"
+                "measurement": "tsp",
+                "location": "recipe"
             },
             {
                 "id": "e7fc36d2-7903-4d93-a26f-ad553b31d1dc",
                 "name": "Milk",
                 "quantity": 1.5,
-                "measurement": "cup"
+                "measurement": "cup",
+                "location": "recipe"
             },
             {
                 "id": "8e982fe5-8b32-4cd7-ad4d-7a14e2ca90df",
                 "name": "Eggs",
                 "quantity": 2,
-                "measurement": "large"
+                "measurement": "large",
+                "location": "recipe"
             },
             {
                 "id": "7d6dbe04-0684-41e7-8464-3f3a0f676764",
                 "name": "Butter",
                 "quantity": 0.25,
                 "measurement": "cup",
-                "comment": "(melted)"
+                "comment": "(melted)",
+                "location": "recipe"
             }
         ],
         "steps": [
@@ -65,57 +72,66 @@
                 "id": "d39dbde8-35a3-49c1-a915-2b3e385d2677",
                 "name": "Flour",
                 "quantity": 2.25,
-                "measurement": "cup"
+                "measurement": "cup",
+                "location": "recipe"
             },
             {
                 "id": "ecab4532-05f9-43ba-bf16-fbc632e44aa1",
                 "name": "Baking Soda",
                 "quantity": 1,
-                "measurement": "tsp"
+                "measurement": "tsp",
+                "location": "recipe"
             },
             {
                 "id": "ce90d5d9-0376-4c2c-bb52-2382033823d8",
                 "name": "Salt",
                 "quantity": 0.5,
-                "measurement": "tsp"
+                "measurement": "tsp",
+                "location": "recipe"
             },
             {
                 "id": "8ce58e70-a27a-44ca-a776-4a16d744bf63",
                 "name": "Butter",
                 "quantity": 1,
                 "measurement": "cup",
-                "comment": "(2 sticks)"
+                "comment": "(2 sticks)",
+                "location": "recipe"
             },
             {
                 "id": "f1517117-7bf9-4b59-b155-69192a2f8002",
                 "name": "Sugar",
                 "quantity": 0.75,
-                "measurement": "cup"
+                "measurement": "cup",
+                "location": "recipe"
             },
             {
                 "id": "0bfd76af-29e3-4e0f-8c48-f5919e4dd65b",
                 "name": "Brown Sugar",
                 "quantity": 0.75,
                 "measurement": "cup",
-                "comment": "packed"
+                "comment": "packed",
+                "location": "recipe"
             },
             {
                 "id": "ebc8dcca-9465-44dc-9a9c-48c27913d62e",
                 "name": "Vanilla Extract",
                 "quantity": 1,
-                "measurement": "tsp"
+                "measurement": "tsp",
+                "location": "recipe"
             },
             {
                 "id": "01fba6be-8a43-43a6-9c45-0f7cca4d95b2",
                 "name": "Eggs",
                 "quantity": 2,
-                "comment": "large"
+                "comment": "large",
+                "location": "recipe"
             },
             {
                 "id": "0646ff6e-4451-4c97-9c0b-d4534e21e3d9",
                 "name": "Chocolate Chips",
                 "quantity": 2,
-                "measurement": "cup"
+                "measurement": "cup",
+                "location": "recipe"
             }
         ],
         "steps": [
