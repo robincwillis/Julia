@@ -27,8 +27,8 @@ struct FloatingBottomSheet<Content: View>: View {
   let content: Content
   
   @GestureState private var dragOffset: CGFloat = 0
-  @State private var offset: CGFloat = 0
-  @State private var keyboardHeight: CGFloat = 0
+  @State private var offset: CGFloat = 24
+  @State private var keyboardOffset: CGFloat = 0
   
   init(
     isPresented: Binding<Bool>,
@@ -54,19 +54,17 @@ struct FloatingBottomSheet<Content: View>: View {
           VStack {
             Spacer ()
             
-            
-            
             content
               .padding()
             
               .frame(maxWidth: .infinity)
-            //.frame(height: geometry.size.height * selectedDetent.heightRatio + dragOffset)
+              //.frame(height: geometry.size.height * selectedDetent.heightRatio + dragOffset)
               .background(
                 RoundedRectangle(cornerRadius: 24)
                   .fill(Color(UIColor.systemBackground))
                   .shadow(color: .black.opacity(0.1), radius: 12, x: 0, y: -5)
               )
-              .offset(y: offset + dragOffset - keyboardHeight)
+              .offset(y: dragOffset - keyboardOffset)
               .animation(.spring(), value: dragOffset) // Animate changes to dragOffsetY
               .transition(.move(edge: .bottom))
               .padding(.horizontal, 24)
@@ -87,7 +85,7 @@ struct FloatingBottomSheet<Content: View>: View {
         .animation(.spring(), value: isPresented)
         .animation(.spring(), value: selectedDetent)
         .onAppear {
-          setupKeyboardObservers()
+         setupKeyboardObservers()
         }
       }
     }
@@ -115,10 +113,8 @@ struct FloatingBottomSheet<Content: View>: View {
       object: nil,
       queue: .main
     ) { notification in
-      // let value = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect
-      // let height = value?.height ?? 0
       withAnimation(.spring()) {
-        self.keyboardHeight = 0 //height
+        self.keyboardOffset = 24 //height
       }
     }
     
@@ -128,7 +124,7 @@ struct FloatingBottomSheet<Content: View>: View {
       queue: .main
     ) { _ in
       withAnimation(.spring()) {
-        self.keyboardHeight = 0
+        self.keyboardOffset = 0
       }
     }
   }

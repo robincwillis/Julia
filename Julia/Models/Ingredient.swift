@@ -12,38 +12,27 @@
 import Foundation
 import SwiftData
 
-enum MeasurementUnit: String, Codable {
-  case pound
-  case pounds
-  case lb
-  case lbs
+enum MeasurementFraction: Double, CaseIterable, CustomStringConvertible {
+  case oneQuarter = 0.25
+  case oneThird = 0.3333
+  case oneHalf = 0.5
+  case twoThirds = 0.6666
+  case threeQuarters = 0.75
   
-  case gram
-  case grams
-
-  case ounce
-  case ounces
-  case oz
-  
-  case liter
-  case liters
-  
-  case cup
-  case cups
-
-  case tablesooon
-  case tablespoons
-  case tbsp
-  case tbsps
-  
-  case teaspoon
-  case teaspoons
-  case tsp
-  case tsps
-
-  case piece
-  case pieces
-  
+  var description: String {
+    switch self {
+    case .oneQuarter:
+      return "¼"
+    case .oneThird:
+      return "⅓"
+    case .oneHalf:
+      return "½"
+    case .twoThirds:
+      return "⅔"
+    case .threeQuarters:
+      return "¾"
+    }
+  }
 }
 
 enum IngredientLocation: String, Codable {
@@ -55,18 +44,29 @@ enum IngredientLocation: String, Codable {
     let container = try decoder.singleValueContainer()
     self = try IngredientLocation(rawValue: container.decode(String.self)) ?? .unknown
   }
+  var title: String{
+    switch self {
+    case .grocery:
+      return "Groceries"
+    case .pantry:
+      return "Pantry"
+    case .recipe:
+      return "Recipes"
+    case .unknown:
+      return "Unknown"
+      
+    }
+  }
 }
 
 @Model
-final class Ingredient: Identifiable, Hashable, Equatable {
-
-    
+final class Ingredient: Identifiable, Hashable, Equatable, CustomStringConvertible {
     @Attribute(.unique) var id: String = UUID().uuidString
     var createdDate: Date
     var name: String
     var location: IngredientLocation
     var quantity: Double?
-    var unit: String?
+    var unit: MeasurementUnit?
     var comment: String?
     var recipe: Recipe?
   
@@ -89,16 +89,32 @@ final class Ingredient: Identifiable, Hashable, Equatable {
         self.name = name
         self.location = location
         self.quantity = quantity
-        self.unit = unit
+        self.unit = MeasurementUnit(from: unit)
         self.comment = comment
         self.imageName = imageName
         self.recipe = recipe
     }
   
+  var description: String {
+    return "Ingredient(id: \(id), name: \(name), quantity: \(String(describing: quantity)), unit: \(String(describing: unit)), location: \(location.rawValue))"
+  }
 }
 
 extension Ingredient {
   func moveTo(_ newLocation: IngredientLocation) {
     self.location = newLocation
+  }
+  
+  func destination() -> IngredientLocation {
+    switch self.location {
+    case .pantry:
+      return .grocery
+    case .grocery:
+      return .pantry
+    case .recipe:
+      return .grocery
+    case .unknown:
+      return .recipe
+    }
   }
 }

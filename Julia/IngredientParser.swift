@@ -10,7 +10,7 @@ import Foundation
 
 class IngredientParser {
   
-  static func parse(input: String, location: IngredientLocation) -> Ingredient? {
+  static func fromString(input: String, location: IngredientLocation) -> Ingredient? {
     // Split the input by spaces
     let components = input.split(separator: " ").map { String($0) }
     
@@ -43,5 +43,28 @@ class IngredientParser {
     default:
       return Ingredient(name: input, location: location)  // Invalid format (too many components)
     }
+  }
+  
+  static func toString(for ingredient: Ingredient?) -> String {
+    guard let ingredient = ingredient else {
+      return ""
+    }
+    var ingredientString = ""
+    
+    if let quantity = ingredient.quantity {
+      ingredientString += "\(quantity)"
+      
+      if let unit = ingredient.unit {
+        ingredientString += " \(unit.rawValue)"
+      }
+    }
+    
+    if !ingredientString.isEmpty {
+      ingredientString += " \(ingredient.name)"
+    } else {
+      ingredientString = ingredient.name
+    }
+    
+    return ingredientString
   }
 }

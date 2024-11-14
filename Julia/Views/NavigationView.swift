@@ -51,29 +51,42 @@ enum Tabs: String, CaseIterable{
 
 
 struct NavigationView: View {
-  
-  
+
   @State private var selectedTab: String = "grocery"
   @State private var selectedLocation: IngredientLocation = .grocery
-
   @State private var selectedTabFrame: CGRect = .zero
-
   @State private var showModal = false
   @State private var showBottomSheet = false
-  
-  
+  @State private var currentIngredient: Ingredient? = nil
+
+
   var body: some View {
     ZStack(alignment: .bottom) {
       
       TabView(selection: $selectedTab) {
         RecipesView()
           .tag("recipe")
-        IngredientsView(showBottomSheet: $showBottomSheet)
+          .toolbar(.hidden, for: .tabBar)
+          .frame(maxHeight: .infinity)
+        IngredientsView(
+          location: IngredientLocation.pantry,
+          showBottomSheet: $showBottomSheet,
+          currentIngredient: $currentIngredient
+        )
           .tag("pantry")
-        GroceriesView(showBottomSheet: $showBottomSheet)
+          .toolbar(.hidden, for: .tabBar)
+          .frame(maxHeight: .infinity)
+        IngredientsView(
+          location: IngredientLocation.grocery,
+          showBottomSheet: $showBottomSheet,
+          currentIngredient: $currentIngredient
+        )
           .tag("grocery")
+          .toolbar(.hidden, for: .tabBar)
+          .frame(maxHeight: .infinity)
+        
       }
-      
+            
       // Bottom Navigation
       
       ZStack{
@@ -88,7 +101,6 @@ struct NavigationView: View {
                 }
               } label: {
                 TabItem(imageName: item.iconName, title: item.title, isActive: (selectedTab == item.rawValue))
-                
               }
             }
           }
@@ -116,10 +128,11 @@ struct NavigationView: View {
         }
       }
       .padding(.horizontal, 24)
+      .ignoresSafeArea(.keyboard)
       
-      // Sheets // Refactor as Add Ingredient
+      
       FloatingBottomSheet(isPresented: $showBottomSheet) {
-        AddIngredient(ingredientLocation: $selectedLocation)
+        AddIngredient(ingredientLocation: $selectedLocation, ingredient: $currentIngredient)
       }
     }
   }

@@ -14,7 +14,14 @@ struct iOSCheckboxToggleStyle: ToggleStyle {
       configuration.isOn.toggle()
     }, label: {
       HStack {
-        Image(systemName: configuration.isOn ? "checkmark.square" : "square")
+        RoundedRectangle(cornerRadius: 6)
+          .fill(configuration.isOn ? Color.blue : Color.gray.opacity(0.5))  // Blue when checked, gray otherwise
+          .frame(width: 24, height: 24)
+          .overlay(
+            Image(systemName: "checkmark")
+              .foregroundColor(.white)
+              .opacity(configuration.isOn ? 1 : 0)
+          )
         configuration.label
       }
     })
@@ -31,18 +38,25 @@ struct IngredientLabel: View {
   var body: some View {
     if let quantity = ingredient.quantity {
       if let unit = ingredient.unit {
-        Text("\(quantity.toFractionString()) \(unit.pluralized(for: quantity))")
+        Text("\(quantity.toFractionString())") // \(unit.shortHand.pluralized(for: quantity))
           .font(.subheadline)
-          .foregroundColor(.secondary)
+          .foregroundColor(.blue)
+        Text("\(unit.shortHand)")
+          .font(.subheadline)
+          .foregroundColor(/*@START_MENU_TOKEN@*/.blue/*@END_MENU_TOKEN@*/)
         Text(ingredient.name)
+          .foregroundColor(.secondary)
       } else {
         Text("\(quantity.toFractionString())")
           .font(.subheadline)
-          .foregroundColor(.secondary)
+          .foregroundColor(.blue)
         Text(ingredient.name.pluralized(for: quantity))
+          .foregroundColor(.secondary)
+          
       }
     } else {
       Text(ingredient.name)
+        .foregroundColor(.secondary)
     }
     if let comment = ingredient.comment {
       Text("\(comment)")
@@ -54,10 +68,16 @@ struct IngredientLabel: View {
 
 struct IngredientRow: View {
   var ingredient: Ingredient
+  var onTap: ((Ingredient?) -> Void)?
   
   var body: some View {
     HStack {
       IngredientLabel(ingredient)
+      Spacer()
+    }
+    .padding(.vertical, 6)
+    .onTapGesture {
+      onTap?(ingredient)  // Call the onTap closure if provided
     }
   }
 }
@@ -66,15 +86,9 @@ struct SelectableModifier: ViewModifier {
   let selected: Binding<Bool>
   func body(content: Content) -> some View {
     HStack {
-      Toggle(isOn: selected) {
-        content
-        Spacer()
-      }
-//      .onChange(of: selected.wrappedValue) {
-//        print("Toggle changed")
-//        print(selected.wrappedValue)
-//      }
+      Toggle(isOn: selected){}
       .toggleStyle(iOSCheckboxToggleStyle())
+      content
     }
   }
 }
@@ -91,10 +105,12 @@ extension View {
     let container = DataController.previewContainer
     let fetchDescriptor = FetchDescriptor<Ingredient>()
     let ingredients = try container.mainContext.fetch(fetchDescriptor)
+    func handleTap(with ingredient: Ingredient?) {
+
+    }
     return Group {
       ForEach(ingredients[0..<5]) { ingredient in
-        
-        IngredientRow(ingredient: ingredient)
+        IngredientRow(ingredient: ingredient, onTap: handleTap(with:))
           .selectable(selected: $selected)
       }
     }

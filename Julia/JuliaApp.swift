@@ -11,14 +11,10 @@ import SwiftData
 
 @main
 struct JuliaApp: App {
-    
-    
     var body: some Scene {
         WindowGroup {
             ContentView()
         }
         .modelContainer(for: [Ingredient.self, Recipe.self])
-        
     }
-
 }
