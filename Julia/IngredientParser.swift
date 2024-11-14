@@ -10,6 +10,17 @@ import Foundation
 
 class IngredientParser {
   
+  static private func parseFraction(_ input: String) -> Double? {
+    let components = input.split(separator: "/").map { Double($0) }
+    
+    // Ensure we have exactly two components and both are valid Doubles
+    if components.count == 2, let numerator = components[0], let denominator = components[1], denominator != 0 {
+      return numerator / denominator
+    }
+    
+    return Double(input) // Return value if parsing fails
+  }
+  
   static func fromString(input: String, location: IngredientLocation) -> Ingredient? {
     // Split the input by spaces
     let components = input.split(separator: " ").map { String($0) }
@@ -22,26 +33,45 @@ class IngredientParser {
       
     case 2:
       // First component: measurement, second: name
-      if let quantity = Double(components[0]) {
+      if let quantity = parseFraction(components[0]) {
         return Ingredient(name: components[1],  location: location, quantity: quantity)
       } else {
         return Ingredient(name: input, location: location)  // Invalid measurement
       }
       
     case 3:
-      let quantity = Double(components[0])
-      // let unit = String(components[1])
-      let unit = MeasurementUnit(rawValue: components[1].lowercased())
-      
-      // First component: measurement, second: unit, third: name
-      if quantity != nil, unit != nil {
-        return Ingredient(name: components[2], location: location, quantity: quantity, unit: unit?.rawValue)
+      if let quantity = parseFraction(components[0]) {
+        if let unit = MeasurementUnit(from:  String(components[1]).lowercased()) {
+          // quantit + unit + name
+          return Ingredient(name: components[2], location: location, quantity: quantity, unit: String(components[1]).lowercased())
+        } else {
+          // quantity + name
+          let ingredientName = components.dropFirst(1).joined(separator: " ")
+          return Ingredient(name: ingredientName, location: location, quantity: quantity)
+          
+        }
       } else {
-        return Ingredient(name: input, location: location)  // Invalid format (either measurement or unit)
+        // just name
+        return Ingredient(name: input, location: location)  // Invalid measurement
+        
       }
       
     default:
-      return Ingredient(name: input, location: location)  // Invalid format (too many components)
+      if let quantity = parseFraction(components[0]) {
+        if let unit = MeasurementUnit(from:  String(components[1]).lowercased()) {
+          // quantit + unit + name
+          let ingredientName = components.dropFirst(2).joined(separator: " ")
+          return Ingredient(name: ingredientName, location: location, quantity: quantity, unit: String(components[1]).lowercased())
+        } else {
+          // quantity + name
+          let ingredientName = components.dropFirst(1).joined(separator: " ")
+          return Ingredient(name: ingredientName, location: location, quantity: quantity)
+          
+        }
+      } else {
+        return Ingredient(name: input, location: location)  // Invalid format (too many components)
+      }
+      
     }
   }
   

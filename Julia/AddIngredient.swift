@@ -12,6 +12,7 @@ import SwiftData
 struct AddIngredient: View {
   @Binding var ingredientLocation : IngredientLocation
   @Binding var ingredient : Ingredient?
+  @Binding var showBottomSheet: Bool
   
   @Environment(\.modelContext) private var context
   @Environment(\.dismiss) private var dismiss
@@ -50,6 +51,9 @@ struct AddIngredient: View {
         } else {
           Button(action: {
             dismiss()
+            withAnimation(.spring()) {
+              showBottomSheet = false
+            }
           }) {
             Label("Close", systemImage: "xmark")
               .padding(.vertical, 6)
@@ -63,8 +67,6 @@ struct AddIngredient: View {
           
         }
         
-        
-        
       }
       
       // Main Input
@@ -73,6 +75,9 @@ struct AddIngredient: View {
         .foregroundColor(.black)
         .tint(.blue)
         .multilineTextAlignment(.center)
+        .disableAutocorrection(true)
+        .textInputAutocapitalization(.sentences)
+
         .focused($isFocused) // Bind focus to this text field
         .onAppear {
           isFocused = true // Automatically focus when the view appears
@@ -86,16 +91,16 @@ struct AddIngredient: View {
       
       if !isFocused {
         HStack {
-          Text("Measurement Option")
-          Text("Measurement Option")
-          Text("Measurement Option")
-          Text("Measurement Option")
-          Text("Measurement Option")
+//          Text("Measurement Option")
+//          Text("Measurement Option")
+//          Text("Measurement Option")
+//          Text("Measurement Option")
+//          Text("Measurement Option")
         }
         HStack {
-          Text("Fraction")
-          Text("Fraction")
-          Text("Fraction")
+//          Text("Fraction")
+//          Text("Fraction")
+//          Text("Fraction")
         }
       }
       
@@ -114,20 +119,26 @@ struct AddIngredient: View {
     // Handle Current Ingredient
     
     
-    // TODO: Get Location from parent
+    
     guard let newIngredient = IngredientParser.fromString(input: ingredientInput, location: ingredientLocation) else { return }
+   
+    // Edit existing ingredient
     if let ingredient = ingredient {
       ingredient.name = newIngredient.name
       ingredient.unit = newIngredient.unit
       ingredient.quantity = newIngredient.quantity
     } else {
+      // Creatae New Ingredeint
       context.insert(newIngredient)
+      ingredient = newIngredient
     }
     do {
       try context.save()
       //showSheet = false
       //ingredientInput = ""
+      // TODO: Get Created ingredient set currentIngredient on parent
       isFocused = false;
+      
       // dismiss()
     } catch {
       print(error.localizedDescription)
@@ -140,7 +151,11 @@ struct AddIngredient: View {
   @State var location = IngredientLocation.pantry
   @State var showBottomSheet = true
   return FloatingBottomSheet(isPresented: $showBottomSheet) {
-    AddIngredient(ingredientLocation: $location, ingredient: .constant(nil))
+    AddIngredient(
+      ingredientLocation: $location,
+      ingredient: .constant(nil),
+      showBottomSheet: $showBottomSheet
+    )
   }
 }
 

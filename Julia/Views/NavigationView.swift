@@ -132,7 +132,16 @@ struct NavigationView: View {
       
       
       FloatingBottomSheet(isPresented: $showBottomSheet) {
-        AddIngredient(ingredientLocation: $selectedLocation, ingredient: $currentIngredient)
+        AddIngredient(
+          ingredientLocation: $selectedLocation, 
+          ingredient: $currentIngredient,
+          showBottomSheet: $showBottomSheet
+        )
+      }.onChange(of: showBottomSheet) {
+        // Remove currentIngredient if AddIngredientSheet is dismissed
+        if(showBottomSheet == false) {
+          currentIngredient = nil
+        }
       }
     }
   }
@@ -151,17 +160,17 @@ extension NavigationView{
       Image(systemName: imageName)
         .resizable()
         .renderingMode(.template)
-        .foregroundColor(isActive ? .black : .gray)
+        .foregroundColor(isActive ? .white : .blue)
         .frame(width: 20, height: 20)
       if isActive{
         Text(title)
-          .font(.system(size: 14))
-          .foregroundColor(isActive ? .black : .gray)
+          .font(.system(size: 14, weight: .medium))
+          .foregroundColor(isActive ? .white : .blue)
       }
       Spacer()
     }
     .frame(width: isActive ? .infinity : 60, height: 60)
-    .background(isActive ? .blue.opacity(0.4) : .clear)
+    .background(isActive ? .blue : .clear)
     .cornerRadius(30)
   }
 }

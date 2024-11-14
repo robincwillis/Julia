@@ -38,10 +38,10 @@ struct IngredientLabel: View {
   var body: some View {
     if let quantity = ingredient.quantity {
       if let unit = ingredient.unit {
-        Text("\(quantity.toFractionString())") // \(unit.shortHand.pluralized(for: quantity))
+        Text("\(quantity.toFractionString())") // \(unit.shortHand)
           .font(.subheadline)
           .foregroundColor(.blue)
-        Text("\(unit.shortHand)")
+        Text("\(unit.displayName.pluralized(for: quantity))")
           .font(.subheadline)
           .foregroundColor(/*@START_MENU_TOKEN@*/.blue/*@END_MENU_TOKEN@*/)
         Text(ingredient.name)

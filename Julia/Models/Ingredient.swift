@@ -44,6 +44,7 @@ enum IngredientLocation: String, Codable {
     let container = try decoder.singleValueContainer()
     self = try IngredientLocation(rawValue: container.decode(String.self)) ?? .unknown
   }
+  
   var title: String{
     switch self {
     case .grocery:
@@ -55,6 +56,19 @@ enum IngredientLocation: String, Codable {
     case .unknown:
       return "Unknown"
       
+    }
+  }
+  
+  var destination: IngredientLocation {
+    switch self {
+    case .pantry:
+      return .grocery
+    case .grocery:
+      return .pantry
+    case .recipe:
+      return .grocery
+    case .unknown:
+      return .recipe
     }
   }
 }
@@ -103,18 +117,5 @@ final class Ingredient: Identifiable, Hashable, Equatable, CustomStringConvertib
 extension Ingredient {
   func moveTo(_ newLocation: IngredientLocation) {
     self.location = newLocation
-  }
-  
-  func destination() -> IngredientLocation {
-    switch self.location {
-    case .pantry:
-      return .grocery
-    case .grocery:
-      return .pantry
-    case .recipe:
-      return .grocery
-    case .unknown:
-      return .recipe
-    }
   }
 }

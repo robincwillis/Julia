@@ -74,15 +74,16 @@ struct IngredientsView: View {
               
               if hasSelection {
                 Menu {
-                  Button("Remove Ingredients", action: {
-                    removeIngredients(from: selectedIndexSet)
-                  })
-                  Button("Move to Pantry", action: {
+                  Button("Move to \(location.destination.title)", action: {
                     moveIngredients(from: selectedIndexSet)
                   })
-                  Button("Clear Ingredients", action: {
+                  Button("Remove Ingredients", role: .destructive, action: {
+                    removeIngredients(from: selectedIndexSet)
+                  })
+                  Button("Clear Ingredients", role: .destructive, action: {
                     do {
                       try context.delete(model: Ingredient.self)
+                      selectedIngredients.removeAll()
                     } catch {
                       print("errror")
                     }
@@ -112,17 +113,6 @@ struct IngredientsView: View {
         hasSelection = !selectedIngredients.isEmpty
       }
     }
-    //.onChange(of: currentIngredient) {
-      //print("ingredientManager current Ingredient changed")
-//      print(currentIngredient as Any)
-//      currentIngredient = ingredientManager.currentIngredient
-//      if ingredientManager.currentIngredient != nil {
-//        print("ingredientManager currentIngredient is defined")
-//      } else {
-//        print("ingredientManager why did this change to nothing")
-//      }
-  //  }
-    
  }
   
   func showAddSheet(ingredient: Ingredient? = nil) {
@@ -130,35 +120,23 @@ struct IngredientsView: View {
       showBottomSheet = true  // Show the sheet even if there's no ingredient
       return
     }
-    
     currentIngredient = ingredient
     showBottomSheet = true
   }
   
   func removeIngredients(from selection: IndexSet) {
-    print("Remove Ingredients")
-    do {
       for index in selection {
-        print(index)
         context.delete(allIngredients[index])
       }
-      
-      
-      try context.save()
       selectedIngredients.removeAll()
-    } catch {
-      print("Error: \(error.localizedDescription)")
-    }
+
   }
   
   func moveIngredients(from selection: IndexSet) {
     print("Move Ingredients")
     do {
       for index in selection {
-        let newLocation  = allIngredients[index].destination()
-        print(newLocation)
-        print(allIngredients[index])
-        allIngredients[index].moveTo(newLocation)
+        allIngredients[index].moveTo(location.destination)
       }
       try context.save()
       selectedIngredients.removeAll()
