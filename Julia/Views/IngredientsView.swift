@@ -43,8 +43,7 @@ struct IngredientsView: View {
   }
   
   var body: some View {
-    print(ingredients)
-    return NavigationStack {
+    NavigationStack {
       ZStack {
         VStack {
           IngredientList(
@@ -85,7 +84,7 @@ struct IngredientsView: View {
                       try context.delete(model: Ingredient.self)
                       selectedIngredients.removeAll()
                     } catch {
-                      print("errror")
+                      print(error.localizedDescription)
                     }
                     
                   })
@@ -133,7 +132,6 @@ struct IngredientsView: View {
   }
   
   func moveIngredients(from selection: IndexSet) {
-    print("Move Ingredients")
     do {
       for index in selection {
         allIngredients[index].moveTo(location.destination)

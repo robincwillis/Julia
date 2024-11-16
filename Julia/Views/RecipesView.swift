@@ -32,7 +32,7 @@ struct RecipesView: View {
         }
       }
       .sheet(isPresented: $showAddSheet) {
-        AddRecipe()
+        AddRecipe(recognizedText: [])
       }
       
     } detail: {

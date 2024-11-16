@@ -27,11 +27,7 @@ struct AddIngredient: View {
   }
   
   var body: some View {
-    print("::AddIngredient: currentIngredient")
-    print(ingredient ?? "nothing")
-    print("::AddIngredient: ingredientInput")
-    print(ingredientInput)
-    return VStack (spacing: 12) {
+    VStack (spacing: 12) {
       HStack {
         
         Spacer()
