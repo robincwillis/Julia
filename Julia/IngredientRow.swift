@@ -69,13 +69,14 @@ struct IngredientLabel: View {
 struct IngredientRow: View {
   var ingredient: Ingredient
   var onTap: ((Ingredient?) -> Void)?
+  var padding: CGFloat = 6
   
   var body: some View {
     HStack {
       IngredientLabel(ingredient)
       Spacer()
     }
-    .padding(.vertical, 6)
+    .padding(.vertical, padding)
     .onTapGesture {
       onTap?(ingredient)  // Call the onTap closure if provided
     }

@@ -18,7 +18,7 @@ class DataController {
         container.mainContext.insert(ingredient)
       }
       for mockRecipe in mockRecipes {
-        var recipe = Recipe(title: mockRecipe.title, content: mockRecipe.content, steps: mockRecipe.steps)
+        var recipe = Recipe(title: mockRecipe.title, content: mockRecipe.content, steps: mockRecipe.steps, rawText: mockRecipe.rawText)
         container.mainContext.insert(recipe)
         
         for mockIngredient in mockRecipe.ingredients {

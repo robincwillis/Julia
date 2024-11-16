@@ -3,6 +3,7 @@
         "id": "1e61e0ba-f060-4f2c-b815-3ca5fd5a8fa2",
         "title": "Pancakes",
         "content": "Suscipit inceptos est felis purus aenean aliquet adipiscing diam venenatis, augue nibh duis neque aliquam tellus condimentum sagittis vivamus, cras ante etiam sit conubia elit tempus accumsan libero, mattis per erat habitasse cubilia ligula penatibus curae.",
+        "rawText": ["Suscipit inceptos est felis purus aenean aliquet adipiscing diam venenatis,"," augue nibh duis neque aliquam tellus condimentum sagittis vivamus,"," cras ante etiam sit conubia elit tempus accumsan libero, mattis per erat habitasse cubilia ligula penatibus curae."],
         "ingredients": [
             {
                 "id": "67651907-6849-433c-9b13-a112d678ed2e",
@@ -67,6 +68,7 @@
     {
         "id": "e8b1146f-8c27-4b3d-bff3-0ec87bfaf841",
         "title": "Chocolate Chip Cookies",
+        "rawText": ["Suscipit inceptos est felis purus aenean aliquet adipiscing diam venenatis,"," augue nibh duis neque aliquam tellus condimentum sagittis vivamus,"," cras ante etiam sit conubia elit tempus accumsan libero, mattis per erat habitasse cubilia ligula penatibus curae."],
         "ingredients": [
             {
                 "id": "d39dbde8-35a3-49c1-a915-2b3e385d2677",

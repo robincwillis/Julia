@@ -31,6 +31,7 @@ struct MockRecipe: Decodable {
     let id: UUID
     let title: String
     let content: String?
+    let rawText: [String]
     let ingredients: [MockIngredient]
     let steps: [String]
 }

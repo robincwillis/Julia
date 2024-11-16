@@ -10,28 +10,32 @@ import PhotosUI
 import Vision
 
 
-struct ResulstDebug: View {
+struct ResultsDebug: View {
   var recognizedText : [String]
   var image: UIImage?
   var clearState: () -> Void
   
   var body: some View {
-    List(recognizedText, id: \.self) {
-      Text($0)
+    VStack {
+      Button("Clear State and Start Over") {
+        clearState()
+      }
+      .padding()
+      .background(.red)
+      .foregroundColor(.white)
+      .cornerRadius(12)
+      List(recognizedText, id: \.self) {
+        Text($0)
+      }
     }
+
     if let image = image {
       Image(uiImage: image)
         .resizable()
         .scaledToFit()
     }
     
-    Button("Clear State and Start Over") {
-      clearState()
-    }
-    .padding()
-    .background(.gray)
-    .foregroundColor(.white)
-    .cornerRadius(12)
+
     
     
   }
@@ -49,21 +53,21 @@ struct ImagePicker: View {
   
   var body: some View {
     VStack {
-      HStack {
-        Spacer()
-        Button(action: {
-          showModal = false
-        }) {
-          Image(systemName: "xmark")
-          //.font(.title2)
-            .foregroundColor(.white)
-            .frame(width: 40, height: 40)
-            .background(.blue)
-            .clipShape(Circle())
-          //.cornerRadius(10)
-        }
-        .padding(.bottom, 20)
-      }
+//      HStack {
+//        Spacer()
+//        Button(action: {
+//          showModal = false
+//        }) {
+//          Image(systemName: "xmark")
+//          //.font(.title2)
+//            .foregroundColor(.white)
+//            .frame(width: 40, height: 40)
+//            .background(.blue)
+//            .clipShape(Circle())
+//          //.cornerRadius(10)
+//        }
+//        .padding(.bottom, 20)
+//      }
       
       if !recognizedText.isEmpty {
         
@@ -75,7 +79,7 @@ struct ImagePicker: View {
             }
             .tag(0)
           
-          ResulstDebug(recognizedText: recognizedText, image: image, clearState: clearState)
+          ResultsDebug(recognizedText: recognizedText, image: image, clearState: clearState)
             .tabItem {
               Label("List", systemImage: "list.bullet")
             }
@@ -150,5 +154,6 @@ func recognizeText(from image: UIImage, completion: @escaping ([String]) -> Void
 
 #Preview {
   @State var showModal = true
-  return ImagePicker(showModal: $showModal)
+  var rawText = ["88", "GREEN SALAD", "with Dill & Lemon Dressing", "Serves 4 to 6", "FOR THE DRESSING:", "3 tablespoons (45 milliliters) lemon", "juice (from 1/2 large lemons)", "½ teaspoon kosher salt", "¼/ cup (60 milliliters) extra-virgin", "olive oil", "FOR THE SALAD:", "1 small head romaine lettuce", "1 small head green-leaf lettuce", "¼4 cup (15 grams) roughly chopped", "fresh dill", "2 tablespoons finely chopped", "fresh chives", "This is my version of a classic Greek dish, marouli salata, which simply", "means lettuce salad. It\'s often served with sliced raw scallions but I", "substitute chives because they have a less overpowering bite. The", "freshness of the dill with the tangy lemon makes a great palate cleanser", "atter a heavy or particularly rich meal.", "Make the dressing: In a small bowl or cup, combine the lemon juice", "and salt and mix well to dissolve. Add the oil and whisk with a fork until", "emulsified.", "Make the salad: Remove any brown or wilted outer leaves from both", "heads of lettuce. Cut the lettuce crosswise into ribbons about ½2 inch", "(12 millimeters) thick. Rinse in cold water, drain, and dry in a salad spinner.", "Place the lettuce in a large serving bowl. Add the dill and chives and", "toss to combine. Drizzle with the dressing, toss well, and serve."]
+  return ImagePicker(showModal: $showModal, recognizedText:rawText)
 }
