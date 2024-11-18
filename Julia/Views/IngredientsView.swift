@@ -73,13 +73,13 @@ struct IngredientsView: View {
               
               if hasSelection {
                 Menu {
-                  Button("Move to \(location.destination.title)", action: {
+                  Button("Move to \(location.destination.title)", systemImage: "folder", action: {
                     moveIngredients(from: selectedIndexSet)
                   })
-                  Button("Remove Ingredients", role: .destructive, action: {
+                  Button("Remove Ingredients", systemImage: "trash", role: .destructive, action: {
                     removeIngredients(from: selectedIndexSet)
                   })
-                  Button("Clear Ingredients", role: .destructive, action: {
+                  Button("Clear Ingredients", systemImage: "clear", role: .destructive, action: {
                     do {
                       try context.delete(model: Ingredient.self)
                       selectedIngredients.removeAll()

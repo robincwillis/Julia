@@ -12,23 +12,22 @@ import SwiftData
 class Recipe: Identifiable, Hashable, CustomStringConvertible {
     @Attribute(.unique) var id: String = UUID().uuidString
     var title: String
-    var content: String?
-    var steps : [String]
+    var summary: String?
+    var instructions : [String]
     @Relationship var ingredients: [Ingredient]
     // TODO: Ingredient Sections
     var rawText : [String]?
   
-    init(id: String = UUID().uuidString, title: String, content: String? = nil, ingredients: [Ingredient] = [], steps: [String] = [], rawText: [String] = []) {
+    init(id: String = UUID().uuidString, title: String, summary: String? = nil, ingredients: [Ingredient] = [], instructions: [String] = [], rawText: [String] = []) {
         self.id = id
         self.title = title
-        self.content = content
+        self.summary = summary
         self.ingredients = ingredients
-        self.steps = steps
+        self.instructions = instructions
         self.rawText = rawText
     }
   
   var description: String {
     return "Recipe(id: \(id), title: \(title), rawText: \(rawText)"
   }
-    
-}
+    }

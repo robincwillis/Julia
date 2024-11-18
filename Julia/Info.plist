@@ -3,6 +3,6 @@
 <plist version="1.0">
 <dict>
 	<key>NSCameraUsageDescription</key>
-	<string>We need access to your camera to take photos of recipes.</string>
+	<string>We need camera access to take photos for recipe recognition</string>
 </dict>
 </plist>

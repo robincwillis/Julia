@@ -9,7 +9,7 @@ import SwiftUI
 import SwiftData
 
 struct RecipesView: View {
-  @Environment(\.modelContext) var modelContext
+  @Environment(\.modelContext) var context
   @Query private var recipes: [Recipe]
   @State var showAddSheet = false
   
@@ -30,9 +30,18 @@ struct RecipesView: View {
             .background(.tertiary)
             .clipShape(Circle())
         }
+      
+//        Button("Clear Recipes", systemImage: "clear", role: .destructive) {
+//          do {
+//            try context.delete(model: Recipe.self)
+//          } catch {
+//            print(error.localizedDescription)
+//          }
+//        }
+        
       }
       .sheet(isPresented: $showAddSheet) {
-        AddRecipe(recognizedText: [])
+        AddRecipe()
       }
       
     } detail: {

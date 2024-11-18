@@ -33,6 +33,7 @@
 		526250C62CE28BFC004EE6C7 /* EditIngredient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 526250C52CE28BFC004EE6C7 /* EditIngredient.swift */; };
 		526250C82CE292A4004EE6C7 /* IngredientParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 526250C72CE292A4004EE6C7 /* IngredientParser.swift */; };
 		526250CA2CE3A641004EE6C7 /* MeasurementUnit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 526250C92CE3A641004EE6C7 /* MeasurementUnit.swift */; };
+		52B50C142CEBBB8600B472E0 /* Launch Screen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 52B50C132CEBBB8600B472E0 /* Launch Screen.storyboard */; };
 		52EF0BB12CDBF8A300B8354A /* FloatingBottomSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52EF0BB02CDBF8A300B8354A /* FloatingBottomSheet.swift */; };
 		52EF0BB32CDC0C9100B8354A /* DataController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52EF0BB22CDC0C9100B8354A /* DataController.swift */; };
 		52EF0BB52CDC115000B8354A /* AddIngredient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52EF0BB42CDC115000B8354A /* AddIngredient.swift */; };
@@ -67,6 +68,7 @@
 		526250C52CE28BFC004EE6C7 /* EditIngredient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditIngredient.swift; sourceTree = "<group>"; };
 		526250C72CE292A4004EE6C7 /* IngredientParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = IngredientParser.swift; path = Julia/IngredientParser.swift; sourceTree = SOURCE_ROOT; };
 		526250C92CE3A641004EE6C7 /* MeasurementUnit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeasurementUnit.swift; sourceTree = "<group>"; };
+		52B50C132CEBBB8600B472E0 /* Launch Screen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = "Launch Screen.storyboard"; sourceTree = "<group>"; };
 		52EF0BB02CDBF8A300B8354A /* FloatingBottomSheet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FloatingBottomSheet.swift; sourceTree = "<group>"; };
 		52EF0BB22CDC0C9100B8354A /* DataController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataController.swift; sourceTree = "<group>"; };
 		52EF0BB42CDC115000B8354A /* AddIngredient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddIngredient.swift; sourceTree = "<group>"; };
@@ -163,6 +165,7 @@
 				520DE6BA2C346A4F00CAF570 /* Utilities */,
 				520DE6A92C345FD000CAF570 /* Resources */,
 				5228BD542C2362EA001C845E /* Assets.xcassets */,
+				52B50C132CEBBB8600B472E0 /* Launch Screen.storyboard */,
 				5228BD562C2362EB001C845E /* Preview Content */,
 			);
 			path = Julia;
@@ -237,6 +240,7 @@
 				520DE6C22C346FAF00CAF570 /* ingredientData.json in Resources */,
 				520DE6C02C346FA900CAF570 /* recipeData.json in Resources */,
 				5228BD582C2362EB001C845E /* Preview Assets.xcassets in Resources */,
+				52B50C142CEBBB8600B472E0 /* Launch Screen.storyboard in Resources */,
 				5228BD552C2362EA001C845E /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

@@ -8,6 +8,7 @@
 import SwiftUI
 import PhotosUI
 import Vision
+// import AVFoundation
 
 
 struct ResultsDebug: View {
@@ -28,14 +29,14 @@ struct ResultsDebug: View {
         Text($0)
       }
     }
-
+    
     if let image = image {
       Image(uiImage: image)
         .resizable()
         .scaledToFit()
     }
     
-
+    
     
     
   }
@@ -45,29 +46,31 @@ struct ImagePicker: View {
   @Binding var showModal: Bool
   @State var recognizedText: [String] = []
   @State private var selectedTab = 0
-
+  
+  @State private var isProcessing = false
+  @State private var showingCameraPermissionAlert = false
+  
   
   @State private var image: UIImage?
-
   @State private var selectedItem: PhotosPickerItem? = nil
   
   var body: some View {
     VStack {
-//      HStack {
-//        Spacer()
-//        Button(action: {
-//          showModal = false
-//        }) {
-//          Image(systemName: "xmark")
-//          //.font(.title2)
-//            .foregroundColor(.white)
-//            .frame(width: 40, height: 40)
-//            .background(.blue)
-//            .clipShape(Circle())
-//          //.cornerRadius(10)
-//        }
-//        .padding(.bottom, 20)
-//      }
+      //      HStack {
+      //        Spacer()
+      //        Button(action: {
+      //          showModal = false
+      //        }) {
+      //          Image(systemName: "xmark")
+      //          //.font(.title2)
+      //            .foregroundColor(.white)
+      //            .frame(width: 40, height: 40)
+      //            .background(.blue)
+      //            .clipShape(Circle())
+      //          //.cornerRadius(10)
+      //        }
+      //        .padding(.bottom, 20)
+      //      }
       
       if !recognizedText.isEmpty {
         
@@ -85,12 +88,35 @@ struct ImagePicker: View {
             }
             .tag(1)
         }
-       
+        
         
       } else {
         Spacer()
+        
+        if isProcessing {
+          ProgressView("Processing Image...")
+        }
+        
+        //        VStack(spacing: 24) {
+        //          if checkCameraPermission() {
+        //            // Show camera picker
+        //            
+        //            PhotosPicker(selection: $selectedItem, matching: .images, sourceType: .camera) {
+        //              Text("Take Photo")
+        //                .padding()
+        //                .background(.green)
+        //                .foregroundColor(.white)
+        //                .cornerRadius(12)
+        //            }
+        //            
+        //          } else {
+        //            // Show alert about camera permissions
+        //            showingCameraPermissionAlert = true
+        //          }
+        //      }
+        
         PhotosPicker(selection: $selectedItem, matching: .images, photoLibrary: .shared()) {
-          Text("Take a photo")
+          Text("Select from Photos")
             .padding()
             .background(.blue)
             .foregroundColor(.white)
@@ -98,12 +124,26 @@ struct ImagePicker: View {
         }
         .onChange(of: selectedItem) { oldItem, newItem in
           Task {
+            isProcessing = true
+            defer { isProcessing = false }
+            
             if let data = try? await newItem?.loadTransferable(type: Data.self),
                let uiImage = UIImage(data: data) {
               image = uiImage
               processImage(uiImage)
             }
           }
+        }
+        .alert("Camera Access Required", isPresented: $showingCameraPermissionAlert) {
+          Button("Open Settings", role: .none) {
+            // Open app settings
+            if let settingsURL = URL(string: UIApplication.openSettingsURLString) {
+              UIApplication.shared.open(settingsURL)
+            }
+          }
+          Button("Cancel", role: .cancel) {}
+        } message: {
+          Text("Please grant camera access in Settings to take photos for recipe recognition.")
         }
       }
     }
@@ -120,6 +160,23 @@ struct ImagePicker: View {
     recognizeText(from: image) { recognizedStrings in
       recognizedText = recognizedStrings
     }
+  }
+}
+
+func checkCameraPermission() -> Bool {
+  switch AVCaptureDevice.authorizationStatus(for: .video) {
+  case .authorized:
+    return true
+  case .notDetermined:
+    // Request permission
+    AVCaptureDevice.requestAccess(for: .video) { granted in
+      // Handle async response if needed
+    }
+    return false
+  case .denied, .restricted:
+    return false
+  @unknown default:
+    return false
   }
 }
 

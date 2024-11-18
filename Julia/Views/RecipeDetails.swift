@@ -11,7 +11,12 @@ import SwiftData
 struct RecipeDetails: View {
   let recipe: Recipe
   
+  @Environment(\.dismiss) private var dismiss
+  @Environment(\.modelContext) var context
   
+  @State private var isEditing = false
+  @State private var showingDeleteConfirmation = false
+
   var rawTextString: String {
     recipe.rawText!.joined(separator: "\n")
   }
@@ -20,12 +25,12 @@ struct RecipeDetails: View {
     ScrollView {
       VStack (alignment: .leading, spacing: 24) {
         
-        if let description = recipe.content {
+        if let summary = recipe.summary {
           VStack (alignment: .leading){
-            Text("Description")
+            Text("Summary")
               .font(.headline)
               .padding(.bottom, 6)
-            Text(description)
+            Text(summary)
               .font(.caption)
           }
           Divider()
@@ -44,12 +49,12 @@ struct RecipeDetails: View {
         Divider()
         
         VStack (alignment: .leading) {
-          Text("Steps")
+          Text("Instructions")
             .font(.headline)
             .padding(.bottom, 6)
           
-          ForEach(recipe.steps.indices, id: \.self) {index in
-            let step = recipe.steps[index]
+          ForEach(recipe.instructions.indices, id: \.self) {index in
+            let step = recipe.instructions[index]
             HStack (alignment: .top, spacing: 6) {
               Text("Step \(index + 1)")
                 .foregroundColor(/*@START_MENU_TOKEN@*/.blue/*@END_MENU_TOKEN@*/)
@@ -86,7 +91,7 @@ struct RecipeDetails: View {
             .foregroundColor(.secondary) // Dark grey text
             .background(.background.secondary) // Light grey background
             .cornerRadius(8)
-              
+            
           }
         }
         Spacer()
@@ -96,6 +101,52 @@ struct RecipeDetails: View {
     }
     .navigationTitle(recipe.title)
     .navigationBarTitleDisplayMode(.large)
+    .toolbar {
+      Menu {
+        NavigationLink(destination: AddRecipe(recipe: recipe)) {
+          Label("Edit Recipe", systemImage: "pencil")
+        }
+        Button("Delete Recipe", systemImage: "trash", role: .destructive) {
+          showingDeleteConfirmation = true
+        }
+        
+        Button("Clear Recipes", systemImage: "clear", role: .destructive) {
+          do {
+            try context.delete(model: Recipe.self)
+          } catch {
+            print(error.localizedDescription)
+          }
+        }
+
+      } label: {
+        Image(systemName: "ellipsis")
+          .rotationEffect(.degrees(90))
+          .foregroundColor(.blue)
+          .frame(width: 40, height: 40)
+          .background(.tertiary)
+          .clipShape(Circle())
+      }
+    }
+    .confirmationDialog("Are you sure?",
+                        isPresented: $showingDeleteConfirmation,
+                        titleVisibility: .visible
+    ) {
+      Button("Delete Recipe", role: .destructive) {
+        deleteRecipe()
+      }
+    }
+  }
+  
+  private func deleteRecipe() {
+    // TODO: Delete
+    do {
+      context.delete(recipe)
+    } catch {
+      print(error)
+    }
+
+    showingDeleteConfirmation = false
+    dismiss()
   }
 }
 
