@@ -80,13 +80,7 @@ struct IngredientsView: View {
                     removeIngredients(from: selectedIndexSet)
                   })
                   Button("Clear Ingredients", systemImage: "clear", role: .destructive, action: {
-                    do {
-                      try context.delete(model: Ingredient.self)
-                      selectedIngredients.removeAll()
-                    } catch {
-                      print(error.localizedDescription)
-                    }
-                    
+                    clearAllIngredients()
                   })
                 } label: {
                   Image(systemName: "ellipsis")
@@ -139,7 +133,35 @@ struct IngredientsView: View {
       try context.save()
       selectedIngredients.removeAll()
     } catch {
-      print("Error: \(error.localizedDescription)")
+      handleDataError(error)
+    }
+  }
+  
+  func clearAllIngredients() {
+    do {
+      try context.delete(model: Ingredient.self)
+      selectedIngredients.removeAll()
+    } catch {
+      handleDataError(error)
+    }
+  }
+  
+  private func handleDataError(_ error: Error) {
+    print("Data operation error: \(error.localizedDescription)")
+    
+    // Show user-facing alert
+    let errorMessage = error.localizedDescription
+    let alert = UIAlertController(
+      title: "Error Updating Ingredients",
+      message: "There was a problem: \(errorMessage)",
+      preferredStyle: .alert
+    )
+    alert.addAction(UIAlertAction(title: "OK", style: .default))
+    
+    // Get the top-most view controller to present the alert
+    if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+       let rootViewController = windowScene.windows.first?.rootViewController {
+      rootViewController.present(alert, animated: true)
     }
   }
 }

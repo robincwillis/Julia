@@ -47,26 +47,32 @@ var mockIngredients: [MockIngredient] = load("ingredientData.json", for: [MockIn
 var mockRecipes: [MockRecipe] = load("recipeData.json", for: [MockRecipe].self)
 
 func load<T: Decodable>(_ filename: String, for type: T.Type) -> T {
-    let data: Data
-    
-    guard let file = Bundle.main.url(forResource: filename, withExtension: nil)
-    else {
-        fatalError("Couldn't find \(filename) in main bundle.")
-    }
-    
+    // Attempt to load mock data, with empty fallback if something fails
     do {
-        data = try Data(contentsOf: file)
-    } catch {
-        fatalError("Cound't load \(filename) from main bundle:\n\(error)")
-    }
-    
-    do {
+        guard let file = Bundle.main.url(forResource: filename, withExtension: nil) else {
+            print("Error: File \(filename) not found in bundle")
+            return createEmptyMock(for: type)
+        }
+        
+        let data = try Data(contentsOf: file)
         let decoder = JSONDecoder()
-        
-        
         return try decoder.decode(T.self, from: data)
     } catch {
-        fatalError("Couldn't parse \(filename) as \(T.self):\n\(error)")
+        print("Error loading \(filename): \(error.localizedDescription)")
+        return createEmptyMock(for: type)
+    }
+}
+
+private func createEmptyMock<T: Decodable>(for type: T.Type) -> T {
+    // Create empty mock objects when file loading fails
+    if type == [MockIngredient].self {
+        return [] as! T
+    } else if type == [MockRecipe].self {
+        return [] as! T
+    } else {
+        // Last resort for other types (should not happen)
+        print("Critical: Unexpected mock type requested")
+        return try! JSONDecoder().decode(T.self, from: "[]".data(using: .utf8)!)
     }
 }
 
