@@ -15,15 +15,16 @@ class Recipe: Identifiable, Hashable, CustomStringConvertible {
     var summary: String?
     var instructions : [String]
     @Relationship var ingredients: [Ingredient]
-    // TODO: Ingredient Sections
+    @Relationship(.cascade) var sections: [IngredientSection] = []
     var rawText : [String]?
   
-    init(id: String = UUID().uuidString, title: String, summary: String? = nil, ingredients: [Ingredient] = [], instructions: [String] = [], rawText: [String] = []) {
+    init(id: String = UUID().uuidString, title: String, summary: String? = nil, ingredients: [Ingredient] = [], instructions: [String] = [], sections: [IngredientSection] = [], rawText: [String] = []) {
         self.id = id
         self.title = title
         self.summary = summary
         self.ingredients = ingredients
         self.instructions = instructions
+        self.sections = sections
         self.rawText = rawText
     }
   

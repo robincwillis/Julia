@@ -63,8 +63,8 @@ enum MeasurementUnit: String, CaseIterable, Codable {
     case .cup: return "c"
     case .tablespoon: return "tbsp"
     case .teaspoon: return "tsp"
-    case .piece: return "p"
-    case .pinch:  return "p"
+    case .piece: return "pc"
+    case .pinch:  return "pn"
     case .gram: return "g"
     case .kilogram: return "kg"
     }

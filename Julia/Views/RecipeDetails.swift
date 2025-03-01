@@ -138,7 +138,6 @@ struct RecipeDetails: View {
   }
   
   private func deleteRecipe() {
-    // TODO: Delete
     do {
       context.delete(recipe)
     } catch {

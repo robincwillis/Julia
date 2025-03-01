@@ -117,7 +117,6 @@ struct AddIngredient: View {
     }
     do {
       try context.save()
-      // TODO: Get Created ingredient set currentIngredient on parent
       isFocused = false;
       
     } catch {

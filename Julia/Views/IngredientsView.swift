@@ -18,6 +18,8 @@ struct IngredientsView: View {
 
   @State var selectedIngredients: [Ingredient] = []
   @State private var hasSelection = false
+  @State private var showingErrorAlert = false
+  @State private var errorMessage = ""
   
   private var ingredients: [Ingredient] {
     allIngredients.filter { $0.location == location }
@@ -106,7 +108,12 @@ struct IngredientsView: View {
         hasSelection = !selectedIngredients.isEmpty
       }
     }
- }
+    .alert("Error", isPresented: $showingErrorAlert) {
+      Button("OK", role: .cancel) { }
+    } message: {
+      Text(errorMessage)
+    }
+  }
   
   func showAddSheet(ingredient: Ingredient? = nil) {
     guard let ingredient = ingredient else {
@@ -149,20 +156,9 @@ struct IngredientsView: View {
   private func handleDataError(_ error: Error) {
     print("Data operation error: \(error.localizedDescription)")
     
-    // Show user-facing alert
-    let errorMessage = error.localizedDescription
-    let alert = UIAlertController(
-      title: "Error Updating Ingredients",
-      message: "There was a problem: \(errorMessage)",
-      preferredStyle: .alert
-    )
-    alert.addAction(UIAlertAction(title: "OK", style: .default))
-    
-    // Get the top-most view controller to present the alert
-    if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-       let rootViewController = windowScene.windows.first?.rootViewController {
-      rootViewController.present(alert, animated: true)
-    }
+    // Show user-facing alert using SwiftUI
+    errorMessage = "There was a problem: \(error.localizedDescription)"
+    showingErrorAlert = true
   }
 }
 

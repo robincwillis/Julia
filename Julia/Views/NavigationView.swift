@@ -1,5 +1,5 @@
 //
-//  TabView.swift
+//  NavigationView.swift
 //  Julia
 //
 //  Created by Robin Willis on 7/1/24.
@@ -54,7 +54,6 @@ struct NavigationView: View {
 
   @State private var selectedTab: String = "grocery"
   @State private var selectedLocation: IngredientLocation = .grocery
-  @State private var selectedTabFrame: CGRect = .zero
   @State private var showModal = false
   @State private var showBottomSheet = false
   @State private var currentIngredient: Ingredient? = nil
@@ -146,9 +145,6 @@ struct NavigationView: View {
     }
   }
   
-  fileprivate func updateTabFrame(_ frame: CGRect) {
-    selectedTabFrame = frame
-  }
 }
 
 extension NavigationView{
