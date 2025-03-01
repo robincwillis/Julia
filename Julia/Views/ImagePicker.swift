@@ -61,17 +61,23 @@ struct ImagePicker: View {
         
         TabView(selection: $selectedTab) {
           
-          AddRecipe(recognizedText: recognizedText)
+          ProcessOCRView(ocrText: recognizedText)
             .tabItem {
-              Label("Editor", systemImage: "square.and.pencil")
+              Label("Classify", systemImage: "square.and.pencil")
             }
             .tag(0)
           
-          ResultsDebug(recognizedText: recognizedText, image: image, clearState: clearState)
+          AddRecipe(recognizedText: recognizedText)
             .tabItem {
-              Label("List", systemImage: "list.bullet")
+              Label("Editor", systemImage: "doc.text")
             }
             .tag(1)
+          
+          ResultsDebug(recognizedText: recognizedText, image: image, clearState: clearState)
+            .tabItem {
+              Label("Raw Text", systemImage: "list.bullet")
+            }
+            .tag(2)
         }
         
         
