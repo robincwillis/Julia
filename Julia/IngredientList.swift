@@ -32,20 +32,34 @@ struct IngredientList: View {
 
 }
 
-//#Preview {
-//  let container = DataController.previewContainer
-//  let fetchDescriptor = FetchDescriptor<Ingredient>()
-//  let ingredients = try! container.mainContext.fetch(fetchDescriptor)
-//  @StateObject var ingredientManager = IngredientViewModel(location: IngredientLocation.pantry)
-//  
-//  func removeIngredients(from offsets: IndexSet) {
-//    print("remove \(offsets)")
-//  }
-//  
-//  return IngredientList(
-//    ingredients:Array(ingredients[0..<10]),
-//    ingredientManager: ingredientManager,
-//    removeIngredients: removeIngredients
-//  )
-//}
+#Preview {
+  let container = DataController.previewContainer
+  let fetchDescriptor = FetchDescriptor<Ingredient>()
+  
+  do {
+    let ingredients = try container.mainContext.fetch(fetchDescriptor)
+    let selectedIngredients = Set<Ingredient>()
+    
+    func showAddSheet(_ ingredient: Ingredient?) {
+      // Preview only
+    }
+    
+    func removeIngredients(from offsets: IndexSet) {
+      // Preview only
+    }
+    
+    func isSelected(_ ingredient: Ingredient) -> Binding<Bool> {
+      .constant(false)
+    }
+    
+    return IngredientList(
+      ingredients: ingredients.prefix(10).map { $0 },
+      showAddSheet: showAddSheet,
+      removeIngredients: removeIngredients,
+      isSelected: isSelected
+    )
+  } catch {
+    return Text("Failed to load ingredients: \(error.localizedDescription)")
+  }
+}
 

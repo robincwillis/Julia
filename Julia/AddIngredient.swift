@@ -59,7 +59,6 @@ struct AddIngredient: View {
               .clipShape(Capsule())
             
           }
-          //.disabled(!isInputValid)
           
         }
         
@@ -86,18 +85,7 @@ struct AddIngredient: View {
       // Secondary Input
       
       if !isFocused {
-        HStack {
-//          Text("Measurement Option")
-//          Text("Measurement Option")
-//          Text("Measurement Option")
-//          Text("Measurement Option")
-//          Text("Measurement Option")
-        }
-        HStack {
-//          Text("Fraction")
-//          Text("Fraction")
-//          Text("Fraction")
-        }
+        // Empty view when not focused
       }
       
       
@@ -111,7 +99,6 @@ struct AddIngredient: View {
   }
   
   private func saveIngredient() {
-    // guard !isInputValid() else { return }
     // Handle Current Ingredient
     
     
@@ -130,12 +117,9 @@ struct AddIngredient: View {
     }
     do {
       try context.save()
-      //showSheet = false
-      //ingredientInput = ""
       // TODO: Get Created ingredient set currentIngredient on parent
       isFocused = false;
       
-      // dismiss()
     } catch {
       print(error.localizedDescription)
     }
@@ -156,13 +140,3 @@ struct AddIngredient: View {
 }
 
 
-//VStack(spacing: 20) {
-//  Text("Add Item")
-//    .font(.headline)
-//
-//  TextField("Type something...", text: $textInput)
-//    .textFieldStyle(RoundedBorderTextFieldStyle())
-//    .padding(.horizontal)
-
-//
-//  }

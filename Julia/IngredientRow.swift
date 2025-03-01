@@ -43,7 +43,7 @@ struct IngredientLabel: View {
           .foregroundColor(.blue)
         Text("\(unit.displayName.pluralized(for: quantity))")
           .font(.subheadline)
-          .foregroundColor(/*@START_MENU_TOKEN@*/.blue/*@END_MENU_TOKEN@*/)
+          .foregroundColor(.blue)
         Text(ingredient.name)
           .foregroundColor(.secondary)
       } else {

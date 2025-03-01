@@ -65,34 +65,9 @@ func load<T: Decodable>(_ filename: String, for type: T.Type) -> T {
         
         
         return try decoder.decode(T.self, from: data)
-        // return container.value
     } catch {
         fatalError("Couldn't parse \(filename) as \(T.self):\n\(error)")
     }
 }
 
 
-//struct DecodableContainer<T: Decodable>: Decodable {
-//  let value: T
-//  
-//  init(from decoder: Decoder) {
-//    let container = try! decoder.singleValueContainer()
-//    //decoder.
-//    value = try T(from: decoder.with(IngredientLocation.self, using: IngredientLocationCodingStrategy.self, decoder: decoder))
-//
-//  }
-//}
-//
-//struct IngredientLocationCodingStrategy: TypedCodingValueProvider {
-//  static func provide(for type: IngredientLocation.Type, decoder: Decoder) throws -> IngredientLocation {
-//    let container = try decoder.singleValueContainer()
-//    let locationString = try container.decode(String.self)
-//    guard let location = IngredientLocation(rawValue: locationString) else {
-//      throw DecodingError.dataCorrupted(DecodingError.Context(
-//        codingPath: decoder.codingPath,
-//        debugDescription: "Invalid IngredientLocation value: \(locationString)"
-//      ))
-//    }
-//    return location
-//  }
-//}

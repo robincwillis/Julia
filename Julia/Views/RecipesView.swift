@@ -31,13 +31,6 @@ struct RecipesView: View {
             .clipShape(Circle())
         }
       
-//        Button("Clear Recipes", systemImage: "clear", role: .destructive) {
-//          do {
-//            try context.delete(model: Recipe.self)
-//          } catch {
-//            print(error.localizedDescription)
-//          }
-//        }
         
       }
       .sheet(isPresented: $showAddSheet) {

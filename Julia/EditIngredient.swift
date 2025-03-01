@@ -14,8 +14,7 @@ struct EditIngredient: View {
   
     var body: some View {
         Text("Hello, World!")
-      // Todo Move to EditIngredient
-      // TextField("Enter Measurement Unit", text: $measurementUnit)
+      // Implement measurement unit input field
     }
 }
 

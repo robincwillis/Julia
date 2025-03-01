@@ -49,29 +49,12 @@ struct PlaygroundView: View {
                 }
                     .padding(24)
                     .presentationDetents([.height(300), .medium, .large])
-                    //.padding()
                     .background(.green)
                     .presentationCornerRadius(0)
-                    //.frame(maxWidth: 400)
-                    //.presentationBackground(content: EmptyView)
-                    //.presentationBackground(.black.opacity(0))
                     .presentationDragIndicator(.hidden)
-                    //                    .presentationBackground(content: {
-                    //                        Rectangle()
-                    //                            .fill(.blue)
-                    //                            .frame(width: 200, height: 200)
-                    //                    })
-                    //.padding()
-                    //.
-                    //.presentation
-                    //.presentationSizing(.fitted)
-                    //                      .frame(
-                    //                        minWidth: 200, idealWidth: 300, maxWidth: 500,
-                    //                        minHeight: 100, maxHeight: 600)
             })
         }
     }
-      //  .background(.mint)
     
 }
 func didDismiss() {

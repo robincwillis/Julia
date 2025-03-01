@@ -8,7 +8,7 @@
 import SwiftUI
 import PhotosUI
 import Vision
-// import AVFoundation
+import AVFoundation
 
 
 struct ResultsDebug: View {
@@ -56,21 +56,6 @@ struct ImagePicker: View {
   
   var body: some View {
     VStack {
-      //      HStack {
-      //        Spacer()
-      //        Button(action: {
-      //          showModal = false
-      //        }) {
-      //          Image(systemName: "xmark")
-      //          //.font(.title2)
-      //            .foregroundColor(.white)
-      //            .frame(width: 40, height: 40)
-      //            .background(.blue)
-      //            .clipShape(Circle())
-      //          //.cornerRadius(10)
-      //        }
-      //        .padding(.bottom, 20)
-      //      }
       
       if !recognizedText.isEmpty {
         
@@ -97,23 +82,6 @@ struct ImagePicker: View {
           ProgressView("Processing Image...")
         }
         
-        //        VStack(spacing: 24) {
-        //          if checkCameraPermission() {
-        //            // Show camera picker
-        //            
-        //            PhotosPicker(selection: $selectedItem, matching: .images, sourceType: .camera) {
-        //              Text("Take Photo")
-        //                .padding()
-        //                .background(.green)
-        //                .foregroundColor(.white)
-        //                .cornerRadius(12)
-        //            }
-        //            
-        //          } else {
-        //            // Show alert about camera permissions
-        //            showingCameraPermissionAlert = true
-        //          }
-        //      }
         
         PhotosPicker(selection: $selectedItem, matching: .images, photoLibrary: .shared()) {
           Text("Select from Photos")

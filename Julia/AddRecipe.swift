@@ -26,12 +26,11 @@ struct AddRecipe: View {
     self.recognizedText = recognizedText
     self._rawText = State(initialValue: recognizedText?.joined(separator: "\n") ?? "")
 
-    //self.recipe = recipe
+    self.recipe = recipe
     
     // Set initial state based on existing recipe or empty strings
     _title = State(initialValue: recipe?.title ?? "")
-    // _ingredients = State(initialValue: recipe?.ingredients ?? [])
-    //_instructions = State(initialValue: recipe?.instructions ?? "")
+    _ingredients = State(initialValue: recipe?.ingredients ?? [])
   }
   
   var currentStrings: [String] {

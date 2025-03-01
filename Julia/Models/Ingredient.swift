@@ -5,8 +5,6 @@
 //  Created by Robin Willis on 7/2/24.
 //
 
-// Say I have an app with two models, recipe and ingredients. I have two views, groceries and pantry, I want to track which ingredients (with quantity and measurement) I have for recipes in pantry, and what I need in groceries, and be able to move them between views after I go shopping or start a new recipe. What is the best way to model ingredient?
-                                                                                                                                                                                  
 
 
 import Foundation
@@ -85,9 +83,6 @@ final class Ingredient: Identifiable, Hashable, Equatable, CustomStringConvertib
     var recipe: Recipe?
   
     private var imageName: String?
-    //  var image: Image? {
-    //        Image(imageName)
-    //  }
   init(
     id: String = UUID().uuidString,
     name: String,
