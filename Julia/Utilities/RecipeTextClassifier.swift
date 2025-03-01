@@ -65,9 +65,11 @@ class RecipeTextClassifier {
         
         // Get confidence scores for all labels
         var confidence = 0.5 // Default confidence
-        if let predictions = model.predictedLabelHypotheses(for: trimmedText, maximumCount: 1),
-           let score = predictions[predictedLabel] {
-            confidence = Double(score)
+        
+        // The predictedLabelHypotheses method returns a dictionary of [String: Double]
+        let predictions = model.predictedLabelHypotheses(for: trimmedText, maximumCount: 1)
+        if let score = predictions[predictedLabel] {
+            confidence = score
         }
         
         return RecipeTextLine(text: trimmedText, lineType: lineType, confidence: confidence)
