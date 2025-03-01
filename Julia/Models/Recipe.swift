@@ -15,7 +15,7 @@ class Recipe: Identifiable, Hashable, CustomStringConvertible {
     var summary: String?
     var instructions : [String]
     @Relationship var ingredients: [Ingredient]
-    @Relationship(.cascade) var sections: [IngredientSection] = []
+    @Relationship var sections: [IngredientSection] = []
     var rawText : [String]?
   
     init(id: String = UUID().uuidString, title: String, summary: String? = nil, ingredients: [Ingredient] = [], instructions: [String] = [], sections: [IngredientSection] = [], rawText: [String] = []) {
@@ -29,6 +29,6 @@ class Recipe: Identifiable, Hashable, CustomStringConvertible {
     }
   
   var description: String {
-    return "Recipe(id: \(id), title: \(title), rawText: \(rawText)"
+    return "Recipe(id: \(id), title: \(title), rawText: \(String(describing: rawText))"
   }
     }

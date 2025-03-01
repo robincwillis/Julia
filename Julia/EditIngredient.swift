@@ -14,13 +14,13 @@ struct EditIngredient: View {
   @Environment(\.modelContext) private var context
   
   @State private var name: String
-  @State private var quantity: Double
+  @State private var quantity: Double = 0
   @State private var selectedUnit: MeasurementUnit
   
   init(ingredient: Binding<Ingredient>) {
     self._ingredient = ingredient
     self._name = State(initialValue: ingredient.wrappedValue.name)
-    self._quantity = State(initialValue: ingredient.wrappedValue.quantity)
+    self._quantity = State(initialValue: ingredient.wrappedValue.quantity ?? 0)
     self._selectedUnit = State(initialValue: ingredient.wrappedValue.unit ?? .piece)
   }
   
@@ -72,7 +72,7 @@ struct EditIngredient: View {
 }
 
 #Preview {
-  let ingredient = Ingredient(name: "Apple", quantity: 2, unit: .piece, location: .pantry)
+  let ingredient = Ingredient(name: "Apple", location: .pantry, quantity: 2, unit: "piece")
   return EditIngredient(ingredient: .constant(ingredient))
     .modelContainer(DataController.previewContainer)
 }

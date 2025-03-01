@@ -69,7 +69,7 @@ class IngredientParser {
     case 3:
       // Case: Three words - "1/2 cup Sugar"
       if let quantity = parseFraction(components[0]) {
-        if let unit = MeasurementUnit(from: String(components[1]).lowercased()) {
+        if MeasurementUnit(from: String(components[1]).lowercased()) != nil {
           // Format: quantity + unit + name
           return Ingredient(name: components[2], 
                            location: location, 
@@ -88,7 +88,7 @@ class IngredientParser {
     default:
       // Case: Four or more words - "1 cup all purpose flour"
       if let quantity = parseFraction(components[0]) {
-        if let unit = MeasurementUnit(from: String(components[1]).lowercased()) {
+        if MeasurementUnit(from: String(components[1]).lowercased()) != nil {
           // Format: quantity + unit + multi-word name
           let ingredientName = components.dropFirst(2).joined(separator: " ")
           return Ingredient(name: ingredientName, 

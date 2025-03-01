@@ -6,6 +6,7 @@
 //
 
 import SwiftData
+import Foundation
 
 @MainActor
 class DataController {
@@ -30,7 +31,7 @@ class DataController {
     }
     
     for mockRecipe in mockRecipes {
-      var recipe = Recipe(title: mockRecipe.title, summary: mockRecipe.content, instructions: mockRecipe.steps, rawText: mockRecipe.rawText)
+      let recipe = Recipe(title: mockRecipe.title, summary: mockRecipe.content, instructions: mockRecipe.steps, rawText: mockRecipe.rawText)
       container.mainContext.insert(recipe)
       
       for mockIngredient in mockRecipe.ingredients {
@@ -43,10 +44,10 @@ class DataController {
   private static func createFallbackContainer() -> ModelContainer {
     do {
       let config = ModelConfiguration(isStoredInMemoryOnly: true)
-      return try ModelContainer(for: [], configurations: config)
+      return try ModelContainer(for: Ingredient.self, configurations: config)
     } catch {
       // Last resort - empty container
-      return try! ModelContainer(for: [])
+      return try! ModelContainer(for: Ingredient.self)
     }
   }
   

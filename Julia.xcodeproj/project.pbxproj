@@ -25,6 +25,7 @@
 		520DE6C82C3473CC00CAF570 /* RecipeDetails.swift in Sources */ = {isa = PBXBuildFile; fileRef = 520DE6C72C3473CC00CAF570 /* RecipeDetails.swift */; };
 		520DE6CA2C3473DA00CAF570 /* IngredientDetails.swift in Sources */ = {isa = PBXBuildFile; fileRef = 520DE6C92C3473DA00CAF570 /* IngredientDetails.swift */; };
 		520DE6CC2C35B0CF00CAF570 /* PlaygroundView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 520DE6CB2C35B0CF00CAF570 /* PlaygroundView.swift */; };
+		521313B82D733E2E0021DA90 /* IngredientSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 521313B72D733E2E0021DA90 /* IngredientSection.swift */; };
 		5228BD512C2362E7001C845E /* JuliaApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5228BD502C2362E7001C845E /* JuliaApp.swift */; };
 		5228BD532C2362E7001C845E /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5228BD522C2362E7001C845E /* ContentView.swift */; };
 		5228BD552C2362EA001C845E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5228BD542C2362EA001C845E /* Assets.xcassets */; };
@@ -59,6 +60,7 @@
 		520DE6C72C3473CC00CAF570 /* RecipeDetails.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeDetails.swift; sourceTree = "<group>"; };
 		520DE6C92C3473DA00CAF570 /* IngredientDetails.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IngredientDetails.swift; sourceTree = "<group>"; };
 		520DE6CB2C35B0CF00CAF570 /* PlaygroundView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaygroundView.swift; sourceTree = "<group>"; };
+		521313B72D733E2E0021DA90 /* IngredientSection.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IngredientSection.swift; sourceTree = "<group>"; };
 		5228BD4D2C2362E7001C845E /* Julia.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Julia.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		5228BD502C2362E7001C845E /* JuliaApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JuliaApp.swift; sourceTree = "<group>"; };
 		5228BD522C2362E7001C845E /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -100,6 +102,7 @@
 				520DE6AC2C34603400CAF570 /* Ingredient.swift */,
 				526250C92CE3A641004EE6C7 /* MeasurementUnit.swift */,
 				520DE6AE2C34604500CAF570 /* Recipe.swift */,
+				521313B72D733E2E0021DA90 /* IngredientSection.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -268,6 +271,7 @@
 				52EF0BB32CDC0C9100B8354A /* DataController.swift in Sources */,
 				520DE6BE2C346C9300CAF570 /* IngredientList.swift in Sources */,
 				520DE6AF2C34604500CAF570 /* Recipe.swift in Sources */,
+				521313B82D733E2E0021DA90 /* IngredientSection.swift in Sources */,
 				520DE6C82C3473CC00CAF570 /* RecipeDetails.swift in Sources */,
 				520DE6A22C33208B00CAF570 /* NavigationView.swift in Sources */,
 				5228BD512C2362E7001C845E /* JuliaApp.swift in Sources */,

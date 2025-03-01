@@ -38,7 +38,7 @@ struct IngredientList: View {
   
   do {
     let ingredients = try container.mainContext.fetch(fetchDescriptor)
-    let selectedIngredients = Set<Ingredient>()
+    // let selectedIngredients = Set<Ingredient>()
     
     func showAddSheet(_ ingredient: Ingredient?) {
       // Preview only

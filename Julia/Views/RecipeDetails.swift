@@ -138,10 +138,13 @@ struct RecipeDetails: View {
   }
   
   private func deleteRecipe() {
+    context.delete(recipe)
+    
+    // We need to handle potential errors when changes are saved
     do {
-      context.delete(recipe)
+      try context.save()
     } catch {
-      print(error)
+      print("Error deleting recipe: \(error)")
     }
 
     showingDeleteConfirmation = false
@@ -154,19 +157,37 @@ struct RecipeDetails: View {
 #Preview {
   let container = DataController.previewContainer
   let fetchDescriptor = FetchDescriptor<Recipe>()
+  
+  let previewRecipe: Recipe
+  
   do {
     let recipes = try container.mainContext.fetch(fetchDescriptor)
     if let firstRecipe = recipes.first {
-      return RecipeDetails(recipe: firstRecipe)
+      previewRecipe = firstRecipe
+    } else {
+      // Fallback if no recipes found
+      previewRecipe = Recipe(
+        title: "Sample Recipe",
+        summary: "A delicious sample recipe",
+        ingredients: [],
+        instructions: ["Step 1: Mix ingredients", "Step 2: Cook thoroughly"],
+        sections: [],
+        rawText: []
+      )
     }
   } catch {
     print("Error fetching recipes: \(error)")
+    // Error fallback
+    previewRecipe = Recipe(
+      title: "Sample Recipe",
+      summary: "A delicious sample recipe",
+      ingredients: [],
+      instructions: ["Step 1: Mix ingredients", "Step 2: Cook thoroughly"],
+      sections: [],
+      rawText: []
+    )
   }
   
-  // Fallback if no recipes found
-  return RecipeDetails(recipe: Recipe(
-    title: "Sample Recipe",
-    summary: "A delicious sample recipe",
-    instructions: ["Step 1: Mix ingredients", "Step 2: Cook thoroughly"]
-  ))
+  return RecipeDetails(recipe: previewRecipe)
+    .modelContainer(container)
 }

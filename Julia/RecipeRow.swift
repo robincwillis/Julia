@@ -18,7 +18,10 @@ struct RecipeRow: View {
     let recipe = Recipe(
         title: "Sample Recipe",
         summary: "A sample recipe for preview",
-        instructions: ["Step 1", "Step 2"]
+        ingredients: [],
+        instructions: ["Step 1", "Step 2"],
+        sections: [],
+        rawText: []
     )
     return RecipeRow(recipe: recipe)
 }

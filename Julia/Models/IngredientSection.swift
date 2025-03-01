@@ -13,7 +13,7 @@ final class IngredientSection: Identifiable, Hashable {
     @Attribute(.unique) var id: String = UUID().uuidString
     var name: String
     var position: Int
-    @Relationship(.cascade) var ingredients: [Ingredient] = []
+    @Relationship var ingredients: [Ingredient] = []
     
     init(id: String = UUID().uuidString, name: String, position: Int = 0, ingredients: [Ingredient] = []) {
         self.id = id
