@@ -9,12 +9,10 @@ import SwiftUI
 
 struct IngredientDetails: View {
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+        Text("Hello, World!")
     }
 }
 
-struct IngredientDetail_Previews: PreviewProvider {
-    static var previews: some View {
-        IngredientDetails()
-    }
+#Preview {
+    IngredientDetails()
 }

@@ -57,7 +57,7 @@ struct RecipeDetails: View {
             let step = recipe.instructions[index]
             HStack (alignment: .top, spacing: 6) {
               Text("Step \(index + 1)")
-                .foregroundColor(/*@START_MENU_TOKEN@*/.blue/*@END_MENU_TOKEN@*/)
+                .foregroundColor(.blue)
                 .fontWeight(.medium)
               Text(step)
               
@@ -153,9 +153,21 @@ struct RecipeDetails: View {
 
 
 #Preview {
-  let recipe = {}
   let container = DataController.previewContainer
   let fetchDescriptor = FetchDescriptor<Recipe>()
-  let recipes = try! container.mainContext.fetch(fetchDescriptor)
-  return RecipeDetails(recipe: recipes[0])
+  do {
+    let recipes = try container.mainContext.fetch(fetchDescriptor)
+    if let firstRecipe = recipes.first {
+      return RecipeDetails(recipe: firstRecipe)
+    }
+  } catch {
+    print("Error fetching recipes: \(error)")
+  }
+  
+  // Fallback if no recipes found
+  return RecipeDetails(recipe: Recipe(
+    title: "Sample Recipe",
+    summary: "A delicious sample recipe",
+    instructions: ["Step 1: Mix ingredients", "Step 2: Cook thoroughly"]
+  ))
 }

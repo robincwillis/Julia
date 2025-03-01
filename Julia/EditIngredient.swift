@@ -13,7 +13,7 @@ struct EditIngredient: View {
   @State private var measurementUnit = ""
   
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+        Text("Hello, World!")
       // Todo Move to EditIngredient
       // TextField("Enter Measurement Unit", text: $measurementUnit)
     }

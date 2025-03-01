@@ -136,14 +136,12 @@ struct FloatingBottomSheet<Content: View>: View {
   }
 }
 
-struct FloatingBottomSheet_Previews: PreviewProvider {
-  
+#Preview {
   struct PreviewWrapper: View {
     @State private var showSheet = true
     @State private var sheetDetent: SheetDetent = .medium
     @State private var textInput = ""
     @FocusState private var isFocused: Bool // Focus state for text field
-    
     
     var body: some View {
       ZStack {
@@ -167,16 +165,11 @@ struct FloatingBottomSheet_Previews: PreviewProvider {
               }
           }
         }
-        
-        
       }
     }
   }
   
-  static var previews: some View {
-    PreviewWrapper()
-      .preferredColorScheme(.light)
-      .previewDisplayName("Light Mode")
-    
-  }
+  return PreviewWrapper()
+    .preferredColorScheme(.light)
+    .previewDisplayName("Light Mode")
 }

@@ -14,14 +14,11 @@ struct RecipeRow: View {
     }
 }
 
-//struct RecipeRow_Previews: PreviewProvider {
-//    static var previews: some View {
-//        RecipeRow(recipe: mockRecipes[0])
-//    }
-//}
-
-//#Preview {
-//  let mockRecipe = mockRecipes[0]
-//  let recipe = Recipe(title: mockRecipe, content: <#T##String?#>, ingredients: <#T##[Ingredient]#>, steps: <#T##[String]#>)
-//  RecipeRow()
-//}
+#Preview {
+    let recipe = Recipe(
+        title: "Sample Recipe",
+        summary: "A sample recipe for preview",
+        instructions: ["Step 1", "Step 2"]
+    )
+    return RecipeRow(recipe: recipe)
+}
