@@ -337,7 +337,7 @@ struct RecipeDetails: View {
                 }
                 .font(.system(.body, design: .monospaced))
               }
-              .frame(width: .infinity)
+              .frame(maxWidth: .infinity)
               .padding()
               .foregroundColor(.secondary)
               .background(.background.secondary)
@@ -349,33 +349,31 @@ struct RecipeDetails: View {
       }
       .padding()
     }
-    .navigationTitle(isEditing ? "Edit Recipe" : recipe.title)
+    .navigationTitle(isEditing ? "" : recipe.title)
     .navigationBarTitleDisplayMode(.large)
     .toolbar {
       if isEditing {
         ToolbarItem(placement: .navigationBarTrailing) {
-          Button("Save") {
+          Button("Save Recipe") {
             saveChanges()
             isEditing = false
           }
+          .buttonStyle(.borderedProminent)
+          .disabled(editedTitle.isEmpty)
         }
-        ToolbarItem(placement: .navigationBarLeading) {
+        ToolbarItem(placement: .navigationBarTrailing) {
           Button("Cancel") {
             cancelEditing()
           }
         }
       } else {
-        ToolbarItem(placement: .navigationBarTrailing) {
-          Button(action: {
-            prepareForEditing()
-            isEditing = true
-          }) {
-            Text("Edit")
-          }
-        }
-        
+ 
         ToolbarItem(placement: .navigationBarTrailing) {
           Menu {
+            Button("Edit Recipe", systemImage: "pencil") {
+              prepareForEditing()
+              isEditing = true
+            }
             Button("Delete Recipe", systemImage: "trash", role: .destructive) {
               showingDeleteConfirmation = true
             }
@@ -395,17 +393,18 @@ struct RecipeDetails: View {
               .background(.tertiary)
               .clipShape(Circle())
           }
+          
         }
       }
     }
-    .confirmationDialog("Are you sure?",
-                      isPresented: $showingDeleteConfirmation,
-                      titleVisibility: .visible
-    ) {
-      Button("Delete Recipe", role: .destructive) {
-        deleteRecipe()
-      }
-    }
+//    .confirmationDialog("Are you sure?",
+//                      isPresented: $showingDeleteConfirmation,
+//                      titleVisibility: .visible
+//    ) {
+//      Button("Delete Recipe", role: .destructive) {
+//        deleteRecipe()
+//      }
+//    }
     .sheet(isPresented: $showingIngredientEditor) {
       if let selectedIngredient = selectedIngredient {
         EditIngredient(ingredient: .constant(selectedIngredient))

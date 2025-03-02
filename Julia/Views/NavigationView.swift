@@ -8,6 +8,7 @@
 import SwiftUI
 import SwiftData
 import Combine
+import UIKit
 
 // Define notification names for tab bar visibility
 extension Notification.Name {
@@ -15,7 +16,7 @@ extension Notification.Name {
     static let showTabBar = Notification.Name("showTabBar")
 }
 
-// Simple observer class (we're not using the height anymore)
+// Keyboard observer class
 class KeyboardObserver: ObservableObject {
   @Published var isKeyboardVisible: Bool = false
   
@@ -23,14 +24,24 @@ class KeyboardObserver: ObservableObject {
   
   init() {
     NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)
+      .receive(on: DispatchQueue.main)
       .sink { [weak self] _ in
-        self?.isKeyboardVisible = true
+        guard let self = self else { return }
+        // Using MainActor to safely update the published property
+        Task { @MainActor in
+          self.isKeyboardVisible = true
+        }
       }
       .store(in: &cancellables)
     
     NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)
+      .receive(on: DispatchQueue.main)
       .sink { [weak self] _ in
-        self?.isKeyboardVisible = false
+        guard let self = self else { return }
+        // Using MainActor to safely update the published property
+        Task { @MainActor in
+          self.isKeyboardVisible = false
+        }
       }
       .store(in: &cancellables)
   }
@@ -83,8 +94,8 @@ struct NavigationView: View {
   @State private var selectedTab: String = "grocery"
   @State private var selectedLocation: IngredientLocation = .grocery
   @State private var showModal = false
-  @State private var showCameraDirectly = false
-  @State private var showPhotoLibraryDirectly = false
+  @State private var showCamera = false
+  @State private var showPhotoLibrary = false
   @State private var showBottomSheet = false
   @State private var currentIngredient: Ingredient? = nil
   @State private var isTabBarVisible: Bool = true
@@ -145,17 +156,15 @@ struct NavigationView: View {
             
             Menu {
               Button(action: {
-                showTakePhoto()
+                setCameraVisible()
               }) {
                 Label("Camera", systemImage: "camera")
-                  .foregroundColor(.blue)
               }
               
               Button(action: {
-                showPhotoLibrary()
+                setPhotoLibraryVisible()
               }) {
                 Label("Photos", systemImage: "photo.on.rectangle")
-                  .foregroundColor(.blue)
               }
             } label: {
               Image(systemName: "plus")
@@ -167,11 +176,14 @@ struct NavigationView: View {
                 .shadow(radius: 10)
             }
             .menuOrder(.fixed)
+            .tint(.blue)
             .menuStyle(.borderlessButton)
-            .offset(x: -10, y: -15) // Move menu up and left
-            
             .fullScreenCover(isPresented: $showModal) {
-              ImagePicker(showModal: $showModal, showCameraDirectly: showCameraDirectly)
+              ImagePicker(
+                showModal: $showModal, 
+                showCamera: showCamera, 
+                showPhotoLibrary: showPhotoLibrary
+              )
             }
           }
         }
@@ -204,9 +216,7 @@ struct NavigationView: View {
       removeNotificationObservers()
     }
   }
-  
-  // MARK: - Notification Observers
-  
+    
   private func setupNotificationObservers() {
     NotificationCenter.default.addObserver(
       forName: .hideTabBar,
@@ -234,15 +244,16 @@ struct NavigationView: View {
     NotificationCenter.default.removeObserver(self, name: .showTabBar, object: nil)
   }
   
-  // MARK: - Action Functions
-  
-  private func showTakePhoto() {
-    showCameraDirectly = true
+
+  private func setCameraVisible() {
+    showCamera = true
+    showPhotoLibrary = false
     showModal = true
   }
   
-  private func showPhotoLibrary() {
-    showCameraDirectly = false
+  private func setPhotoLibraryVisible() {
+    showCamera = false
+    showPhotoLibrary = true
     showModal = true
   }
 }
@@ -265,7 +276,7 @@ extension NavigationView{
       }
       Spacer()
     }
-    .frame(width: isActive ? .infinity : 60, height: 60)
+    .frame(width: isActive ? nil : 60, height: 60)
     .background(isActive ? .blue : .clear)
     .cornerRadius(30)
   }
