@@ -11,16 +11,24 @@ import SwiftData
 struct RecipeList: View {
     let recipes: [Recipe]
     var body: some View {
-
-            List(recipes, id: \.id) { recipe in
-              
+        List {
+            ForEach(recipes, id: \.id) { recipe in
                 NavigationLink {
                     RecipeDetails(recipe: recipe)
                 } label: {
                     RecipeRow(recipe: recipe)
                 }
             }
-        
+            
+            // Add spacer at the end for tab bar
+            Section {
+                Color.clear
+                    .frame(height: 90) // Height of tab bar + extra padding
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
+            }
+        }
+        .listStyle(.plain)
     }
 }
 

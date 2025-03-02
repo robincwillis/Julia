@@ -65,9 +65,9 @@ struct IngredientsView: View {
                 showAddSheet()
               } label: {
                 Image(systemName: "plus")
-                  .foregroundColor(.white)
+                  .foregroundColor(.blue)
                   .frame(width: 40, height: 40)
-                  .background(.blue)
+                  .background(Color(red: 0.85, green: 0.92, blue: 1.0))
                   .clipShape(Circle())
                   .animation(.snappy, value: hasSelection)
                   .transition(.move(edge: .leading))

@@ -4,5 +4,7 @@
 <dict>
 	<key>NSCameraUsageDescription</key>
 	<string>We need camera access to take photos for recipe recognition</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 </dict>
 </plist>

@@ -29,110 +29,231 @@ struct ResultsDebug: View {
         Text($0)
       }
     }
-    
     if let image = image {
       Image(uiImage: image)
         .resizable()
         .scaledToFit()
     }
+  }
+}
+
+struct CameraView: UIViewControllerRepresentable {
+  @Binding var image: UIImage?
+  @Binding var isPresented: Bool
+  var onImageCaptured: (UIImage) -> Void
+  
+  func makeUIViewController(context: Context) -> UIImagePickerController {
+    let picker = UIImagePickerController()
+    picker.delegate = context.coordinator
+    picker.sourceType = .camera
+    return picker
+  }
+  
+  func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {}
+  
+  func makeCoordinator() -> Coordinator {
+    Coordinator(self)
+  }
+  
+  class Coordinator: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+    let parent: CameraView
     
+    init(_ parent: CameraView) {
+      self.parent = parent
+    }
     
+    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+      if let image = info[.originalImage] as? UIImage {
+        parent.image = image
+        parent.onImageCaptured(image)
+      }
+      parent.isPresented = false
+    }
     
-    
+    func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+      parent.isPresented = false
+    }
+  }
+}
+
+// AppStorage for persisting processing state
+class PhotoProcessingState: ObservableObject {
+  @Published var image: UIImage?
+  @Published var recognizedText: [String] = []
+  @Published var processingStage: ProcessingStage = .notStarted
+  @Published var selectedTab = 0
+  
+  enum ProcessingStage {
+    case notStarted
+    case processing
+    case completed
+  }
+  
+  func reset() {
+    image = nil
+    recognizedText = []
+    processingStage = .notStarted
+    selectedTab = 0
   }
 }
 
 struct ImagePicker: View {
   @Binding var showModal: Bool
-  @State var recognizedText: [String] = []
+  @StateObject private var processingState = PhotoProcessingState()
+  
+  @State private var showingCameraPermissionAlert = false
+  @State private var showingCamera = false
+  @State private var selectedItem: PhotosPickerItem? = nil
+  
+  // Use direct @State properties instead of computed properties
   @State private var selectedTab = 0
   
-  @State private var isProcessing = false
-  @State private var showingCameraPermissionAlert = false
-  
-  
-  @State private var image: UIImage?
-  @State private var selectedItem: PhotosPickerItem? = nil
+  var showCameraDirectly: Bool = false
   
   var body: some View {
     VStack {
-      
-      if !recognizedText.isEmpty {
-        
-        TabView(selection: $selectedTab) {
-          
-          ProcessOCRView(ocrText: recognizedText)
+      // Check if we should show the camera directly
+      if showCameraDirectly && processingState.recognizedText.isEmpty {
+        CameraView(image: $processingState.image, isPresented: $showingCamera) { capturedImage in
+          handleCapturedImage(capturedImage)
+        }
+        .ignoresSafeArea()
+        .onAppear {
+          showingCamera = true
+        }
+      } else if !processingState.recognizedText.isEmpty {
+        TabView(selection: $processingState.selectedTab) {
+          ProcessOCRView(ocrText: processingState.recognizedText)
             .tabItem {
               Label("Classify", systemImage: "square.and.pencil")
             }
             .tag(0)
           
-          AddRecipe(recognizedText: recognizedText)
+          AddRecipe(recognizedText: processingState.recognizedText)
             .tabItem {
               Label("Editor", systemImage: "doc.text")
             }
             .tag(1)
           
-          ResultsDebug(recognizedText: recognizedText, image: image, clearState: clearState)
+          ResultsDebug(recognizedText: processingState.recognizedText, image: processingState.image, clearState: clearState)
             .tabItem {
               Label("Raw Text", systemImage: "list.bullet")
             }
             .tag(2)
         }
-        
-        
       } else {
         Spacer()
         
-        if isProcessing {
+        if processingState.processingStage == .processing {
           ProgressView("Processing Image...")
+        } else {
+          imagePickerContent
         }
-        
-        
-        PhotosPicker(selection: $selectedItem, matching: .images, photoLibrary: .shared()) {
+      }
+    }
+    .onAppear {
+      // Set up the onChange effect manually
+      handleSelectionChanges()
+    }
+    .fullScreenCover(isPresented: $showingCamera) {
+      CameraView(image: $processingState.image, isPresented: $showingCamera) { capturedImage in
+        handleCapturedImage(capturedImage)
+      }
+      .ignoresSafeArea()
+    }
+    .alert(
+      "Camera Access Required",
+      isPresented: $showingCameraPermissionAlert
+    ) {
+      Button("Open Settings") {
+        if let settingsURL = URL(string: UIApplication.openSettingsURLString) {
+          UIApplication.shared.open(settingsURL)
+        }
+      }
+      Button("Cancel", role: .cancel) {}
+    } message: {
+      Text("Please grant camera access in Settings to take photos for recipe recognition.")
+    }
+  }
+  
+  // MARK: - Change handling
+  private func handleSelectionChanges() {
+    if let item = selectedItem {
+      handleSelectedItem(item)
+    }
+  }
+  
+  var imagePickerContent: some View {
+    VStack(spacing: 20) {
+      PhotosPicker(selection: $selectedItem, matching: .images, photoLibrary: .shared()) {
+        HStack {
+          Image(systemName: "photo.on.rectangle")
           Text("Select from Photos")
-            .padding()
-            .background(.blue)
-            .foregroundColor(.white)
-            .cornerRadius(12)
         }
-        .onChange(of: selectedItem) { oldItem, newItem in
-          Task {
-            isProcessing = true
-            defer { isProcessing = false }
-            
-            if let data = try? await newItem?.loadTransferable(type: Data.self),
-               let uiImage = UIImage(data: data) {
-              image = uiImage
-              processImage(uiImage)
-            }
-          }
+        .padding()
+        .frame(maxWidth: .infinity)
+        .background(.blue)
+        .foregroundColor(.white)
+        .cornerRadius(12)
+      }
+      .onChange(of: selectedItem) { oldValue, newValue in
+        if let item = newValue {
+          handleSelectedItem(item)
         }
-        .alert("Camera Access Required", isPresented: $showingCameraPermissionAlert) {
-          Button("Open Settings", role: .none) {
-            // Open app settings
-            if let settingsURL = URL(string: UIApplication.openSettingsURLString) {
-              UIApplication.shared.open(settingsURL)
-            }
-          }
-          Button("Cancel", role: .cancel) {}
-        } message: {
-          Text("Please grant camera access in Settings to take photos for recipe recognition.")
+      }
+      
+      Button {
+        let cameraAuthorized = checkCameraPermission()
+        if cameraAuthorized {
+          showingCamera = true
+        } else {
+          showingCameraPermissionAlert = true
         }
+      } label: {
+        HStack {
+          Image(systemName: "camera")
+          Text("Take a Photo")
+        }
+        .padding()
+        .frame(maxWidth: .infinity)
+        .background(.green)
+        .foregroundColor(.white)
+        .cornerRadius(12)
+      }
+    }
+    .padding(.horizontal)
+  }
+  
+  private func handleSelectedItem(_ item: PhotosPickerItem) {
+    Task {
+      processingState.processingStage = .processing
+      defer { processingState.processingStage = .notStarted }
+      
+      if let data = try? await item.loadTransferable(type: Data.self),
+         let uiImage = UIImage(data: data) {
+        processingState.image = uiImage
+        processImage(uiImage)
       }
     }
   }
   
+  private func handleCapturedImage(_ capturedImage: UIImage) {
+    processingState.processingStage = .processing
+    processImage(capturedImage)
+    DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+      processingState.processingStage = .notStarted
+    }
+  }
   
   private func clearState() {
-    image = nil
-    recognizedText = []
+    processingState.reset()
     selectedItem = nil
   }
   
   private func processImage(_ image: UIImage) {
     recognizeText(from: image) { recognizedStrings in
-      recognizedText = recognizedStrings
+      processingState.recognizedText = recognizedStrings
+      processingState.processingStage = .completed
     }
   }
 }
@@ -142,11 +263,19 @@ func checkCameraPermission() -> Bool {
   case .authorized:
     return true
   case .notDetermined:
-    // Request permission
+    // Request permission synchronously
+    var isAuthorized = false
+    let semaphore = DispatchSemaphore(value: 0)
+    
     AVCaptureDevice.requestAccess(for: .video) { granted in
-      // Handle async response if needed
+      isAuthorized = granted
+      semaphore.signal()
     }
-    return false
+    
+    // Wait for permission result with a timeout
+    _ = semaphore.wait(timeout: .now() + 1.0)
+    return isAuthorized
+    
   case .denied, .restricted:
     return false
   @unknown default:
@@ -185,6 +314,5 @@ func recognizeText(from image: UIImage, completion: @escaping ([String]) -> Void
 
 #Preview {
   @State var showModal = true
-  let rawText = ["88", "GREEN SALAD", "with Dill & Lemon Dressing", "Serves 4 to 6", "FOR THE DRESSING:", "3 tablespoons (45 milliliters) lemon", "juice (from 1/2 large lemons)", "½ teaspoon kosher salt", "¼/ cup (60 milliliters) extra-virgin", "olive oil", "FOR THE SALAD:", "1 small head romaine lettuce", "1 small head green-leaf lettuce", "¼4 cup (15 grams) roughly chopped", "fresh dill", "2 tablespoons finely chopped", "fresh chives", "This is my version of a classic Greek dish, marouli salata, which simply", "means lettuce salad. It\'s often served with sliced raw scallions but I", "substitute chives because they have a less overpowering bite. The", "freshness of the dill with the tangy lemon makes a great palate cleanser", "atter a heavy or particularly rich meal.", "Make the dressing: In a small bowl or cup, combine the lemon juice", "and salt and mix well to dissolve. Add the oil and whisk with a fork until", "emulsified.", "Make the salad: Remove any brown or wilted outer leaves from both", "heads of lettuce. Cut the lettuce crosswise into ribbons about ½2 inch", "(12 millimeters) thick. Rinse in cold water, drain, and dry in a salad spinner.", "Place the lettuce in a large serving bowl. Add the dill and chives and", "toss to combine. Drizzle with the dressing, toss well, and serve."]
-  return ImagePicker(showModal: $showModal, recognizedText:rawText)
+  return ImagePicker(showModal: $showModal)
 }

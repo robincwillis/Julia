@@ -25,7 +25,16 @@ struct IngredientList: View {
           .selectable(selected: isSelected(ingredient))
         }
         .onDelete(perform: removeIngredients)
+        
+        // Add spacer at the end for tab bar
+        Section {
+          Color.clear
+            .frame(height: 90) // Height of tab bar + extra padding
+            .listRowBackground(Color.clear)
+            .listRowSeparator(.hidden)
+        }
       }
+      .listStyle(.plain)
     }
   }
   

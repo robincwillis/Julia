@@ -27,7 +27,7 @@ struct RecipesView: View {
           Image(systemName: "plus")
             .foregroundColor(.blue)
             .frame(width: 40, height: 40)
-            .background(.tertiary)
+            .background(Color(red: 0.85, green: 0.92, blue: 1.0))
             .clipShape(Circle())
         }
       
