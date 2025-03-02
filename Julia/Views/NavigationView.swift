@@ -9,6 +9,8 @@ import SwiftUI
 import SwiftData
 import Combine
 import UIKit
+import PhotosUI
+
 
 // Define notification names for tab bar visibility
 extension Notification.Name {
@@ -93,9 +95,8 @@ struct NavigationView: View {
 
   @State private var selectedTab: String = "grocery"
   @State private var selectedLocation: IngredientLocation = .grocery
-  @State private var showModal = false
-  @State private var showCamera = false
-  @State private var showPhotoLibrary = false
+  @State private var selectedImage: UIImage?
+  @State private var showRecipeProcessing = false
   @State private var showBottomSheet = false
   @State private var currentIngredient: Ingredient? = nil
   @State private var isTabBarVisible: Bool = true
@@ -154,37 +155,11 @@ struct NavigationView: View {
             .coordinateSpace(name: "TabStack")
             .cornerRadius(35)
             
-            Menu {
-              Button(action: {
-                setCameraVisible()
-              }) {
-                Label("Camera", systemImage: "camera")
-              }
-              
-              Button(action: {
-                setPhotoLibraryVisible()
-              }) {
-                Label("Photos", systemImage: "photo.on.rectangle")
-              }
-            } label: {
-              Image(systemName: "plus")
-                .font(.system(size: 24))
-                .foregroundColor(.white)
-                .frame(width: 60, height: 60)
-                .background(Color.blue)
-                .clipShape(Circle())
-                .shadow(radius: 10)
-            }
-            .menuOrder(.fixed)
-            .tint(.blue)
-            .menuStyle(.borderlessButton)
-            .fullScreenCover(isPresented: $showModal) {
-              ImagePicker(
-                showModal: $showModal, 
-                showCamera: showCamera, 
-                showPhotoLibrary: showPhotoLibrary
-              )
-            }
+            // Floating action menu
+            FloatingActionMenu(
+              selectedImage: $selectedImage,
+              showRecipeProcessing: $showRecipeProcessing
+            )
           }
         }
         .padding(.horizontal, 24)
@@ -195,6 +170,12 @@ struct NavigationView: View {
         .ignoresSafeArea(.keyboard)
       }
       
+      // Recipe Processing Modal
+      .fullScreenCover(isPresented: $showRecipeProcessing) {
+        if let image = selectedImage {
+          RecipeProcessingView(image: image)
+        }
+      }
       
       FloatingBottomSheet(isPresented: $showBottomSheet) {
         AddIngredient(
@@ -245,17 +226,7 @@ struct NavigationView: View {
   }
   
 
-  private func setCameraVisible() {
-    showCamera = true
-    showPhotoLibrary = false
-    showModal = true
-  }
-  
-  private func setPhotoLibraryVisible() {
-    showCamera = false
-    showPhotoLibrary = true
-    showModal = true
-  }
+  // No longer needed as functionality moved to FloatingActionMenu
 }
 
 extension NavigationView{
