@@ -68,9 +68,9 @@ enum Tabs: String, CaseIterable{
   var iconName: String{
     switch self {
     case .grocery:
-      return "cart"
+      return "basket"
     case .pantry:
-      return "list.bullet"
+      return "refrigerator" // "sink" // "house"
     case .recipe:
       return "book"
     }
@@ -92,14 +92,16 @@ enum Tabs: String, CaseIterable{
 
 
 struct NavigationView: View {
-
+  @State private var isTabBarVisible: Bool = true
   @State private var selectedTab: String = "grocery"
+
   @State private var selectedLocation: IngredientLocation = .grocery
+  @State private var currentIngredient: Ingredient?
   @State private var selectedImage: UIImage?
+    
   @State private var showRecipeProcessing = false
   @State private var showBottomSheet = false
-  @State private var currentIngredient: Ingredient? = nil
-  @State private var isTabBarVisible: Bool = true
+  
   @StateObject private var keyboardObserver = KeyboardObserver()
 
 
@@ -163,7 +165,6 @@ struct NavigationView: View {
           }
         }
         .padding(.horizontal, 24)
-        .padding(.bottom, 10) // Keep some space at the bottom
         .opacity(isTabBarVisible ? 1.0 : 0.0)
         .offset(y: isTabBarVisible ? 0 : 100) // Slide down when hiding
         .animation(.easeInOut(duration: 0.3), value: isTabBarVisible)
@@ -171,10 +172,38 @@ struct NavigationView: View {
       }
       
       // Recipe Processing Modal
-      .fullScreenCover(isPresented: $showRecipeProcessing) {
+      .sheet(isPresented: $showRecipeProcessing) {
         if let image = selectedImage {
           RecipeProcessingView(image: image)
+            .ignoresSafeArea(.keyboard)
+            .onAppear {
+              print("RecipeProcessingView appeared with image size: \(image.size)")
+            }
+        } else {
+          VStack(spacing: 20) {
+            Text("Error: No Image Selected")
+              .font(.headline)
+            
+            Text("Please try selecting an image again")
+              .foregroundColor(.secondary)
+            
+            Button("Dismiss") {
+              showRecipeProcessing = false
+            }
+            .buttonStyle(.borderedProminent)
+            .padding()
+          }
+          .padding()
+          .onAppear {
+            print("ERROR: RecipeProcessingView appeared without an image")
+          }
         }
+      }
+      .onChange(of: showRecipeProcessing) { oldValue, newValue in
+        print("showRecipeProcessing changed from \(oldValue) to \(newValue)")
+      }
+      .onChange(of: selectedImage) { oldValue, newValue in
+        print("selectedImage changed: \(newValue != nil ? "Image set" : "nil")")
       }
       
       FloatingBottomSheet(isPresented: $showBottomSheet) {
@@ -225,8 +254,6 @@ struct NavigationView: View {
     NotificationCenter.default.removeObserver(self, name: .showTabBar, object: nil)
   }
   
-
-  // No longer needed as functionality moved to FloatingActionMenu
 }
 
 extension NavigationView{

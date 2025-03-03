@@ -14,10 +14,12 @@ struct RecipeProcessingView: View {
     @Environment(\.modelContext) private var context
     
     @StateObject private var processingState = RecipeProcessingState()
+    @State private var classifier = RecipeTextClassifier()
+    
     @State private var title: String = ""
     @State private var ingredients: [String] = []
     @State private var instructions: [String] = []
-    @State private var classifier = RecipeTextClassifier()
+    
     @State private var isClassifying = false
     @State private var showingRawText = false
     
@@ -39,6 +41,9 @@ struct RecipeProcessingView: View {
                         processingView
                     } else if !processingState.recognizedText.isEmpty {
                         resultView
+                    } else {
+                        // Handle the case where text recognition completed but no text was found
+                        noTextFoundView
                     }
                 }
                 
@@ -61,27 +66,28 @@ struct RecipeProcessingView: View {
                     }
                 }
                 
-                ToolbarItem(placement: .primaryAction) {
-                    if !title.isEmpty || !ingredients.isEmpty || !instructions.isEmpty {
-                        Button("Save") {
-                            saveRecipe()
-                        }
-                    } else if !processingState.recognizedText.isEmpty && !isClassifying {
-                        Button("Classify") {
-                            classifyText()
-                        }
-                    }
-                }
                 
-                ToolbarItem(placement: .secondaryAction) {
-                    if processingState.recognizedText.isNotEmpty {
-                        Button(showingRawText ? "Hide Raw Text" : "Show Raw Text") {
-                            withAnimation {
-                                showingRawText.toggle()
-                            }
-                        }
-                    }
+                
+              ToolbarItem(placement: .secondaryAction) {
+                  if processingState.recognizedText.isNotEmpty {
+                      Button(showingRawText ? "Hide Raw Text" : "Show Raw Text") {
+                          withAnimation {
+                              showingRawText.toggle()
+                          }
+                      }
+                  }
+              }
+              ToolbarItem(placement: .primaryAction) {
+                if !title.isEmpty || !ingredients.isEmpty || !instructions.isEmpty {
+                  Button("Save") {
+                    saveRecipe()
+                  }
+                } else if !processingState.recognizedText.isEmpty && !isClassifying {
+                  Button("Classify") {
+                    classifyText()
+                  }
                 }
+              }
             }
         }
     }
@@ -174,6 +180,39 @@ struct RecipeProcessingView: View {
                 }
             }
         }
+    }
+    
+    private var noTextFoundView: some View {
+        VStack(spacing: 24) {
+            if let image = processingState.image {
+                Image(uiImage: image)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(height: 200)
+                    .cornerRadius(12)
+            }
+            
+            VStack(spacing: 16) {
+                Image(systemName: "text.magnifyingglass")
+                    .font(.system(size: 70))
+                    .foregroundColor(.secondary)
+                
+                Text("No Text Detected")
+                    .font(.headline)
+                
+                Text("We couldn't find any text in this image. Try another image with clear, visible text.")
+                    .multilineTextAlignment(.center)
+                    .foregroundColor(.secondary)
+                    .padding(.horizontal)
+            }
+            
+            Button("Try Again") {
+                dismiss()
+            }
+            .buttonStyle(.borderedProminent)
+            .padding(.top)
+        }
+        .padding()
     }
     
     private var rawTextDebugView: some View {

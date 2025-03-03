@@ -18,6 +18,13 @@ struct Camera: UIViewControllerRepresentable {
         let picker = UIImagePickerController()
         picker.delegate = context.coordinator
         picker.sourceType = .camera
+        picker.modalPresentationStyle = .fullScreen
+        
+        // Enable camera controls
+        picker.allowsEditing = false
+        picker.cameraCaptureMode = .photo
+        picker.showsCameraControls = true
+        
         return picker
     }
     

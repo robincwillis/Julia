@@ -7,6 +7,7 @@
 
 import SwiftUI
 import SwiftData
+import UIKit // For UIPasteboard
 
 struct AddRecipe: View {
   @Environment(\.modelContext) var context
@@ -41,64 +42,91 @@ struct AddRecipe: View {
   
   var body: some View {
     NavigationStack {
-      VStack(alignment:.leading, spacing: 24) {
-        TextField("", text: $title, axis: .vertical)
-          .font(.system(size: 24, weight: .medium))
-          .foregroundColor(.black)
-          .tint(.blue)
-        // Quasi Hack, custom placeholder text
-          .background(
-            ZStack{
-              if title.isEmpty {
-                HStack {
-                  Text("Add Title ...")
-                    .font(.system(size: 24, weight: .medium))
-                    .foregroundColor(.gray)
-                  Spacer()
+      ScrollView {
+        VStack(alignment: .leading, spacing: 24) {
+          // Title field with white background
+          TextField("", text: $title, axis: .vertical)
+            .font(.system(size: 24, weight: .medium))
+            .foregroundColor(.black)
+            .tint(.blue)
+            // Custom placeholder text
+            .background(
+              ZStack{
+                if title.isEmpty {
+                  HStack {
+                    Text("Add Title...")
+                      .font(.system(size: 24, weight: .medium))
+                      .foregroundColor(.gray)
+                    Spacer()
+                  }
                 }
               }
+            )
+            .padding()
+            .background(Color.white)
+            .cornerRadius(12)
+            .shadow(color: Color.gray.opacity(0.1), radius: 2)
+          
+          // Recognized Text Section
+          VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .center) {
+              Text("Recognized Text")
+                .font(.headline)
+              
+              Spacer()
+              
+              Button("Copy to Clipboard") {
+                UIPasteboard.general.string = rawText
+              }
+              .foregroundColor(.blue)
+              .padding(.horizontal, 12)
+              .padding(.vertical, 6)
+              .background(Color(red: 0.85, green: 0.92, blue: 1.0))
+              .cornerRadius(8)
             }
-          )
-          .padding()
-          .background(.gray.opacity(0.1))
-          .cornerRadius(12)
-        
-        HStack(alignment: .center) {
-          Text("Recognized Text")
-          .font(.headline)
-          
-          Spacer()
-          
-          Button("Copy to Clipboard") {
-            UIPasteboard.general.string = rawText
+            
+            TextEditor(text: $rawText)
+              .font(.system(size: 12, design: .monospaced))
+              .padding(12)
+              .frame(minHeight: 200)
+              .background(Color.white)
+              .cornerRadius(12)
+              .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                  .stroke(Color(red: 0.85, green: 0.92, blue: 1.0), lineWidth: 1)
+              )
           }
-          .buttonStyle(.bordered)
+          .padding(16)
+          .background(Color(.systemGray6))
+          .cornerRadius(12)
         }
-        
-        TextEditor(text: $rawText)
-          .font(.system(.body, design: .monospaced))
-          .padding(8)
-          .frame(minHeight: 200)
-          .overlay(
-            RoundedRectangle(cornerRadius: 12)
-              .stroke(Color.gray.opacity(0.2), lineWidth: 1)
-          )
+        .padding(.horizontal)
       }
-      .padding(.horizontal)
       .navigationTitle(recipe == nil ? "Add Recipe" : "Edit Recipe")
       .toolbar {
-        Button(recipe == nil ? "Save Recipe" : "Update Recipe") {
-          saveRecipe()
+        ToolbarItem(placement: .navigationBarLeading) {
+          Button("Cancel") {
+            dismiss()
+          }
+          .foregroundColor(.blue)
         }
-        .buttonStyle(.borderedProminent)
-        .disabled(title.isEmpty)
         
-        Button("Cancel") {
-          dismiss()
+        ToolbarItem(placement: .navigationBarTrailing) {
+          Button(recipe == nil ? "Save Recipe" : "Update Recipe") {
+            saveRecipe()
+          }
+          .foregroundColor(.white)
+          .padding(.horizontal, 12)
+          .padding(.vertical, 8)
+          .background(Color.blue)
+          .cornerRadius(8)
+          .opacity(title.isEmpty ? 0.5 : 1.0)
+          .disabled(title.isEmpty)
         }
       }
-      
-    }.onAppear {
+      .background(Color.white)
+    }
+    .onAppear {
       if recipe != nil {
         print("editing existing recipe")
       }
