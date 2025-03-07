@@ -23,7 +23,6 @@ struct RecipeRawTextSection: View {
                 Button("Copy") {
                     UIPasteboard.general.string = rawTextString
                 }
-                .buttonStyle(.bordered)
                 .foregroundColor(.blue)
                 .background(Color(red: 0.85, green: 0.92, blue: 1.0))
             }.padding(.bottom, 6)
@@ -33,7 +32,7 @@ struct RecipeRawTextSection: View {
                     ForEach(recipe.rawText ?? [], id: \.self) { item in
                         Text(item)
                     }
-                    .font(.system(.body, design: .monospaced))
+                    .font(.system(size: 12, design: .monospaced))
                 }
                 .frame(maxWidth: .infinity)
                 .padding()

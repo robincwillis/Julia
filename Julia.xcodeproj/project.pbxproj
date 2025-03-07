@@ -41,6 +41,8 @@
 		526250C62CE28BFC004EE6C7 /* EditIngredient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 526250C52CE28BFC004EE6C7 /* EditIngredient.swift */; };
 		526250C82CE292A4004EE6C7 /* IngredientParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 526250C72CE292A4004EE6C7 /* IngredientParser.swift */; };
 		526250CA2CE3A641004EE6C7 /* MeasurementUnit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 526250C92CE3A641004EE6C7 /* MeasurementUnit.swift */; };
+		52AEA3382D7B3CDB00B514F2 /* RecipeEditIngredientsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52AEA3362D7B3CDA00B514F2 /* RecipeEditIngredientsSection.swift */; };
+		52AEA3392D7B3CDB00B514F2 /* RecipeEditInstructionsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52AEA3372D7B3CDA00B514F2 /* RecipeEditInstructionsSection.swift */; };
 		52B50C142CEBBB8600B472E0 /* Launch Screen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 52B50C132CEBBB8600B472E0 /* Launch Screen.storyboard */; };
 		52CD8F862D7492B80076F578 /* RecipeProcessingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52CD8F832D7492B80076F578 /* RecipeProcessingView.swift */; };
 		52CD8F8C2D7493450076F578 /* TextRecognitionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52CD8F8A2D7493450076F578 /* TextRecognitionService.swift */; };
@@ -88,6 +90,8 @@
 		526250C52CE28BFC004EE6C7 /* EditIngredient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditIngredient.swift; sourceTree = "<group>"; };
 		526250C72CE292A4004EE6C7 /* IngredientParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = IngredientParser.swift; path = Julia/IngredientParser.swift; sourceTree = SOURCE_ROOT; };
 		526250C92CE3A641004EE6C7 /* MeasurementUnit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeasurementUnit.swift; sourceTree = "<group>"; };
+		52AEA3362D7B3CDA00B514F2 /* RecipeEditIngredientsSection.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RecipeEditIngredientsSection.swift; sourceTree = "<group>"; };
+		52AEA3372D7B3CDA00B514F2 /* RecipeEditInstructionsSection.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RecipeEditInstructionsSection.swift; sourceTree = "<group>"; };
 		52B50C132CEBBB8600B472E0 /* Launch Screen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = "Launch Screen.storyboard"; sourceTree = "<group>"; };
 		52CD8F832D7492B80076F578 /* RecipeProcessingView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RecipeProcessingView.swift; sourceTree = "<group>"; };
 		52CD8F8A2D7493450076F578 /* TextRecognitionService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TextRecognitionService.swift; sourceTree = "<group>"; };
@@ -223,6 +227,8 @@
 		FDCDF3002D73BF4700000001 /* RecipeSections */ = {
 			isa = PBXGroup;
 			children = (
+				52AEA3362D7B3CDA00B514F2 /* RecipeEditIngredientsSection.swift */,
+				52AEA3372D7B3CDA00B514F2 /* RecipeEditInstructionsSection.swift */,
 				521EEF892D7551B200806A5D /* RecipeIngredientsSection.swift */,
 				521EEF882D7551B200806A5D /* RecipeInstructionsSection.swift */,
 				521EEF872D7551B200806A5D /* RecipeRawTextSection.swift */,
@@ -331,6 +337,7 @@
 				520DE6A22C33208B00CAF570 /* NavigationView.swift in Sources */,
 				521EEF902D75F46E00806A5D /* Theme.swift in Sources */,
 				521EEF8C2D7551B200806A5D /* RecipeInstructionsSection.swift in Sources */,
+				52AEA3382D7B3CDB00B514F2 /* RecipeEditIngredientsSection.swift in Sources */,
 				521EEF8E2D7551B200806A5D /* RecipeTitleSection.swift in Sources */,
 				521EEF862D74A10600806A5D /* FloatingActionMenu.swift in Sources */,
 				5228BD512C2362E7001C845E /* JuliaApp.swift in Sources */,
@@ -341,6 +348,7 @@
 				520DE6C42C34712800CAF570 /* RecipeRow.swift in Sources */,
 				52EF0BB12CDBF8A300B8354A /* FloatingBottomSheet.swift in Sources */,
 				520DE6C62C34713700CAF570 /* RecipeList.swift in Sources */,
+				52AEA3392D7B3CDB00B514F2 /* RecipeEditInstructionsSection.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -86,10 +86,11 @@ struct IngredientsView: View {
                   })
                 } label: {
                   Image(systemName: "ellipsis")
-                    .rotationEffect(.degrees(90))
+                    .font(.system(size: 14))
+                  //.rotationEffect(.degrees(90))
                     .foregroundColor(.blue)
                     .frame(width: 40, height: 40)
-                    .background(.tertiary)
+                    .background(Color(red: 0.85, green: 0.92, blue: 1.0))
                     .clipShape(Circle())
                     .animation(.snappy, value: hasSelection)
                     .transition(.opacity)

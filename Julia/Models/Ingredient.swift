@@ -80,7 +80,8 @@ final class Ingredient: Identifiable, Hashable, Equatable, CustomStringConvertib
     var quantity: Double?
     var unit: MeasurementUnit?
     var comment: String?
-    var recipe: Recipe?
+    @Relationship(originalName: "ingredients") var recipe: Recipe?
+    @Relationship(originalName: "ingredients") var section: IngredientSection?
   
     private var imageName: String?
   init(
@@ -91,7 +92,8 @@ final class Ingredient: Identifiable, Hashable, Equatable, CustomStringConvertib
     unit: String? = nil,
     comment: String? = nil,
     imageName: String? = nil,
-    recipe: Recipe? = nil
+    recipe: Recipe? = nil,
+    section: IngredientSection? = nil
   ) {
         self.id = id
         self.createdDate = Date()
@@ -102,6 +104,7 @@ final class Ingredient: Identifiable, Hashable, Equatable, CustomStringConvertib
         self.comment = comment
         self.imageName = imageName
         self.recipe = recipe
+        self.section = section
     }
   
   var description: String {

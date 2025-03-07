@@ -14,8 +14,8 @@ class Recipe: Identifiable, Hashable, CustomStringConvertible {
     var title: String
     var summary: String?
     var instructions : [String]
-    @Relationship var ingredients: [Ingredient]
-    @Relationship var sections: [IngredientSection] = []
+    @Relationship(deleteRule: .cascade) var ingredients: [Ingredient] = []
+    @Relationship(deleteRule: .cascade) var sections: [IngredientSection] = []
     var rawText : [String]?
   
     init(id: String = UUID().uuidString, title: String, summary: String? = nil, ingredients: [Ingredient] = [], instructions: [String] = [], sections: [IngredientSection] = [], rawText: [String] = []) {

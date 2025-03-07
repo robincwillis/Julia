@@ -45,32 +45,35 @@ struct AddRecipe: View {
       ScrollView {
         VStack(alignment: .leading, spacing: 24) {
           // Title field with white background
-          TextField("", text: $title, axis: .vertical)
+          
+          TextField("Recipe Title", text: $title, axis: .vertical)
             .font(.system(size: 24, weight: .medium))
-            .foregroundColor(.black)
-            .tint(.blue)
+            
             // Custom placeholder text
-            .background(
-              ZStack{
-                if title.isEmpty {
-                  HStack {
-                    Text("Add Title...")
-                      .font(.system(size: 24, weight: .medium))
-                      .foregroundColor(.gray)
-                    Spacer()
-                  }
-                }
-              }
-            )
-            .padding()
-            .background(Color.white)
-            .cornerRadius(12)
+//            .background(
+//              ZStack{
+//                if title.isEmpty {
+//                  HStack {
+//                    Text("Add Title...")
+//                      .font(.system(size: 24, weight: .medium))
+//                      .foregroundColor(.gray)
+//                      //.background(.white)
+//                    Spacer()
+//                  }
+//                }
+//              }
+//            )
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            
             .shadow(color: Color.gray.opacity(0.1), radius: 2)
+            .background(.white)
+            .cornerRadius(12)
           
           // Recognized Text Section
           VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .center) {
-              Text("Recognized Text")
+              Text("Recipe Text")
                 .font(.headline)
               
               Spacer()
@@ -89,20 +92,15 @@ struct AddRecipe: View {
               .font(.system(size: 12, design: .monospaced))
               .padding(12)
               .frame(minHeight: 200)
-              .background(Color.white)
+              .background(.white)
               .cornerRadius(12)
-              .overlay(
-                RoundedRectangle(cornerRadius: 12)
-                  .stroke(Color(red: 0.85, green: 0.92, blue: 1.0), lineWidth: 1)
-              )
           }
-          .padding(16)
-          .background(Color(.systemGray6))
-          .cornerRadius(12)
         }
-        .padding(.horizontal)
+        .padding(16)
       }
+      .background(Color(.secondarySystemBackground))
       .navigationTitle(recipe == nil ? "Add Recipe" : "Edit Recipe")
+      .navigationBarTitleDisplayMode(.inline)
       .toolbar {
         ToolbarItem(placement: .navigationBarLeading) {
           Button("Cancel") {
@@ -112,19 +110,13 @@ struct AddRecipe: View {
         }
         
         ToolbarItem(placement: .navigationBarTrailing) {
-          Button(recipe == nil ? "Save Recipe" : "Update Recipe") {
+          Button(recipe == nil ? "Save" : "Update") {
             saveRecipe()
+            dismiss()
           }
-          .foregroundColor(.white)
-          .padding(.horizontal, 12)
-          .padding(.vertical, 8)
-          .background(Color.blue)
-          .cornerRadius(8)
-          .opacity(title.isEmpty ? 0.5 : 1.0)
           .disabled(title.isEmpty)
         }
       }
-      .background(Color.white)
     }
     .onAppear {
       if recipe != nil {
