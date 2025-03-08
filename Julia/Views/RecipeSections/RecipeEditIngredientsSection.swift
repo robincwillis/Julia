@@ -27,6 +27,8 @@ struct RecipeEditIngredientsSection: View {
               editIngredient(ingredient)
             }) {
               Text(ingredient.name)
+                .font(.body)
+                .foregroundColor(.black)
             }
           }
         }
@@ -65,6 +67,7 @@ struct RecipeEditIngredientsSection: View {
               }) {
                 Text(ingredient.name)
                   .font(.body)
+                  .foregroundColor(.black)
 
               }
             }
@@ -190,20 +193,39 @@ struct RecipeEditIngredientsSection: View {
   }
   
 }
-// #Preview {
-//  let container = DataController.previewContainer
-//  let fetchDescriptor = FetchDescriptor<Recipe>()
-//  let recipes = try container.mainContext.fetch(fetchDescriptor)
-//  let previewRecipe = recipes.first
-//  @Bindable var ingredients = previewRecipe.ingredients
-//  @Bindable var sections: previewRecipe.ingredients
-//  @State var selectedIngredient: Ingredient?
-//  @State var showingIngredientEditor = false
-//  
-//  RecipeEditIngredientsSection(
-//    ingredients: ingredients,
-//    sections: sections,
-//    selectedIngredient: selectedIngredient,
-//    showIngredientEditor: showingIngredientEditor
-//  ).modelContainer(container)
-// }
+#Preview {
+  struct PreviewWrapper: View {
+    @State private var ingredients: [Ingredient] = [
+      Ingredient(name: "Flour", location: .recipe, quantity: 2, unit: "cups"),
+      Ingredient(name: "Sugar", location: .recipe, quantity: 1, unit: "cup")
+    ]
+    @State private var sections: [IngredientSection] = [
+      IngredientSection(name: "Sauce", position: 0, ingredients: [
+        Ingredient(name: "Tomato", location: .recipe, quantity: 2, unit: "cups"),
+        Ingredient(name: "Garlic", location: .recipe, quantity: 2, unit: "cloves")
+      ]),
+      IngredientSection(name: "Garnish", position: 1, ingredients: [
+        Ingredient(name: "Parsley", location: .recipe, quantity: 0.25, unit: "cup")
+      ])
+    ]
+    @State private var selectedIngredient: Ingredient?
+    @State private var showIngredientEditor = false
+    @FocusState private var focused: Bool
+    
+    var body: some View {
+      NavigationStack {
+        Form {
+          RecipeEditIngredientsSection(
+            ingredients: $ingredients,
+            sections: $sections,
+            selectedIngredient: $selectedIngredient,
+            showIngredientEditor: $showIngredientEditor,
+            isTextFieldFocused: _focused
+          )
+        }
+      }
+    }
+  }
+  
+  return PreviewWrapper()
+}

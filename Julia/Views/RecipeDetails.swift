@@ -20,6 +20,7 @@ struct RecipeDetails: View {
     return editMode?.wrappedValue.isEditing ?? false
   }
   
+  @State private var ingredientLocation: IngredientLocation = .recipe
   @State private var showDeleteConfirmation = false
   @State private var selectedIngredient: Ingredient?
   @State private var showIngredientEditor = false
@@ -63,31 +64,31 @@ struct RecipeDetails: View {
         }
         .background(Color(.secondarySystemBackground))
         .listStyle(.insetGrouped)
+        .navigationTitle(recipe.title)
+        .navigationBarTitleDisplayMode(.inline)
         
       } else {
         ScrollView(.vertical, showsIndicators: true) {
-          VStack(alignment: .leading, spacing: 8) {
+          VStack(alignment: .leading, spacing: 12) {
             // Title and Summary Section
             RecipeSummarySection(
               recipe: recipe
             )
             
-            VStack(alignment: .leading, spacing: 0) {
-              // Ingredients Section with selectable ingredients
-              RecipeIngredientsSection(
-                recipe: recipe,
+            // Ingredients Section with selectable ingredients
+            RecipeIngredientsSection(
+              recipe: recipe,
+              selectableBinding: selectableBinding(for:),
+              toggleSelection: toggleSelection(for:)
+            )
+            
+            // Additional Ingredient Sections
+            if !recipe.sections.isEmpty {
+              IngredientSectionList(
+                sections: recipe.sections,
                 selectableBinding: selectableBinding(for:),
                 toggleSelection: toggleSelection(for:)
               )
-              
-              // Additional Ingredient Sections
-              if !recipe.sections.isEmpty {
-                IngredientSectionList(
-                  sections: recipe.sections,
-                  selectableBinding: selectableBinding(for:),
-                  toggleSelection: toggleSelection(for:)
-                )
-              }
             }
             
             // Instructions Section
@@ -95,11 +96,13 @@ struct RecipeDetails: View {
               recipe: recipe
             )
           }
+          .padding(.horizontal, 16)
+          .padding(.bottom, 16)
         }
-        .padding(16)
-        .background(Color(.white))
+        .background(Color(.systemBackground))
         .navigationTitle(recipe.title)
         .navigationBarTitleDisplayMode(.large)
+        .edgesIgnoringSafeArea(.bottom)
         .toolbar {
           if !selectedIngredients.isEmpty {
             ToolbarItem(placement: .topBarTrailing) {
@@ -126,7 +129,8 @@ struct RecipeDetails: View {
         }
       }
       FloatingBottomSheet(isPresented: $showIngredientEditor) {
-        IngredientEditorView(
+        IngredientEditor(
+          ingredientLocation: $ingredientLocation,
           ingredient: $selectedIngredient,
           showBottomSheet: $showIngredientEditor
         )
@@ -156,10 +160,10 @@ struct RecipeDetails: View {
             }
           } label: {
             Image(systemName: "ellipsis")
-              //.font(.system(size: 14))
+              .font(.system(size: 14))
               .foregroundColor(.blue)
               .padding(12)
-              .frame(width: 40, height: 40)
+              .frame(width: 30, height: 30)
               .background(Color(red: 0.85, green: 0.92, blue: 1.0))
               .clipShape(Circle())
               .animation(.snappy, value: isEditing)
@@ -202,18 +206,16 @@ struct RecipeDetails: View {
       }
     }
     .sheet(isPresented: $showRawTextSheet) {
-      VStack {
+      Button("Close") {
+        showRawTextSheet = false
+      }
+      .padding()
+      .foregroundColor(.white)
+      .background(Color.blue)
+      .cornerRadius(8)
+      .padding(.bottom)
+      ScrollView {
         RecipeRawTextSection(recipe: recipe)
-          .padding()
-        
-        Button("Close") {
-          showRawTextSheet = false
-        }
-        .padding()
-        .foregroundColor(.white)
-        .background(Color.blue)
-        .cornerRadius(8)
-        .padding(.bottom)
       }
       .presentationDetents([.medium, .large])
     }

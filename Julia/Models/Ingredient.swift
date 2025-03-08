@@ -10,29 +10,6 @@
 import Foundation
 import SwiftData
 
-enum MeasurementFraction: Double, CaseIterable, CustomStringConvertible {
-  case oneQuarter = 0.25
-  case oneThird = 0.3333
-  case oneHalf = 0.5
-  case twoThirds = 0.6666
-  case threeQuarters = 0.75
-  
-  var description: String {
-    switch self {
-    case .oneQuarter:
-      return "¼"
-    case .oneThird:
-      return "⅓"
-    case .oneHalf:
-      return "½"
-    case .twoThirds:
-      return "⅔"
-    case .threeQuarters:
-      return "¾"
-    }
-  }
-}
-
 enum IngredientLocation: String, Codable {
   case pantry
   case grocery

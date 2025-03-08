@@ -27,7 +27,7 @@ struct FloatingBottomSheet<Content: View>: View {
   let content: Content
   
   @GestureState private var dragOffset: CGFloat = 0
-  @State private var offset: CGFloat = 24
+  @State private var offset: CGFloat = 12
   @State private var keyboardOffset: CGFloat = 0
   
   init(
@@ -55,10 +55,10 @@ struct FloatingBottomSheet<Content: View>: View {
             Spacer ()
             
             content
-              .padding()
+              .padding(8)
             
               .frame(maxWidth: .infinity)
-              //.frame(height: geometry.size.height * selectedDetent.heightRatio + dragOffset)
+            //.frame(height: geometry.size.height * selectedDetent.heightRatio + dragOffset)
               .background(
                 RoundedRectangle(cornerRadius: 24)
                   .fill(Color(UIColor.systemBackground))
@@ -67,7 +67,7 @@ struct FloatingBottomSheet<Content: View>: View {
               .offset(y: dragOffset - keyboardOffset)
               .animation(.spring(), value: dragOffset) // Animate changes to dragOffsetY
               .transition(.move(edge: .bottom))
-              .padding(.horizontal, 24)
+              .padding(.horizontal, 12)
             
           }
           
@@ -82,10 +82,10 @@ struct FloatingBottomSheet<Content: View>: View {
             }
         )
         .frame(width: geometry.size.width, height: geometry.size.height)
-        .animation(.spring(), value: isPresented)
-        .animation(.spring(), value: selectedDetent)
+        .animation(.spring(response: 0.35, dampingFraction: 0.8), value: isPresented)
+        .animation(.spring(response: 0.35, dampingFraction: 0.8), value: selectedDetent)
         .onAppear {
-         setupKeyboardObservers()
+          setupKeyboardObservers()
         }
       }
     }
@@ -114,7 +114,7 @@ struct FloatingBottomSheet<Content: View>: View {
       queue: .main
     ) { notification in
       withAnimation(.spring()) {
-        self.keyboardOffset = 24 //height
+        self.keyboardOffset = 12 //height
       }
     }
     
@@ -141,21 +141,23 @@ struct FloatingBottomSheet<Content: View>: View {
     @State private var showSheet = true
     @State private var sheetDetent: SheetDetent = .medium
     @State private var textInput = ""
+    
     @FocusState private var isFocused: Bool // Focus state for text field
     
     var body: some View {
       ZStack {
-        Button("Show Sheet") {
-          showSheet = true
-        }
-        .buttonStyle(.borderedProminent)
+        
         
         FloatingBottomSheet(
           isPresented: $showSheet,
           selectedDetent: $sheetDetent
         ) {
-          VStack(spacing: 20) {
+          VStack(spacing: 24) {
             Text("Sheet Content")
+            Button("Change Sheet Detent") {
+              sheetDetent = .large
+            }
+            .buttonStyle(.borderedProminent)
             TextField("Type something...", text: $textInput)
               .textFieldStyle(RoundedBorderTextFieldStyle())
               .padding(.horizontal)

@@ -51,13 +51,13 @@ struct FloatingActionMenu: View {
                     }
     
                 } label: {
-                    Image(systemName: "plus")
+                    Image(systemName: "sparkles")
                         .font(.system(size: 24))
                         .foregroundColor(.white)
                         .frame(width: 60, height: 60)
                         .background(Color.blue)
                         .clipShape(Circle())
-                        //.shadow(radius: 10)
+                        .shadow(radius: 10)
                 }
                 .menuOrder(.fixed)
                 .menuStyle(.borderlessButton)

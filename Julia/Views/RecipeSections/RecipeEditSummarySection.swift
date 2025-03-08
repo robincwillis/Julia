@@ -19,7 +19,7 @@ struct RecipeEditSummarySection: View {
           .font(.title)
           .focused($isTextFieldFocused)
           .submitLabel(.done)
-          .padding(.vertical, 4)
+          .padding(.vertical, 2)
         
         TextField("Recipe summary", text: Binding(
           get: { summary ?? "" },
@@ -28,15 +28,39 @@ struct RecipeEditSummarySection: View {
           .lineLimit(3...6)
           .focused($isTextFieldFocused)
           .submitLabel(.done)
+          .onSubmit {
+            isTextFieldFocused = false
+          }
+          .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+              Spacer()
+              Button("Done") {
+                isTextFieldFocused = false
+              }
+            }
+          }
       }
     }
 }
 
-// #Preview {
-//    TODO Setup Preview
-//    let container = DataController.previewContainer
-//    let fetchDescriptor = FetchDescriptor<Recipe>()
-//    
-//    let previewRecipe: Recipe
-//    RecipeEditSummarySection()
-// }
+#Preview {
+  struct PreviewWrapper: View {
+    @State private var title = "Classic Chocolate Cake"
+    @State private var summary: String? = "A rich, moist chocolate cake perfect for any occasion. This recipe has been in my family for generations."
+    @FocusState private var focused: Bool
+    
+    var body: some View {
+      NavigationStack {
+        Form {
+          RecipeEditSummarySection(
+            title: $title,
+            summary: $summary,
+            isTextFieldFocused: _focused
+          )
+        }
+      }
+    }
+  }
+  
+  return PreviewWrapper()
+}

@@ -10,7 +10,7 @@ struct RecipeInstructionsSection: View {
   let recipe: Recipe
   
   var body: some View {
-    VStack(spacing: 8) {
+    VStack(alignment: .leading, spacing: 8) {
       Text("Instructions")
         .font(.headline)
         .foregroundColor(.primary)
@@ -20,21 +20,23 @@ struct RecipeInstructionsSection: View {
           .foregroundColor(.gray)
           .padding(.vertical, 8)
       } else {
-        ForEach(Array(recipe.instructions.enumerated()), id: \.element) { index, step in
-          HStack(alignment: .center, spacing: 6) {
-            // Step number - Primary button style
-            ZStack {
-              Circle()
-                .fill(Color.blue)
-                .frame(width: 30, height: 30)
-              Text("\(index + 1)")
-                .font(.subheadline)
-                .foregroundColor(.white)
+        VStack(alignment: .leading, spacing: 12) {
+          ForEach(Array(recipe.instructions.enumerated()), id: \.element) { index, step in
+            HStack(alignment: .center, spacing: 8) {
+              // Step number - Primary button style
+              ZStack {
+                Circle()
+                  .fill(Color(red: 0.85, green: 0.92, blue: 1.0))
+                  .frame(width: 40, height: 40)
+                Text("\(index + 1)")
+                  .font(.subheadline)
+                  .foregroundColor(.blue)
+              }
+              Text(step)
+                .foregroundColor(.black)
+                .padding(.vertical, 4)
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
-            Text(step)
-              .foregroundColor(.black)
-              .padding(.vertical, 4)
-              .frame(maxWidth: .infinity, alignment: .leading)
           }
         }
       }

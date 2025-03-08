@@ -13,35 +13,30 @@ struct IngredientSectionList: View {
     let toggleSelection: (Ingredient) -> Void
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            ForEach(sections.sorted(by: { $0.position < $1.position })) { section in
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(section.name)
-                        .font(.subheadline)
-                        .fontWeight(.semibold)
-                        .foregroundColor(.secondary)
-                        .padding(.top, 8)
-                        .padding(.bottom, 4)
-                    
-                    if section.ingredients.isEmpty {
-                        Text("No ingredients in this section")
-                            .foregroundColor(.gray)
-                            .padding(.vertical, 4)
-                            .padding(.leading, 8)
-                    } else {
-                        ForEach(section.ingredients) { ingredient in
-                            IngredientRow(ingredient: ingredient, padding: 3)
-                                .selectable(selected: selectableBinding(ingredient))
-                                .contentShape(Rectangle())
-                                .onTapGesture {
-                                    toggleSelection(ingredient)
-                                }
-                        }
-                    }
-                }
-                .padding(.bottom, 8)
-            }
-        }
+      ForEach(sections.sorted(by: { $0.position < $1.position })) { section in
+          VStack(alignment: .leading, spacing: 8) {
+              Text(section.name)
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+                  
+              
+              if section.ingredients.isEmpty {
+                  Text("No ingredients in this section")
+                      .foregroundColor(.gray)
+                      .padding(.vertical, 8)
+              } else {
+                  ForEach(section.ingredients) { ingredient in
+                      IngredientRow(ingredient: ingredient, padding: 3)
+                          .selectable(selected: selectableBinding(ingredient))
+                          .contentShape(Rectangle())
+                          .onTapGesture {
+                              toggleSelection(ingredient)
+                          }
+                  }
+              }
+          }
+      }
+  
     }
 }
 
