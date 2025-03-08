@@ -42,61 +42,34 @@ struct AddRecipe: View {
   
   var body: some View {
     NavigationStack {
-      ScrollView {
-        VStack(alignment: .leading, spacing: 24) {
-          // Title field with white background
-          
-          TextField("Recipe Title", text: $title, axis: .vertical)
-            .font(.system(size: 24, weight: .medium))
-            
-            // Custom placeholder text
-//            .background(
-//              ZStack{
-//                if title.isEmpty {
-//                  HStack {
-//                    Text("Add Title...")
-//                      .font(.system(size: 24, weight: .medium))
-//                      .foregroundColor(.gray)
-//                      //.background(.white)
-//                    Spacer()
-//                  }
-//                }
-//              }
-//            )
-            .padding(.horizontal, 12)
-            .padding(.vertical, 6)
-            
-            .shadow(color: Color.gray.opacity(0.1), radius: 2)
+      Form {
+        TextField("Recipe Title", text: $title, axis: .vertical)
+          .font(.system(size: 24, weight: .medium))
+          .padding(.horizontal, 12)
+          .padding(.vertical, 6)
+          .shadow(color: Color.gray.opacity(0.1), radius: 2)
+          .cornerRadius(12)
+        Section {
+          TextEditor(text: $rawText)
+            .font(.system(size: 12, design: .monospaced))
+            .padding(12)
+            .frame(minHeight: 200)
             .background(.white)
             .cornerRadius(12)
-          
-          // Recognized Text Section
-          VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .center) {
-              Text("Recipe Text")
-                .font(.headline)
-              
-              Spacer()
-              
-              Button("Copy to Clipboard") {
-                UIPasteboard.general.string = rawText
-              }
-              .foregroundColor(.blue)
-              .padding(.horizontal, 12)
-              .padding(.vertical, 6)
-              .background(Color(red: 0.85, green: 0.92, blue: 1.0))
-              .cornerRadius(8)
+        } header: {
+          HStack(alignment: .center) {
+            Text("Recipe Text")
+            Spacer()
+            Button("Copy to Clipboard") {
+              UIPasteboard.general.string = rawText
             }
-            
-            TextEditor(text: $rawText)
-              .font(.system(size: 12, design: .monospaced))
-              .padding(12)
-              .frame(minHeight: 200)
-              .background(.white)
-              .cornerRadius(12)
+            .foregroundColor(.blue)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            .background(Color(red: 0.85, green: 0.92, blue: 1.0))
+            .cornerRadius(8)
           }
         }
-        .padding(16)
       }
       .background(Color(.secondarySystemBackground))
       .navigationTitle(recipe == nil ? "Add Recipe" : "Edit Recipe")

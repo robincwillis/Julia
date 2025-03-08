@@ -10,25 +10,31 @@ struct RecipeInstructionsSection: View {
   let recipe: Recipe
   
   var body: some View {
-    if recipe.instructions.isEmpty {
-      Text("No instructions available")
-        .foregroundColor(.gray)
-        .padding(.vertical, 8)
-    } else {
-      VStack(spacing: 6) {
+    VStack(spacing: 8) {
+      Text("Instructions")
+        .font(.headline)
+        .foregroundColor(.primary)
+        .padding(.bottom, 8)
+      if recipe.instructions.isEmpty {
+        Text("No instructions available")
+          .foregroundColor(.gray)
+          .padding(.vertical, 8)
+      } else {
         ForEach(Array(recipe.instructions.enumerated()), id: \.element) { index, step in
-        HStack(alignment: .center, spacing: 6) {
-          // Step number - Primary button style
-          Text("\(index + 1)")
-            .font(.subheadline)
-            .foregroundColor(.white)
-            .padding(8)
-            .background(Circle().fill(Color.blue))
-            .frame(minWidth: 40)
-          Text(step)
-            .foregroundColor(.black)
-            .padding(.vertical, 4)
-            .frame(maxWidth: .infinity, alignment: .leading)
+          HStack(alignment: .center, spacing: 6) {
+            // Step number - Primary button style
+            ZStack {
+              Circle()
+                .fill(Color.blue)
+                .frame(width: 30, height: 30)
+              Text("\(index + 1)")
+                .font(.subheadline)
+                .foregroundColor(.white)
+            }
+            Text(step)
+              .foregroundColor(.black)
+              .padding(.vertical, 4)
+              .frame(maxWidth: .infinity, alignment: .leading)
           }
         }
       }

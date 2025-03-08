@@ -23,19 +23,19 @@ struct RecipeEditIngredientsSection: View {
       } else {
         ForEach(ingredients) { ingredient in
           HStack {
-            Text(ingredient.name)
-              .font(.body)
-            Spacer()
             Button(action: {
               editIngredient(ingredient)
             }) {
-              Image(systemName: "pencil")
-                .foregroundColor(.blue)
+              Text(ingredient.name)
             }
           }
         }
-        .onDelete(perform: deleteIngredient)
-        .onMove(perform: moveIngredient)
+        .onDelete { indices in
+          deleteIngredient(at: indices)
+        }
+        .onMove { from, to in
+          moveIngredient(from: from, to: to)
+        }
       }
       
       Button(action: addNewIngredient) {
@@ -45,31 +45,35 @@ struct RecipeEditIngredientsSection: View {
     }
     
     // Sections
+    // Ingredient Sections Section
     ForEach($sections.indices, id: \.self) { sectionIndex in
       Section {
         TextField("Section name", text: $sections[sectionIndex].name)
           .font(.headline)
+          .focused($isTextFieldFocused)
         
         if sections[sectionIndex].ingredients.isEmpty {
           Text("No ingredients in this section")
             .foregroundColor(.secondary)
             .italic()
         } else {
-          ForEach(Array(sections[sectionIndex].ingredients.enumerated()), id: \.element.id) { idx, ingredient in
+          ForEach(sections[sectionIndex].ingredients) { ingredient in
             HStack {
-              Text(ingredient.name)
-                .font(.body)
-              Spacer()
               Button(action: {
-                editIngredient(ingredient)
+                selectedIngredient = ingredient
+                showIngredientEditor = true
               }) {
-                Image(systemName: "pencil")
-                  .foregroundColor(.blue)
+                Text(ingredient.name)
+                  .font(.body)
+
               }
             }
           }
           .onDelete { indices in
             deleteIngredientFromSection(at: indices, in: sectionIndex)
+          }
+          .onMove { from, to in
+            moveIngredientInSection(from: from, to: to, inSection: sectionIndex)
           }
         }
         
@@ -93,8 +97,9 @@ struct RecipeEditIngredientsSection: View {
         }
       }
     }
-    .onMove(perform: moveSection)
-    
+    .onMove { from, to in
+      moveSection(from: from, to: to)
+    }
     // Add section button
     Section {
       Button(action: addNewSection) {
@@ -123,9 +128,9 @@ struct RecipeEditIngredientsSection: View {
     }
   }
   
-  private func deleteIngredient(at offsets: IndexSet) {
+  private func deleteIngredient(at indices: IndexSet) {
     withAnimation {
-      ingredients.remove(atOffsets: offsets)
+      ingredients.remove(atOffsets: indices)
     }
   }
   
@@ -133,6 +138,12 @@ struct RecipeEditIngredientsSection: View {
     //withAnimation {
     ingredients.move(fromOffsets: source, toOffset: destination)
     //}
+  }
+  
+  private func moveIngredientInSection(from source: IndexSet, to destination: Int, inSection sectionIndex: Int) {
+    if sections.count > sectionIndex {
+      sections[sectionIndex].ingredients.move(fromOffsets: source, toOffset: destination)
+    }
   }
   
   private func moveSection(from source: IndexSet, to destination: Int) {

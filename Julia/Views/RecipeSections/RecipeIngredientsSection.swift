@@ -10,40 +10,39 @@ import SwiftData
 
 struct RecipeIngredientsSection: View {
   let recipe: Recipe
+  let selectableBinding: (Ingredient) -> Binding<Bool>
+  let toggleSelection: (Ingredient) -> Void
 
   var body: some View {
-    Text("Ingredients")
-      .font(.headline)
-    
-    if recipe.ingredients.isEmpty && recipe.sections.isEmpty {
-      Text("No ingredients available")
-        .foregroundColor(.gray)
-        .padding(.vertical, 8)
-    } else {
-      // Display unsectioned ingredients first
-      let unsectionedIngredients = recipe.ingredients.filter { $0.section == nil }
-      if !unsectionedIngredients.isEmpty {
-        ForEach(unsectionedIngredients, id: \.id) { ingredient in
-          IngredientRow(ingredient: ingredient, padding: 3)
-        }
-      }
+    VStack(alignment: .leading, spacing: 8) {
+      Text("Ingredients")
+        .font(.headline)
+        .foregroundColor(.primary)
+        .padding(.bottom, 8)
       
-      // Display sections with their ingredients
-      ForEach(recipe.sections.sorted(by: { $0.position < $1.position }), id: \.id) { section in
-        VStack(alignment: .leading, spacing: 6) {
-          Text(section.name)
-            .font(.subheadline)
-            .fontWeight(.semibold)
-            .foregroundColor(.secondary)
-            .padding(.top, 8)
-            .padding(.bottom, 4)
-          
-          ForEach(section.ingredients, id: \.id) { ingredient in
-            IngredientRow(ingredient: ingredient, padding: 3)
+      if recipe.ingredients.isEmpty && recipe.sections.isEmpty {
+        Text("No ingredients available")
+          .foregroundColor(.gray)
+          .padding(.vertical, 8)
+      } else {
+        // Display unsectioned ingredients first
+        let unsectionedIngredients = recipe.ingredients.filter { $0.section == nil }
+        if !unsectionedIngredients.isEmpty {
+          VStack(alignment: .leading, spacing: 8) {
+            ForEach(unsectionedIngredients) { ingredient in
+              IngredientRow(ingredient: ingredient, padding: 3)
+                .selectable(selected: selectableBinding(ingredient))
+                .contentShape(Rectangle())
+                .onTapGesture {
+                  toggleSelection(ingredient)
+                }
+            }
           }
+          .padding(.bottom, 8)
         }
       }
     }
+    .padding(.horizontal, 16)
   }
 }
 
@@ -65,7 +64,9 @@ struct RecipeIngredientsSection: View {
                     summary: "A delicious sample recipe",
                     ingredients: ingredients,
                     instructions: []
-                )
+                ),
+                selectableBinding: { _ in .constant(false) },
+                toggleSelection: { _ in }
             )
         }
     }

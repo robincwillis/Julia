@@ -39,23 +39,26 @@ struct IngredientLabel: View {
     if let quantity = ingredient.quantity {
       if let unit = ingredient.unit {
         Text("\(quantity.toFractionString())") // \(unit.shortHand)
-          .font(.subheadline)
+          .font(.body)
           .foregroundColor(.blue)
         Text("\(unit.displayName.pluralized(for: quantity))")
-          .font(.subheadline)
+          .font(.body)
           .foregroundColor(.blue)
         Text(ingredient.name)
+          .font(.body)
           .foregroundColor(.secondary)
       } else {
         Text("\(quantity.toFractionString())")
-          .font(.subheadline)
+          .font(.body)
           .foregroundColor(.blue)
         Text(ingredient.name.pluralized(for: quantity))
+          .font(.body)
           .foregroundColor(.secondary)
           
       }
     } else {
       Text(ingredient.name)
+        .font(.body)
         .foregroundColor(.secondary)
     }
     if let comment = ingredient.comment {

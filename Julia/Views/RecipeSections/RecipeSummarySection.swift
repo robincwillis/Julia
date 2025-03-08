@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct RecipeTitleSection: View {
+struct RecipeSummarySection: View {
     let recipe: Recipe
     var body: some View {
       if let summary = recipe.summary {
@@ -28,7 +28,7 @@ struct RecipeTitleSection: View {
         @FocusState private var focused: Bool
         
         var body: some View {
-            RecipeTitleSection(
+            RecipeSummarySection(
                 recipe: Recipe(
                     title: "Sample Recipe",
                     summary: "A delicious sample recipe",
