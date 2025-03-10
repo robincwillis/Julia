@@ -14,40 +14,40 @@ import PhotosUI
 
 // Define notification names for tab bar visibility
 extension Notification.Name {
-    static let hideTabBar = Notification.Name("hideTabBar")
-    static let showTabBar = Notification.Name("showTabBar")
+  static let hideTabBar = Notification.Name("hideTabBar")
+  static let showTabBar = Notification.Name("showTabBar")
 }
 
 // Keyboard observer class
-class KeyboardObserver: ObservableObject {
-  @Published var isKeyboardVisible: Bool = false
-  
-  private var cancellables = Set<AnyCancellable>()
-  
-  init() {
-    NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)
-      .receive(on: DispatchQueue.main)
-      .sink { [weak self] _ in
-        guard let self = self else { return }
-        // Using MainActor to safely update the published property
-        Task { @MainActor in
-          self.isKeyboardVisible = true
-        }
-      }
-      .store(in: &cancellables)
-    
-    NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)
-      .receive(on: DispatchQueue.main)
-      .sink { [weak self] _ in
-        guard let self = self else { return }
-        // Using MainActor to safely update the published property
-        Task { @MainActor in
-          self.isKeyboardVisible = false
-        }
-      }
-      .store(in: &cancellables)
-  }
-}
+//class KeyboardObserver: ObservableObject {
+//  @Published var isKeyboardVisible: Bool = false
+//  
+//  private var cancellables = Set<AnyCancellable>()
+//  
+//  init() {
+//    NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)
+//      .receive(on: DispatchQueue.main)
+//      .sink { [weak self] _ in
+//        guard let self = self else { return }
+//        // Using MainActor to safely update the published property
+//        Task { @MainActor in
+//          self.isKeyboardVisible = true
+//        }
+//      }
+//      .store(in: &cancellables)
+//    
+//    NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)
+//      .receive(on: DispatchQueue.main)
+//      .sink { [weak self] _ in
+//        guard let self = self else { return }
+//        // Using MainActor to safely update the published property
+//        Task { @MainActor in
+//          self.isKeyboardVisible = false
+//        }
+//      }
+//      .store(in: &cancellables)
+//  }
+//}
 
 enum Tabs: String, CaseIterable{
   case grocery
@@ -84,27 +84,19 @@ enum Tabs: String, CaseIterable{
       return IngredientLocation.pantry
     case.recipe:
       return IngredientLocation.recipe
-      
     }
   }
-  
 }
-
 
 struct NavigationView: View {
   @State private var isTabBarVisible: Bool = true
   @State private var selectedTab: String = "grocery"
-
   @State private var selectedLocation: IngredientLocation = .grocery
-  @State private var currentIngredient: Ingredient?
   @State private var selectedImage: UIImage?
-    
   @State private var showRecipeProcessing = false
-  @State private var showBottomSheet = false
   
-  @StateObject private var keyboardObserver = KeyboardObserver()
-
-
+  // @StateObject private var keyboardObserver = KeyboardObserver()
+  
   var body: some View {
     ZStack(alignment: .bottom) {
       TabView(selection: $selectedTab) {
@@ -113,29 +105,23 @@ struct NavigationView: View {
           .toolbar(.hidden, for: .tabBar)
           .frame(maxHeight: .infinity)
         IngredientsView(
-          location: IngredientLocation.pantry,
-          showBottomSheet: $showBottomSheet,
-          currentIngredient: $currentIngredient
+          location: IngredientLocation.pantry
         )
-          .tag("pantry")
-          .toolbar(.hidden, for: .tabBar)
-          .frame(maxHeight: .infinity)
+        .tag("pantry")
+        .toolbar(.hidden, for: .tabBar)
+        .frame(maxHeight: .infinity)
         IngredientsView(
-          location: IngredientLocation.grocery,
-          showBottomSheet: $showBottomSheet,
-          currentIngredient: $currentIngredient
+          location: IngredientLocation.grocery
         )
-          .tag("grocery")
-          .toolbar(.hidden, for: .tabBar)
-          .frame(maxHeight: .infinity)
+        .tag("grocery")
+        .toolbar(.hidden, for: .tabBar)
+        .frame(maxHeight: .infinity)
         
       }
-            
-      // Bottom Navigation
       
+      // Bottom Navigation
       VStack {
         Spacer() // Push tab bar to bottom
-        
         ZStack{
           HStack(spacing: 10) {
             // Tabs
@@ -168,10 +154,9 @@ struct NavigationView: View {
         .opacity(isTabBarVisible ? 1.0 : 0.0)
         .offset(y: isTabBarVisible ? 0 : 100) // Slide down when hiding
         .animation(.easeInOut(duration: 0.3), value: isTabBarVisible)
-        .ignoresSafeArea(.keyboard)
       }
       
-      // Recipe Processing Modal
+      // Recipe Processing Sheet
       .sheet(isPresented: $showRecipeProcessing) {
         if let image = selectedImage {
           RecipeProcessingView(image: image)
@@ -205,20 +190,8 @@ struct NavigationView: View {
       .onChange(of: selectedImage) { oldValue, newValue in
         print("selectedImage changed: \(newValue != nil ? "Image set" : "nil")")
       }
-      
-      FloatingBottomSheet(isPresented: $showBottomSheet) {
-        AddIngredient(
-          ingredientLocation: $selectedLocation, 
-          ingredient: $currentIngredient,
-          showBottomSheet: $showBottomSheet
-        )
-      }.onChange(of: showBottomSheet) {
-        // Remove currentIngredient if AddIngredientSheet is dismissed
-        if(showBottomSheet == false) {
-          currentIngredient = nil
-        }
-      }
     }
+    .ignoresSafeArea(.keyboard, edges: .bottom)
     .onAppear {
       setupNotificationObservers()
     }
@@ -226,7 +199,7 @@ struct NavigationView: View {
       removeNotificationObservers()
     }
   }
-    
+  
   private func setupNotificationObservers() {
     NotificationCenter.default.addObserver(
       forName: .hideTabBar,
@@ -253,13 +226,10 @@ struct NavigationView: View {
     NotificationCenter.default.removeObserver(self, name: .hideTabBar, object: nil)
     NotificationCenter.default.removeObserver(self, name: .showTabBar, object: nil)
   }
-  
 }
 
 extension NavigationView{
   func TabItem(imageName: String, title: String, isActive: Bool) -> some View{
-    
-    
     HStack(spacing: 10){
       Spacer()
       Image(systemName: imageName)
@@ -283,5 +253,4 @@ extension NavigationView{
 #Preview {
   NavigationView()
     .modelContainer(DataController.previewContainer)
-  
 }

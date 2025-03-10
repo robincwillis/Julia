@@ -23,6 +23,9 @@ struct AddRecipe: View {
   @State private var ingredients = [Ingredient]()
   @State private var rawText: String = ""
   
+  @FocusState var isRawTextFieldFocused: Bool
+
+  
   init(recognizedText: [String]? = [], recipe: Recipe? = nil) {
     self.recognizedText = recognizedText
     self._rawText = State(initialValue: recognizedText?.joined(separator: "\n") ?? "")
@@ -44,24 +47,44 @@ struct AddRecipe: View {
     NavigationStack {
       Form {
         TextField("Recipe Title", text: $title, axis: .vertical)
-          .font(.system(size: 24, weight: .medium))
-          .padding(.horizontal, 12)
-          .padding(.vertical, 6)
+          //.font(.system(size: 24, weight: .medium))
+          .font(.title)
+          //.padding(.horizontal, 12)
+          .padding(.vertical, 2)
           .shadow(color: Color.gray.opacity(0.1), radius: 2)
           .cornerRadius(12)
+          .submitLabel(.done)
         Section {
           TextEditor(text: $rawText)
             .font(.system(size: 12, design: .monospaced))
-            .padding(12)
+            //.padding(0)
             .frame(minHeight: 200)
+            .frame(maxWidth: .infinity)
+            .foregroundColor(.secondary)
             .background(.white)
             .cornerRadius(12)
+            .focused($isRawTextFieldFocused)
+            .onSubmit {
+              isRawTextFieldFocused = false
+            }
+            .toolbar {
+              ToolbarItemGroup(placement: .keyboard) {
+                if isRawTextFieldFocused {
+                  Spacer()
+                  Button("Done") {
+                    isRawTextFieldFocused = false
+                  }
+                }
+              }
+            }
         } header: {
           HStack(alignment: .center) {
             Text("Recipe Text")
             Spacer()
-            Button("Copy to Clipboard") {
-              UIPasteboard.general.string = rawText
+            Button("Paste from Clipboard") {
+              if let clipboardString = UIPasteboard.general.string {
+                rawText += clipboardString
+              }
             }
             .foregroundColor(.blue)
             .padding(.horizontal, 12)
@@ -69,6 +92,8 @@ struct AddRecipe: View {
             .background(Color(red: 0.85, green: 0.92, blue: 1.0))
             .cornerRadius(8)
           }
+          .frame(maxWidth: .infinity, alignment: .leading)
+          
         }
       }
       .background(Color(.secondarySystemBackground))

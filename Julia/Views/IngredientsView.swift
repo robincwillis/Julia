@@ -10,8 +10,8 @@ import SwiftData
 
 struct IngredientsView: View {
   let location: IngredientLocation
-  @Binding var showBottomSheet: Bool
-  @Binding var currentIngredient: Ingredient? 
+  @State private var showBottomSheet = false
+  @State private var currentIngredient: Ingredient?
 
   @Environment(\.modelContext) var context
   @Query() var allIngredients: [Ingredient]
@@ -100,9 +100,23 @@ struct IngredientsView: View {
           }
         }
         
+        
+        FloatingBottomSheet(
+          isPresented: $showBottomSheet,
+          showHideTabBar : true
+        ) {
+          IngredientEditor(
+            ingredientLocation: location,
+            ingredient: $currentIngredient,
+            showBottomSheet: $showBottomSheet
+          )
+        }.onChange(of: showBottomSheet) {
+          // Remove currentIngredient if AddIngredientSheet is dismissed
+          if(showBottomSheet == false) {
+            currentIngredient = nil
+          }
+        }
       }
-      
-      
     }
     .onChange(of: selectedIngredients) {
       withAnimation {
@@ -167,9 +181,7 @@ struct IngredientsView: View {
   @State var currentIngredient: Ingredient? = nil
   @State var showBottomSheet = false
   return IngredientsView(
-    location: IngredientLocation.grocery,
-    showBottomSheet: $showBottomSheet,
-    currentIngredient: $currentIngredient
+    location: IngredientLocation.grocery
   )
       .modelContainer(DataController.previewContainer)
 }

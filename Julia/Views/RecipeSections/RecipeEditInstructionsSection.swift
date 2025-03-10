@@ -9,45 +9,24 @@ import SwiftUI
 
 struct RecipeEditInstructionsSection: View {
   @Binding var instructions: [String]
-  @FocusState var isTextFieldFocused: Bool
-  
-  // Use a dedicated FocusState for the instruction fields
-  @FocusState private var focusedInstructionField: Int?
 
+  @FocusState var isTextFieldFocused: Bool
+  @FocusState var focusedInstructionField: Int?
+  
+  private var instructionFocused: Bool {
+    return focusedInstructionField != nil
+  }
+  
+  private let toolbarID = "instructionsToolbar"
   var body: some View {
     Section(header: Text("Instructions")) {
       if instructions.isEmpty {
         Text("No instructions added")
           .foregroundColor(.gray)
       } else {
-        ForEach(Array(instructions.enumerated()), id: \.element) { index, _ in
+        ForEach(0..<instructions.count, id: \.self) { index in
           TextField("Step \(index + 1)", text: $instructions[index], axis: .vertical)
             .focused($focusedInstructionField, equals: index)
-            .submitLabel(.next)
-            .toolbar {
-              ToolbarItemGroup(placement: .keyboard) {
-                Spacer()
-                
-                Button("Previous") {
-                  if let focused = focusedInstructionField, focused > 0 {
-                    focusedInstructionField = focused - 1
-                  }
-                }
-                .disabled(focusedInstructionField == nil || focusedInstructionField == 0)
-                
-                Button("Next") {
-                  if let focused = focusedInstructionField, focused < instructions.count - 1 {
-                    focusedInstructionField = focused + 1
-                  }
-                }
-                .disabled(focusedInstructionField == nil || focusedInstructionField == instructions.count - 1)
-                
-                Button("Done") {
-                  focusedInstructionField = nil
-                  isTextFieldFocused = false
-                }
-              }
-            }
         }
         .onDelete { indices in
           deleteInstruction(at: indices)
@@ -55,14 +34,48 @@ struct RecipeEditInstructionsSection: View {
         .onMove { from, to in
           moveInstruction(from: from, to: to)
         }
-       }
-       Button(action: {
-          addNewInstruction()
-        }) {
-          Label("Add Step", systemImage: "plus")
-            .foregroundColor(.blue)
+      }
+      Button(action: {
+        addNewInstruction()
+      }) {
+        Label("Add Step", systemImage: "plus")
+          .foregroundColor(.blue)
+      }
+   }
+  .toolbar () {
+      if instructionFocused {
+        ToolbarItemGroup(placement: .keyboard) {
+          Spacer()
+          
+          // Previous
+          Button {
+            if let focused = focusedInstructionField, focused > 0 {
+              focusedInstructionField = focused - 1
+            }
+          } label: {
+            Image(systemName: "chevron.backward")
+              .foregroundColor(.blue)
+          }
+          .disabled(focusedInstructionField == nil || focusedInstructionField == 0)
+          
+          // Next
+          Button {
+            if let focused = focusedInstructionField, focused < instructions.count - 1 {
+              focusedInstructionField = focused + 1
+            }
+          } label: {
+            Image(systemName: "chevron.forward")
+              .foregroundColor(.blue)
+          }
+          .disabled(focusedInstructionField == nil || focusedInstructionField == instructions.count - 1)
+          
+          // Done
+          Button("Done") {
+            focusedInstructionField = nil
+          }
         }
-     }
+      }
+    }
   }
   
   private func addNewInstruction() {
@@ -103,8 +116,7 @@ struct RecipeEditInstructionsSection: View {
       NavigationStack {
         Form {
           RecipeEditInstructionsSection(
-            instructions: $instructions,
-            isTextFieldFocused: _focused
+            instructions: $instructions
           )
         }
       }

@@ -11,6 +11,7 @@ struct RecipeEditSummarySection: View {
     @Binding var title: String
     @Binding var summary: String?
     @FocusState var isTextFieldFocused: Bool
+    @FocusState var isSummaryFieldFocused: Bool
   
     var body: some View {
       // Title and Summary
@@ -26,16 +27,17 @@ struct RecipeEditSummarySection: View {
           set: { summary = $0.isEmpty ? nil : $0 }
         ), axis: .vertical)
           .lineLimit(3...6)
-          .focused($isTextFieldFocused)
-          .submitLabel(.done)
+          .focused($isSummaryFieldFocused)
           .onSubmit {
-            isTextFieldFocused = false
+            isSummaryFieldFocused = false
           }
           .toolbar {
             ToolbarItemGroup(placement: .keyboard) {
-              Spacer()
-              Button("Done") {
-                isTextFieldFocused = false
+              if isSummaryFieldFocused {
+                Spacer()
+                Button("Done") {
+                  isSummaryFieldFocused = false
+                }
               }
             }
           }

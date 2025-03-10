@@ -22,15 +22,12 @@ struct RecipeEditIngredientsSection: View {
           .foregroundColor(.gray)
       } else {
         ForEach(ingredients) { ingredient in
-          HStack {
-            Button(action: {
-              editIngredient(ingredient)
-            }) {
-              Text(ingredient.name)
-                .font(.body)
-                .foregroundColor(.black)
-            }
-          }
+          IngredientRow(
+            ingredient: ingredient,
+            onTap: editIngredient,
+            padding: 3
+          )
+            
         }
         .onDelete { indices in
           deleteIngredient(at: indices)
@@ -60,17 +57,10 @@ struct RecipeEditIngredientsSection: View {
             .italic()
         } else {
           ForEach(sections[sectionIndex].ingredients) { ingredient in
-            HStack {
-              Button(action: {
-                selectedIngredient = ingredient
-                showIngredientEditor = true
-              }) {
-                Text(ingredient.name)
-                  .font(.body)
-                  .foregroundColor(.black)
-
+            IngredientRow(ingredient: ingredient, padding: 3)
+              .onTapGesture {
+                editIngredient(ingredient)
               }
-            }
           }
           .onDelete { indices in
             deleteIngredientFromSection(at: indices, in: sectionIndex)
@@ -83,7 +73,7 @@ struct RecipeEditIngredientsSection: View {
         Button {
           addNewIngredientToSection(sectionIndex)
         } label: {
-          Label("Add to Section", systemImage: "plus")
+          Label("Add Ingredient", systemImage: "plus")
             .foregroundColor(.blue)
         }
       } header: {
@@ -115,7 +105,7 @@ struct RecipeEditIngredientsSection: View {
   
   private func addNewIngredient() {
     withAnimation {
-      let newIngredient = Ingredient(name: "New Ingredient", location: .recipe)
+      let newIngredient = Ingredient(name: "", location: .recipe)
       ingredients.append(newIngredient)
       // Open edit screen for the new ingredient
       editIngredient(newIngredient)
@@ -124,7 +114,7 @@ struct RecipeEditIngredientsSection: View {
   
   private func addNewIngredientToSection(_ sectionIndex: Int) {
     withAnimation {
-      let newIngredient = Ingredient(name: "New Ingredient", location: .recipe)
+      let newIngredient = Ingredient(name: "", location: .recipe)
       sections[sectionIndex].ingredients.append(newIngredient)
       // Open edit screen for the new ingredient
       editIngredient(newIngredient)
@@ -155,7 +145,6 @@ struct RecipeEditIngredientsSection: View {
     //}
   }
   
-  
   // Delete ingredients from a section
   private func deleteIngredientFromSection(at indices: IndexSet, in sectionIndex: Int) {
     withAnimation {
@@ -165,8 +154,10 @@ struct RecipeEditIngredientsSection: View {
     }
   }
   
-  private func editIngredient(_ ingredient: Ingredient) {
-    selectedIngredient = ingredient
+  private func editIngredient(_ ingredient: Ingredient?) {
+    if (ingredient != nil) {
+     selectedIngredient = ingredient
+    }
     showIngredientEditor = true
   }
   

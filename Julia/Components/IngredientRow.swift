@@ -15,7 +15,7 @@ struct iOSCheckboxToggleStyle: ToggleStyle {
     }, label: {
       HStack {
         RoundedRectangle(cornerRadius: 6)
-          .fill(configuration.isOn ? Color.blue : Color.gray.opacity(0.5))  // Blue when checked, gray otherwise
+          .fill(configuration.isOn ? Color.blue : Color.gray.opacity(0.25))  // Blue when checked, gray otherwise
           .frame(width: 24, height: 24)
           .overlay(
             Image(systemName: "checkmark")
@@ -36,35 +36,42 @@ struct IngredientLabel: View {
   }
   
   var body: some View {
-    if let quantity = ingredient.quantity {
-      if let unit = ingredient.unit {
-        Text("\(quantity.toFractionString())") // \(unit.shortHand)
-          .font(.body)
-          .foregroundColor(.blue)
-        Text("\(unit.displayName.pluralized(for: quantity))")
-          .font(.body)
-          .foregroundColor(.blue)
-        Text(ingredient.name)
-          .font(.body)
-          .foregroundColor(.secondary)
-      } else {
-        Text("\(quantity.toFractionString())")
-          .font(.body)
-          .foregroundColor(.blue)
-        Text(ingredient.name.pluralized(for: quantity))
-          .font(.body)
-          .foregroundColor(.secondary)
-          
+    VStack(alignment: .leading, spacing: 2) {
+      // Main content in HStack to flow inline
+      HStack(alignment: .firstTextBaseline, spacing: 2) {
+        
+        if let quantity = ingredient.quantity {
+          if let unit = ingredient.unit {
+            Text("\(quantity.toFractionString())") // \(unit.shortHand)
+              .font(.body)
+              .foregroundColor(.blue)
+            Text("\(unit.displayName.pluralized(for: quantity))")
+              .font(.body)
+              .foregroundColor(.blue)
+            Text(ingredient.name)
+              .font(.body)
+              .foregroundColor(.black)
+          } else {
+            Text("\(quantity.toFractionString())")
+              .font(.body)
+              .foregroundColor(.blue)
+            Text(ingredient.name.pluralized(for: quantity))
+              .font(.body)
+              .foregroundColor(.black)
+            
+          }
+        } else {
+          Text(ingredient.name)
+            .font(.body)
+            .foregroundColor(.black)
+        }
       }
-    } else {
-      Text(ingredient.name)
-        .font(.body)
-        .foregroundColor(.secondary)
-    }
-    if let comment = ingredient.comment {
-      Text("\(comment)")
-        .font(.subheadline)
-        .foregroundColor(.secondary)
+      
+      if let comment = ingredient.comment {
+        Text("\(comment)")
+          .font(.subheadline)
+          .foregroundColor(.secondary)
+      }
     }
   }
 }

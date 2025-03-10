@@ -35,10 +35,10 @@ struct RecipeRawTextSection: View {
                     .font(.system(size: 12, design: .monospaced))
                 }
                 .frame(maxWidth: .infinity)
-                .padding()
+                .padding(6)
                 .foregroundColor(.secondary)
                 .background(.background.secondary)
-                .cornerRadius(8)
+                .cornerRadius(12)
             }
         }
     }

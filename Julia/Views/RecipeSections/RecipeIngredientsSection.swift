@@ -42,6 +42,7 @@ struct RecipeIngredientsSection: View {
         }
       }
     }
+    .frame(maxWidth: .infinity, alignment: .leading)
   }
 }
 

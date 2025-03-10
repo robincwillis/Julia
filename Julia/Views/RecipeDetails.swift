@@ -20,7 +20,8 @@ struct RecipeDetails: View {
     return editMode?.wrappedValue.isEditing ?? false
   }
   
-  @State private var ingredientLocation: IngredientLocation = .recipe
+  var ingredientLocation: IngredientLocation = .recipe
+  
   @State private var showDeleteConfirmation = false
   @State private var selectedIngredient: Ingredient?
   @State private var showIngredientEditor = false
@@ -28,6 +29,7 @@ struct RecipeDetails: View {
   @State private var showRawTextSheet = false
   
   @FocusState private var isTextFieldFocused: Bool
+  @FocusState private var focusedInstructionField: Int?
   
   let debug = false
   
@@ -58,9 +60,9 @@ struct RecipeDetails: View {
           // Instructions section
           RecipeEditInstructionsSection(
             instructions: $recipe.instructions,
-            isTextFieldFocused: _isTextFieldFocused
+            isTextFieldFocused: _isTextFieldFocused,
+            focusedInstructionField: _focusedInstructionField
           )
-          
         }
         .background(Color(.secondarySystemBackground))
         .listStyle(.insetGrouped)
@@ -128,15 +130,22 @@ struct RecipeDetails: View {
           }
         }
       }
-      FloatingBottomSheet(isPresented: $showIngredientEditor) {
+      FloatingBottomSheet(
+        isPresented: $showIngredientEditor,
+        showHideTabBar : false
+      ) {
         IngredientEditor(
-          ingredientLocation: $ingredientLocation,
+          ingredientLocation: ingredientLocation,
           ingredient: $selectedIngredient,
           showBottomSheet: $showIngredientEditor
         )
       }.onChange(of: showIngredientEditor) {
         // Remove selectedIngredient if sheet is dismissed
         if(showIngredientEditor == false) {
+          // Check if the selected ingredient exists and has an empty name
+          if let ingredient = selectedIngredient, ingredient.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            deleteIngredient(ingredient)
+          }
           selectedIngredient = nil
         }
       }
@@ -195,6 +204,21 @@ struct RecipeDetails: View {
         deleteRecipe()
       }
     }
+    // Add this onChange modifier to your view
+    .onChange(of: focusedInstructionField) { oldValue, newValue in
+      if newValue != nil {
+        // When instruction field gets focus, unfocus the text field
+        isTextFieldFocused = false
+      }
+    }
+    
+    // And vice versa if needed
+    .onChange(of: isTextFieldFocused) { oldValue, newValue in
+      if newValue == true {
+        // When text field gets focus, unfocus the instruction field
+        focusedInstructionField = nil
+      }
+    }
     .onAppear {
       NotificationCenter.default.post(name: .hideTabBar, object: nil)
     }
@@ -221,6 +245,26 @@ struct RecipeDetails: View {
     }
   }
 
+  private func deleteIngredient (_ ingredient: Ingredient) {
+    // Remove from recipe if needed
+    if let recipe = ingredient.recipe {
+      recipe.ingredients.removeAll(where: { $0.id == ingredient.id })
+    }
+    
+    // Remove from section if needed
+    if let section = ingredient.section {
+      section.ingredients.removeAll(where: { $0.id == ingredient.id })
+    }
+    
+    // Delete from context
+    context.delete(ingredient)
+    
+    do {
+      try context.save()
+    } catch {
+      print("Error deleting empty ingredient: \(error)")
+    }
+  }
 
   private func deleteRecipe() {
     context.delete(recipe)
