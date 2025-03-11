@@ -1,83 +1,106 @@
-//
-//  FloatingBottomSheet.swift
-//  Julia
-//
-//  Created by Robin Willis on 11/4/24.
-//
+  //
+  //  FloatingBottomSheet.swift
+  //  Julia
+  //
+  //  Created by Robin Willis on 11/4/24.
+  //
 
-import SwiftUI
-import Combine
+  import SwiftUI
+  import Combine
 
-struct FloatingBottomSheet<Content: View>: View {
-  @Binding var isPresented: Bool
-  let content: Content
-  let showHideTabBar: Bool
-  
-  @GestureState private var dragOffset: CGFloat = 0
-  @State private var keyboardOffset: CGFloat = 0
-  @State private var dismissOffset: CGFloat = 400
-  
-  @State private var opacity: Double = 0
-  @State private var contentHeight: CGFloat = 0
 
-  // Maximum height constraint as percentage of screen (optional)
-  let maxHeightPercentage: CGFloat
-  
-  init(
-    isPresented: Binding<Bool>,
-    showHideTabBar: Bool = true,
-    maxHeightPercentage: CGFloat = 0.85,
-    @ViewBuilder content: () -> Content
-  ) {
-    self._isPresented = isPresented
-    self.showHideTabBar = showHideTabBar
-    self.content = content()
-    self.maxHeightPercentage = maxHeightPercentage
-  }
-  
-  var body: some View {
-    GeometryReader { geometry in
-      if isPresented {
-        ZStack(alignment: .bottom) {
-          // Content container with dynamic height, fixed at bottom
-          ZStack {
-            // Background shape
-            RoundedRectangle(cornerRadius: 24)
-              .fill(Color(UIColor.systemBackground))
-              .shadow(color: .black.opacity(0.1), radius: 16, x: 0, y: 4)
-            // Automatically sized content
-            VStack(spacing: 0) {
-              // Handle indicator
-              RoundedRectangle(cornerRadius: 2)
-                .fill(Color.gray.opacity(0.5))
-                .frame(width: 40, height: 4)
-                .padding(.top, 8)
+  struct FloatingBottomSheet<Content: View>: View {
+    @Binding var isPresented: Bool
+    let content: Content
+    let maxHeightPercentage: CGFloat
+    let showHideTabBar: Bool
+
+    
+    init(
+      isPresented: Binding<Bool>,
+      // TODO Add Max Height
+      maxHeightPercentage: CGFloat = 0.85,
+      @ViewBuilder content: () -> Content,
+      showHideTabBar: Bool = true
+    ) {
+      self._isPresented = isPresented
+      self.content = content()
+      self.maxHeightPercentage = maxHeightPercentage
+      self.showHideTabBar = showHideTabBar
+
+    }
+    
+    // Initial State
+    @GestureState private var dragOffset: CGFloat = 0
+    
+    @State private var dragEndOffset: CGFloat = 0
+    // TODO Add Keyboard
+    @State private var keyboardOffset: CGFloat = 0
+    @State private var animationOffset: CGFloat = 0
+    @State private var opacity: Double = 0
+    @State private var contentHeight: CGFloat = 0
+    
+    var body: some View {
+      GeometryReader { geometry in
+        //if isPresented {
+        ZStack (alignment: .bottom) {
+          if isPresented {
+            Color.black.opacity(0.05)
+              .ignoresSafeArea()
+              .transition(.opacity)
+              .onTapGesture {
+                isPresented = false
+              }
+          }
+          
+          VStack {
+            Spacer()
+            ZStack {
+              VStack(spacing: 0) {
+                // Handle indicator
+                RoundedRectangle(cornerRadius: 2)
+                  .fill(Color.gray.opacity(0.5))
+                  .frame(width: 40, height: 4)
+                  .padding(.top, 8)
+                
+                // Content with sizing
+                content
+                  .padding(.horizontal, 12)
+                  .padding(.vertical, 12)
+                  .background(
+                    GeometryReader { contentGeometry in
+                      Color.clear
+                        .ignoresSafeArea()
+                        .preference(key: ContentHeightPreferenceKey.self, value: contentGeometry.size.height)
+                        .onAppear {
+                          // Store the content height when it appears
+                          contentHeight = contentGeometry.size.height
+                        }
+                    }
+                  )
+              }
               
-              // Content with sizing
-              content
-                .padding(.horizontal, 12)
-                .padding(.bottom, 12)
+              // Style the Sheet
+              .background(.white)
+              .cornerRadius(24)
+              .padding(.horizontal, 12)
+              
+              .shadow(color: .black.opacity(0.1), radius: 16, x: 0, y: 4)
+              .offset(y: (dragOffset < 0 ? dragOffset * 0.25 : dragOffset) + dragEndOffset - keyboardOffset)
+              
             }
           }
-          .frame(maxWidth: .infinity)          
-          // Apply dynamic height with a maximum constraint
-          // But position it from the bottom using alignment
-          .frame(
-            height: min(contentHeight + 40, geometry.size.height * maxHeightPercentage),
-            alignment: .bottom
-          )
-          .padding(.horizontal, 12)
-          .offset(y: (dragOffset < 0 ? dragOffset * 0.25 : dragOffset) - keyboardOffset + dismissOffset)
-          .animation(.spring(), value: dragOffset)
-          .animation(.spring(), value: dismissOffset)
+          // Full View
+          .frame(maxWidth: .infinity, maxHeight: .infinity)
+          .opacity(isPresented ? 1.0 : 0.0)
+          .offset(y: isPresented ? 0 : contentHeight)
+          .animation(.easeInOut(duration: 0.2), value: isPresented)
         }
-        .frame(width: geometry.size.width, height: geometry.size.height,  alignment: .bottom)
-        // This explicitly defines the hit test area for the gesture
+        
         .background(
-          // Debugging
-          //.black.opacity(0.05)
           Color.clear
             .contentShape(Rectangle())
+            .allowsHitTesting(isPresented)
         )
         .simultaneousGesture(
           DragGesture()
@@ -90,151 +113,129 @@ struct FloatingBottomSheet<Content: View>: View {
               handleDragEnd(value: value, geometry: geometry)
             }
         )
-        .edgesIgnoringSafeArea(.bottom) // Ignore bottom safe area for backdrop
-        .opacity(opacity)
+        
         .onAppear {
           setupKeyboardObservers()
         }
+        .onPreferenceChange(ContentHeightPreferenceKey.self) { height in
+          contentHeight = height
+        }
+        .onChange(of: isPresented) { oldValue, newValue in
+          if (showHideTabBar) {
+            if newValue {
+              NotificationCenter.default.post(name: .hideTabBar, object: nil)
+            } else {
+              NotificationCenter.default.post(name: .showTabBar, object: nil)
+            }
+          }
+        }
       }
     }
-    .animation(.spring(), value: isPresented)
-    .onChange(of: isPresented) { oldValue, newValue in
-        if newValue {
-          if (showHideTabBar) {
-            NotificationCenter.default.post(name: .hideTabBar, object: nil)
+    
+    
+    private func handleDragEnd(value: DragGesture.Value, geometry: GeometryProxy) {
+      let dragPercentage = value.translation.height / geometry.size.height
+      if dragPercentage > 0.15 {
+        isPresented = false
+      }
+    }
+    
+    private func setupKeyboardObservers() {
+      NotificationCenter.default.addObserver(
+        forName: UIResponder.keyboardWillShowNotification,
+        object: nil,
+        queue: .main
+      ) { notification in
+        if notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] is CGRect {
+          withAnimation(.spring()) {
+            self.keyboardOffset = 12
           }
-          dismissOffset = 0
-          opacity = 1
-        } else {
-          if (showHideTabBar) {
-            NotificationCenter.default.post(name: .showTabBar, object: nil)
-          }
-          dismissOffset = 400
-          opacity = 0
         }
-    }
-  }
-  
-  private func handleDragEnd(value: DragGesture.Value, geometry: GeometryProxy) {
-    let dragPercentage = value.translation.height / geometry.size.height
-    if dragPercentage > 0.15 {
-      //dismissOffset += value
-      // Dismiss if dragged down more than 15% of screen height
-      dismiss()
-    }
-  }
-  
-  private func setupKeyboardObservers() {
-    NotificationCenter.default.addObserver(
-      forName: UIResponder.keyboardWillShowNotification,
-      object: nil,
-      queue: .main
-    ) { notification in
-      if notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] is CGRect {
+      }
+      
+      NotificationCenter.default.addObserver(
+        forName: UIResponder.keyboardWillHideNotification,
+        object: nil,
+        queue: .main
+      ) { _ in
         withAnimation(.spring()) {
-          self.keyboardOffset = 12
+          self.keyboardOffset = 0
         }
       }
     }
-    
-    NotificationCenter.default.addObserver(
-      forName: UIResponder.keyboardWillHideNotification,
-      object: nil,
-      queue: .main
-    ) { _ in
-      withAnimation(.spring()) {
-        self.keyboardOffset = 0
-      }
-    }
   }
-  
-  
-  private func dismiss() {
-    
-    // let currentOffset = dragOffset
-    
-    //withAnimation(.easeOut(duration: 0.2)) {
-     // dismissOffset = 400
-     // opacity = 0
-    //}
-    
-    //DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-      //withAnimation(.easeOut(duration: 0.1)) {
-        // Reset the additional offset for next presentation
-      isPresented = false
-      // dismissOffset = 0
-    //}
-    
-    
-//    withAnimation(.spring()) {
-//      isPresented = false
-//    }
+
+
+// Preference key to track content height
+struct ContentHeightPreferenceKey: PreferenceKey {
+  static var defaultValue: CGFloat = 0
+  static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+    value = nextValue()
   }
 }
 
-
-#Preview {
-  struct PreviewWrapper: View {
-    @State private var showSheet = true
-    @State private var textInput = ""
-    @State private var showExtraContent = false
-    
-    @FocusState private var isFocused: Bool
-    
-    var body: some View {
-      ZStack {
-        // Main content
-        VStack {
-          Text("Main View")
-          Button("Show Sheet") {
-            showSheet = true
+  #Preview {
+    struct PreviewWrapper: View {
+      @State private var showSheet = true
+      @State private var textInput = ""
+      @State private var showExtraContent = false
+      
+      @FocusState private var isFocused: Bool
+      
+      var body: some View {
+        ZStack {
+          // Main content
+          VStack {
+            Text("Main View")
+            Button("Show Sheet") {
+              showSheet = true
+            }
           }
-        }
-        
-        FloatingBottomSheet(
-          isPresented: $showSheet,
-          showHideTabBar: false
-        ) {
-          VStack(spacing: 16) {
-            Text("Dynamic Content Sheet")
-              .font(.headline)
-            
-            TextField("Type something...", text: $textInput)
-              .textFieldStyle(RoundedBorderTextFieldStyle())
-              .focused($isFocused)
-            
-            Button("Toggle Extra Content") {
-              withAnimation {
-                showExtraContent.toggle()
-              }
-            }
-            .buttonStyle(.borderedProminent)
-            
-            Button("Dismiss") {
-              showSheet = false
-            }
-            .buttonStyle(.borderedProminent)
-            
-            if showExtraContent {
-              // This content will only appear when toggled
-              VStack(spacing: 12) {
-                ForEach(0..<5, id: \.self) { index in
-                  Text("Additional item \(index)")
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding()
-                    .background(Color.gray.opacity(0.1))
-                    .cornerRadius(8)
+          
+          FloatingBottomSheet(
+            isPresented: $showSheet,
+            showHideTabBar: false
+          ) {
+            VStack(spacing: 16) {
+              Text("Dynamic Content Sheet")
+                .font(.headline)
+              
+              TextField("Type something...", text: $textInput)
+                .textFieldStyle(RoundedBorderTextFieldStyle())
+                .focused($isFocused)
+              
+              Button("Toggle Extra Content") {
+                withAnimation {
+                  showExtraContent.toggle()
                 }
               }
-              .transition(.opacity.combined(with: .move(edge: .bottom)))
+              .buttonStyle(.borderedProminent)
               
+              Button("Dismiss") {
+                showSheet = false
+              }
+              .buttonStyle(.borderedProminent)
+              
+              if showExtraContent {
+                // This content will only appear when toggled
+                VStack(spacing: 12) {
+                  ForEach(0..<5, id: \.self) { index in
+                    Text("Additional item \(index)")
+                      .frame(maxWidth: .infinity, alignment: .leading)
+                      .padding()
+                      .background(Color.gray.opacity(0.1))
+                      .cornerRadius(8)
+                  }
+                }
+                .transition(.opacity.combined(with: .move(edge: .bottom)))
+                
+              }
             }
+            .animation(.spring(), value: showExtraContent)
           }
-          .animation(.spring(), value: showExtraContent)
         }
       }
     }
+    
+    return PreviewWrapper()
   }
-  
-  return PreviewWrapper()
-}

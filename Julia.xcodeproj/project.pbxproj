@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		52010E4F2D7FD362007C4889 /* RecipeTextReconstructor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52010E4E2D7FD362007C4889 /* RecipeTextReconstructor.swift */; };
 		520DE6A22C33208B00CAF570 /* NavigationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 520DE6A12C33208B00CAF570 /* NavigationView.swift */; };
 		520DE6A42C3320F000CAF570 /* RecipesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 520DE6A32C3320F000CAF570 /* RecipesView.swift */; };
 		520DE6A62C33210200CAF570 /* IngredientsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 520DE6A52C33210200CAF570 /* IngredientsView.swift */; };
@@ -58,6 +59,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		52010E4E2D7FD362007C4889 /* RecipeTextReconstructor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeTextReconstructor.swift; sourceTree = "<group>"; };
 		520DE69E2C330F9600CAF570 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		520DE6A12C33208B00CAF570 /* NavigationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationView.swift; sourceTree = "<group>"; };
 		520DE6A32C3320F000CAF570 /* RecipesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipesView.swift; sourceTree = "<group>"; };
@@ -165,6 +167,7 @@
 			children = (
 				52CD8F8B2D7493450076F578 /* PhotoProcessingState.swift */,
 				52CD8F8A2D7493450076F578 /* TextRecognitionService.swift */,
+				52010E4E2D7FD362007C4889 /* RecipeTextReconstructor.swift */,
 				521313BB2D7344C60021DA90 /* RecipeTextClassifier.swift */,
 				526250C72CE292A4004EE6C7 /* IngredientParser.swift */,
 				520DE6B82C346A4B00CAF570 /* Double+Extensions.swift */,
@@ -336,6 +339,7 @@
 				52CD8F8D2D7493450076F578 /* PhotoProcessingState.swift in Sources */,
 				520DE6A42C3320F000CAF570 /* RecipesView.swift in Sources */,
 				52CD8F862D7492B80076F578 /* RecipeProcessingView.swift in Sources */,
+				52010E4F2D7FD362007C4889 /* RecipeTextReconstructor.swift in Sources */,
 				526250C62CE28BFC004EE6C7 /* EditIngredient.swift in Sources */,
 				526250CA2CE3A641004EE6C7 /* MeasurementUnit.swift in Sources */,
 				526250C82CE292A4004EE6C7 /* IngredientParser.swift in Sources */,
