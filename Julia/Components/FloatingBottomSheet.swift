@@ -24,118 +24,123 @@
       showHideTabBar: Bool = true
     ) {
       self._isPresented = isPresented
-      self.content = content()
       self.maxHeightPercentage = maxHeightPercentage
       self.showHideTabBar = showHideTabBar
-
+      self.content = content()
     }
     
     // Initial State
     @GestureState private var dragOffset: CGFloat = 0
-    
     @State private var dragEndOffset: CGFloat = 0
-    // TODO Add Keyboard
     @State private var keyboardOffset: CGFloat = 0
-    @State private var animationOffset: CGFloat = 0
-    @State private var opacity: Double = 0
     @State private var contentHeight: CGFloat = 0
     
+    @State private var isContentVisible: Bool = false
+    @State private var isInView: Bool = false
+
     var body: some View {
-      GeometryReader { geometry in
-        //if isPresented {
-        ZStack (alignment: .bottom) {
-          if isPresented {
-            Color.black.opacity(0.05)
-              .ignoresSafeArea()
-              .transition(.opacity)
-              .onTapGesture {
-                isPresented = false
-              }
-          }
+      ZStack {
+        if isInView {
           
-          VStack {
-            Spacer()
-            ZStack {
-              VStack(spacing: 0) {
-                // Handle indicator
-                RoundedRectangle(cornerRadius: 2)
-                  .fill(Color.gray.opacity(0.5))
-                  .frame(width: 40, height: 4)
-                  .padding(.top, 8)
-                
-                // Content with sizing
-                content
-                  .padding(.horizontal, 12)
-                  .padding(.vertical, 12)
-                  .background(
-                    GeometryReader { contentGeometry in
-                      Color.clear
-                        .ignoresSafeArea()
-                        .preference(key: ContentHeightPreferenceKey.self, value: contentGeometry.size.height)
-                        .onAppear {
-                          // Store the content height when it appears
-                          contentHeight = contentGeometry.size.height
-                        }
-                    }
-                  )
+          GeometryReader { geometry in
+            ZStack (alignment: .bottom) {
+              if isContentVisible {
+                Color.black.opacity(0.05)
+                  .ignoresSafeArea()
+                  .transition(.opacity)
+                  .onTapGesture {
+                    isPresented = false
+                  }
               }
               
-              // Style the Sheet
-              .background(.white)
-              .cornerRadius(24)
-              .padding(.horizontal, 12)
-              
-              .shadow(color: .black.opacity(0.1), radius: 16, x: 0, y: 4)
-              .offset(y: (dragOffset < 0 ? dragOffset * 0.25 : dragOffset) + dragEndOffset - keyboardOffset)
-              
+              VStack {
+                Spacer()
+                ZStack {
+                  VStack(spacing: 0) {
+                      content
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 12)
+                        .background(
+                          GeometryReader { contentGeometry in
+                            Color.clear
+                              .ignoresSafeArea()
+                              .onAppear {
+                                // Store the content height when it appears
+                                contentHeight = contentGeometry.size.height
+                              }
+                          }
+                      )
+                  }
+                  
+                  // Style the Sheet
+                  .background(.white)
+                  .cornerRadius(24)
+                  .padding(.horizontal, 12)
+                  .shadow(color: .black.opacity(0.1), radius: 16, x: 0, y: 4)
+                  .offset(y: (dragOffset < 0 ? dragOffset * 0.25 : dragOffset) + dragEndOffset - keyboardOffset)
+                  
+                }
+              }
+              // Full View
+              .frame(maxWidth: .infinity, maxHeight: .infinity)
+              .opacity(isContentVisible ? 1.0 : 0.0)
+              .offset(y: isContentVisible ? 0 : contentHeight)
+            }
+            
+            .background(
+              Color.clear
+                .contentShape(Rectangle())
+                .allowsHitTesting(isContentVisible)
+            )
+            .simultaneousGesture(
+              DragGesture()
+                .updating($dragOffset) { value, state, _ in
+                  state = value.translation.height
+                }
+                .onEnded { value in
+                  handleDragEnd(value: value, geometry: geometry)
+                }
+            )
+            .animation(.interactiveSpring(), value: dragOffset)
+          }
+        }
+      }
+      .onAppear {
+        isContentVisible = isPresented
+        isInView = isPresented
+        setupKeyboardObservers()
+      }
+      .onChange(of: isPresented) { oldValue, newValue in
+        if newValue {
+          dragEndOffset = 0
+          isInView = newValue
+          // isContentVisible = true
+          Task { @MainActor in
+            withAnimation(.easeInOut(duration: 0.25)) {
+              isContentVisible = newValue
             }
           }
-          // Full View
-          .frame(maxWidth: .infinity, maxHeight: .infinity)
-          .opacity(isPresented ? 1.0 : 0.0)
-          .offset(y: isPresented ? 0 : contentHeight)
-          .animation(.easeInOut(duration: 0.2), value: isPresented)
-        }
-        
-        .background(
-          Color.clear
-            .contentShape(Rectangle())
-            .allowsHitTesting(isPresented)
-        )
-        .simultaneousGesture(
-          DragGesture()
-            .updating($dragOffset) { value, state, _ in
-              withAnimation(.interactiveSpring()) {
-                state = value.translation.height
-              }
-            }
-            .onEnded { value in
-              handleDragEnd(value: value, geometry: geometry)
-            }
-        )
-        
-        .onAppear {
-          setupKeyboardObservers()
-        }
-        .onPreferenceChange(ContentHeightPreferenceKey.self) { height in
-          contentHeight = height
-        }
-        .onChange(of: isPresented) { oldValue, newValue in
           if (showHideTabBar) {
-            if newValue {
-              NotificationCenter.default.post(name: .hideTabBar, object: nil)
-            } else {
-              NotificationCenter.default.post(name: .showTabBar, object: nil)
-            }
+            NotificationCenter.default.post(name: .hideTabBar, object: nil)
+          }
+        } else {
+          
+          withAnimation(.easeInOut(duration: 0.25)) {
+            isContentVisible = newValue
+          } completion: {
+            isInView = newValue
+          }
+          if (showHideTabBar) {
+            NotificationCenter.default.post(name: .showTabBar, object: nil)
           }
         }
       }
     }
     
-    
     private func handleDragEnd(value: DragGesture.Value, geometry: GeometryProxy) {
       let dragPercentage = value.translation.height / geometry.size.height
       if dragPercentage > 0.15 {
+        dragEndOffset = value.translation.height
         isPresented = false
       }
     }
@@ -194,8 +199,7 @@ struct ContentHeightPreferenceKey: PreferenceKey {
           
           FloatingBottomSheet(
             isPresented: $showSheet,
-            showHideTabBar: false
-          ) {
+            content: {
             VStack(spacing: 16) {
               Text("Dynamic Content Sheet")
                 .font(.headline)
@@ -232,7 +236,8 @@ struct ContentHeightPreferenceKey: PreferenceKey {
               }
             }
             .animation(.spring(), value: showExtraContent)
-          }
+            },
+            showHideTabBar: false)
         }
       }
     }

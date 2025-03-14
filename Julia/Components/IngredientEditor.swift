@@ -383,6 +383,20 @@ struct IngredientEditor: View {
         }
       }
     }
+    // TODO: See if this is needed
+//    .onChange(of: showBottomSheet) { oldValue, newValue in
+//      // If the sheet is being dismissed and we can save
+//      if oldValue == true && newValue == false && canSave {
+//        saveIngredient()
+//      }
+//    }
+    .onDisappear {
+      // Safety check to save when the view disappears
+      if canSave {
+        saveIngredient()
+      }
+    }
+
   }
   
   

@@ -161,9 +161,8 @@ struct NavigationView: View {
         if let image = selectedImage {
           RecipeProcessingView(image: image)
             .ignoresSafeArea(.keyboard)
-            .onAppear {
-              print("RecipeProcessingView appeared with image size: \(image.size)")
-            }
+            .presentationDragIndicator(.visible)
+            .interactiveDismissDisabled()
         } else {
           VStack(spacing: 20) {
             Text("Error: No Image Selected")

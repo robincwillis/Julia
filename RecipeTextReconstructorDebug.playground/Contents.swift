@@ -1,12 +1,4 @@
-//
-//  RecipeTextReconstructor.swift
-//  Julia
-//
-//  Created by Robin Willis on 3/10/25.
-//
-
 import Foundation
-import SwiftData
 
 struct TextReconstructorResult {
   var title: String
@@ -155,3 +147,14 @@ let sampleLines = [
   "2. Add butter",
   "3. Bake at 350°F for 10 minutes"
 ]
+
+// Run the reconstructor
+let reconstructed = RecipeTextReconstructor.reconstructText(from: sampleLines)
+print("Title: \(reconstructed.title)")
+print("Lines: \(reconstructed.reconstructedLines)")
+print("Artifacts: \(reconstructed.artifacts)")
+//print("Lines for classifier: \(reconstructed.linesForClassifier)")
+
+//// Test prepareForClassification
+//let classifierLines = RecipeTextReconstructor.prepareForClassification(from: sampleLines)
+//print("Classifier lines: \(classifierLines)")
