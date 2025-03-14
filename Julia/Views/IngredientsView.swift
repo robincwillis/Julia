@@ -131,11 +131,15 @@ struct IngredientsView: View {
   }
   
   func showAddSheet(ingredient: Ingredient? = nil) {
-    guard let ingredient = ingredient else {
-      showBottomSheet = true  // Show the sheet even if there's no ingredient
-      return
+    // First, reset the current ingredient to ensure we start fresh
+    currentIngredient = nil
+    
+    // If an ingredient was passed, it means we're editing an existing one
+    if let ingredient = ingredient {
+      currentIngredient = ingredient
     }
-    currentIngredient = ingredient
+    
+    // Show the bottom sheet after setting the ingredient state
     showBottomSheet = true
   }
   

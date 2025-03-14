@@ -1,10 +1,3 @@
-//
-//  RecipeTextReconstructor.swift
-//  Julia
-//
-//  Created by Robin Willis on 3/10/25.
-//
-
 import Foundation
 import SwiftData
 
@@ -21,9 +14,19 @@ class RecipeTextReconstructor {
     var reconstructedLines: [String] = []
     var artifacts: [String] = []
     
+    // Skip if empty
+    if lines.isEmpty {
+      return TextReconstructorResult(title: "", reconstructedLines: [], artifacts: [])
+    }
+    
     // Step 1: Filter out artifacts (lines < 3 chars or only numbers)
     let filteredLines = lines.filter { line in
       let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
+      
+      // Skip empty lines but don't count as artifacts
+      if trimmed.isEmpty {
+        return false
+      }
       
       // Check if line is too short
       if trimmed.count < 3 {
@@ -63,12 +66,23 @@ class RecipeTextReconstructor {
             break
           }
         }
+        
+        // Include the title lines in reconstructed lines as well
+        reconstructedLines.append(title)
+      } else {
+        // Include the title in reconstructed lines
+        reconstructedLines.append(title)
       }
     }
     
     // Step 3-5: Process remaining lines
     var currentLine = ""
     var i = 0
+    
+    // Skip the title line(s) that we've already processed
+    if !filteredLines.isEmpty {
+      i = 1
+    }
     
     while i < filteredLines.count {
       let line = filteredLines[i].trimmingCharacters(in: .whitespacesAndNewlines)
@@ -122,6 +136,12 @@ class RecipeTextReconstructor {
       reconstructedLines.append(currentLine)
     }
     
+    // Debug print to verify the results
+    print("*** RecipeTextReconstructor Results ***")
+    print("Title: \(title)")
+    print("Reconstructed Lines (\(reconstructedLines.count)): \(reconstructedLines)")
+    print("Artifacts (\(artifacts.count)): \(artifacts)")
+    
     return TextReconstructorResult(
       title: title,
       reconstructedLines: reconstructedLines,
@@ -133,7 +153,10 @@ class RecipeTextReconstructor {
   private static func startsWithSpecialCharacter(_ text: String) -> Bool {
     guard let firstChar = text.first else { return false }
     let specialChars = CharacterSet(charactersIn: "-•*–—⁃․⁌⁍◦◘○●◎✓✔✗✘❋❖")
-    return specialChars.contains(UnicodeScalar(String(firstChar))!)
+    
+    // Need to convert Character to UnicodeScalar for contains check
+    guard let unicodeScalar = firstChar.unicodeScalars.first else { return false }
+    return specialChars.contains(unicodeScalar)
   }
   
   // Helper function to check if string contains ingredient fraction characters
@@ -143,15 +166,3 @@ class RecipeTextReconstructor {
     return firstTwoChars.contains(where: { ingredientChars.contains($0) })
   }
 }
-// Test data
-let sampleLines = [
-  "Chocolate Chip Cookies",
-  "",
-  "2 cups flour",
-  "1 cup sugar",
-  "1/2 cup butter",
-  "",
-  "1. Mix dry ingredients",
-  "2. Add butter",
-  "3. Bake at 350°F for 10 minutes"
-]

@@ -6,7 +6,6 @@ struct RecipeTextImportView: View {
     @Environment(\.modelContext) private var context
     
     @Binding var showRecipeProcessing: Bool
-    @Binding var selectedImage: UIImage?
     
     @State private var recipeText = ""
     @State private var isLoading = false
@@ -71,13 +70,9 @@ struct RecipeTextImportView: View {
         let lines = recipeText.components(separatedBy: .newlines)
         
         Task {
-            // Simulate processing delay for UI feedback
-            try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 second
+
             
             await MainActor.run {
-                // Convert text to an image for processing pipeline compatibility
-                let textImage = textToImage(recipeText, size: CGSize(width: 800, height: 1200))
-                selectedImage = textImage
                 
                 // Clean up and dismiss
                 isLoading = false
@@ -90,40 +85,15 @@ struct RecipeTextImportView: View {
             }
         }
     }
-    
-    // Helper function to convert text to an image (for processing pipeline compatibility)
-    private func textToImage(_ text: String, size: CGSize) -> UIImage {
-        let renderer = UIGraphicsImageRenderer(size: size)
-        return renderer.image { context in
-            // Fill background
-            UIColor.white.setFill()
-            context.fill(CGRect(origin: .zero, size: size))
-            
-            // Draw text
-            let paragraphStyle = NSMutableParagraphStyle()
-            paragraphStyle.alignment = .left
-            paragraphStyle.lineBreakMode = .byWordWrapping
-            
-            let attributes: [NSAttributedString.Key: Any] = [
-                .font: UIFont.systemFont(ofSize: 16),
-                .foregroundColor: UIColor.black,
-                .paragraphStyle: paragraphStyle
-            ]
-            
-            text.draw(in: CGRect(x: 20, y: 20, width: size.width - 40, height: size.height - 40), withAttributes: attributes)
-        }
-    }
 }
 
 #Preview {
     struct PreviewWrapper: View {
         @State private var showRecipeProcessing = false
-        @State private var selectedImage: UIImage? = nil
         
         var body: some View {
             RecipeTextImportView(
-                showRecipeProcessing: $showRecipeProcessing,
-                selectedImage: $selectedImage
+                showRecipeProcessing: $showRecipeProcessing
             )
             .modelContainer(DataController.previewContainer)
         }

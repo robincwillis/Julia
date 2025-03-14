@@ -102,19 +102,20 @@ struct RecipeDetails: View {
           .padding(.bottom, 16)
         }
         .background(Color(.systemBackground))
-        //.navigationTitle(recipe.title)
+        .navigationTitle(recipe.title)
         .navigationBarTitleDisplayMode(.large)
         .edgesIgnoringSafeArea(.bottom)
         .toolbar {
-          ToolbarItem(placement: .principal) {
-            Text(recipe.title)
-              .font(.largeTitle)
-              .fontWeight(.bold)
-              .lineLimit(nil) // Remove line limit
-              .fixedSize(horizontal: false, vertical: true) // Enable wrapping
-              .multilineTextAlignment(.center) // Optional: center align if desired
-          }
-          if !selectedIngredients.isEmpty {
+// Not working well
+//          ToolbarItem(placement: .principal) {
+//            Text(recipe.title)
+//              .font(.largeTitle)
+//              .fontWeight(.bold)
+//              .lineLimit(nil) // Remove line limit
+//              .fixedSize(horizontal: false, vertical: true) // Enable wrapping
+//              .multilineTextAlignment(.center) // Optional: center align if desired
+//          }
+         if !selectedIngredients.isEmpty {
             ToolbarItem(placement: .topBarTrailing) {
               Menu {
                 Button(action: addSelectedToGroceryList) {

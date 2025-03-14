@@ -143,39 +143,43 @@ struct IngredientEditor: View {
       
       VStack(alignment: .center, spacing: 12) {
         
-        Group {
         // Display Ingredient Measurement and Unit
         if let measurementLabel = displayMeasurement {
-          Text(measurementLabel)
-            .font(.system(size: 18, weight: .medium))
-            .foregroundColor(.blue)
-            .padding(.horizontal, 8)
-            .frame(maxWidth: .infinity, alignment: .center)
+          Button(action: {
+            withAnimation {
+              isNameFieldFocused.toggle()
+            }
+          }) {
+            Text(measurementLabel)
+              .font(.system(size: 18, weight: .medium))
+              .foregroundColor(.blue)
+              .padding(.horizontal, 8)
+              .frame(maxWidth: .infinity, alignment: .center)
+          }
+          .disabled(!canSave)
         }
         
         // Ingredient name field - either enter name or full ingredient text
-        
-          TextField(isNameFieldFocused ? name : "Enter ingredient name", text: $name)
-            .font(.system(size: min(32, max(18, 700 / max(1, CGFloat(name.count)))), weight: .medium))
-            .foregroundColor(.black)
-            .tint(.blue)
-            .multilineTextAlignment(.center)
-            .lineLimit(1)
-            .submitLabel(.done)
-            .minimumScaleFactor(0.5)
-            .disableAutocorrection(true)
-            .textInputAutocapitalization(.sentences)
-            .focused($isNameFieldFocused)
-            .onChange(of: name) {
-              if isNameFieldFocused {
-                ingredientInput = name
-              }
+        TextField(isNameFieldFocused ? name : "Enter ingredient name", text: $name)
+          .font(.system(size: min(32, max(18, 700 / max(1, CGFloat(name.count)))), weight: .medium))
+          .foregroundColor(.black)
+          .tint(.blue)
+          .multilineTextAlignment(.center)
+          .lineLimit(1)
+          .submitLabel(.done)
+          .minimumScaleFactor(0.5)
+          .disableAutocorrection(true)
+          .textInputAutocapitalization(.sentences)
+          .focused($isNameFieldFocused)
+          .padding(.vertical, 12)
+          .onChange(of: name) {
+            if isNameFieldFocused {
+              ingredientInput = name
             }
-            .onSubmit {
-              isNameFieldFocused = false
-            }
-        }
-        //.transition(.opacity)
+          }
+          .onSubmit {
+            isNameFieldFocused = false
+          }
         
         
         

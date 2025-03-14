@@ -81,6 +81,19 @@ struct FloatingActionMenu: View {
         .menuStyle(.borderlessButton)
       }
     }
+    
+    // URL Import Sheet
+    .sheet(isPresented: $showRecipeURLImport) {
+      RecipeURLImportView(
+        showRecipeProcessing: $showRecipeProcessing
+      )
+    }
+    // Text Import Sheet
+    .sheet(isPresented: $showRecipeTextImport) {
+      RecipeTextImportView(
+        showRecipeProcessing: $showRecipeProcessing
+      )
+    }
     // Camera component
     .fullScreenCover(isPresented: $showCamera) {
       Camera(
@@ -147,20 +160,7 @@ struct FloatingActionMenu: View {
         }
       }
     }
-    // URL Import Sheet
-    .sheet(isPresented: $showRecipeURLImport) {
-      RecipeURLImportView(
-        showRecipeProcessing: $showRecipeProcessing,
-        selectedImage: $selectedImage
-      )
-    }
-    // Text Import Sheet
-    .sheet(isPresented: $showRecipeTextImport) {
-      RecipeTextImportView(
-        showRecipeProcessing: $showRecipeProcessing,
-        selectedImage: $selectedImage
-      )
-    }
+
     // Error alert
     .alert("Image Error", isPresented: $showError) {
       Button("OK", role: .cancel) { }

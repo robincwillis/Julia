@@ -6,7 +6,6 @@ struct RecipeURLImportView: View {
     @Environment(\.modelContext) private var context
     
     @Binding var showRecipeProcessing: Bool
-    @Binding var selectedImage: UIImage?
     
     @State private var urlText = ""
     @State private var isLoading = false
@@ -66,12 +65,15 @@ struct RecipeURLImportView: View {
         guard !urlText.isEmpty else { return }
         
         // Trim whitespace and make sure URL has a scheme
-        var processedURL = urlText.trimmingCharacters(in: .whitespacesAndNewlines)
+        var processedURLTemp = urlText.trimmingCharacters(in: .whitespacesAndNewlines)
         
         // Add https:// if no scheme present
-        if !processedURL.contains("://") {
-            processedURL = "https://" + processedURL
+        if !processedURLTemp.contains("://") {
+            processedURLTemp = "https://" + processedURLTemp
         }
+        
+        // Create a local immutable copy to avoid the capture warning
+        let finalURL = processedURLTemp
         
         isLoading = true
         
@@ -79,16 +81,13 @@ struct RecipeURLImportView: View {
             do {
                 // Create a recipe web extractor and extract the recipe
                 let extractor = RecipeWebExtractor()
-                let recipe = try await extractor.extractRecipe(from: processedURL)
+                let recipe = try await extractor.extractRecipe(from: finalURL)
                 
                 // Save the recipe to the context
                 await MainActor.run {
                     context.insert(recipe)
                     
-                    // Convert the raw text to UIImage (just a placeholder)
-                    let rawText = recipe.rawText.joined(separator: "\n")
-                    let textImage = textToImage(rawText, size: CGSize(width: 800, height: 1200))
-                    selectedImage = textImage
+                    let rawText = (recipe.rawText ?? []).joined(separator: "\n")
                     
                     // Clean up and dismiss
                     isLoading = false
@@ -126,39 +125,15 @@ struct RecipeURLImportView: View {
         }
     }
     
-    // Helper function to convert text to an image (for processing pipeline compatibility)
-    private func textToImage(_ text: String, size: CGSize) -> UIImage {
-        let renderer = UIGraphicsImageRenderer(size: size)
-        return renderer.image { context in
-            // Fill background
-            UIColor.white.setFill()
-            context.fill(CGRect(origin: .zero, size: size))
-            
-            // Draw text
-            let paragraphStyle = NSMutableParagraphStyle()
-            paragraphStyle.alignment = .left
-            paragraphStyle.lineBreakMode = .byWordWrapping
-            
-            let attributes: [NSAttributedString.Key: Any] = [
-                .font: UIFont.systemFont(ofSize: 16),
-                .foregroundColor: UIColor.black,
-                .paragraphStyle: paragraphStyle
-            ]
-            
-            text.draw(in: CGRect(x: 20, y: 20, width: size.width - 40, height: size.height - 40), withAttributes: attributes)
-        }
-    }
 }
 
 #Preview {
     struct PreviewWrapper: View {
         @State private var showRecipeProcessing = false
-        @State private var selectedImage: UIImage? = nil
         
         var body: some View {
             RecipeURLImportView(
-                showRecipeProcessing: $showRecipeProcessing,
-                selectedImage: $selectedImage
+                showRecipeProcessing: $showRecipeProcessing
             )
             .modelContainer(DataController.previewContainer)
         }

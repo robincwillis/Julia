@@ -3,6 +3,9 @@ import SwiftData
 import Vision
 import Foundation
 
+// Create a typealias for the result structure to avoid ambiguity
+typealias ProcessingTextResult = TextReconstructorResult
+
 struct RecipeProcessingView: View {
   @Environment(\.dismiss) private var dismiss
   @Environment(\.modelContext) private var context
@@ -31,7 +34,7 @@ struct RecipeProcessingView: View {
   // Reset all state variables for a new recipe
   private func resetState() {
     processingState.reset()
-    reconstructedText = RecipeTextReconstructor.TextReconstructorResult(title: "", reconstructedLines: [], artifacts: [])
+    reconstructedText = ProcessingTextResult(title: "", reconstructedLines: [], artifacts: [])
     title = ""
     ingredients = []
     instructions = []
@@ -59,7 +62,7 @@ struct RecipeProcessingView: View {
           
           // For backward compatibility with older saved data
           if let reconstructedLines = savedData["reconstructedText"] as? [String] {
-            reconstructedText = RecipeTextReconstructor.TextReconstructorResult(
+            reconstructedText = ProcessingTextResult(
               title: savedData["reconstructedTitle"] as? String ?? "",
               reconstructedLines: reconstructedLines,
               artifacts: savedData["reconstructedArtifacts"] as? [String] ?? []
@@ -88,7 +91,7 @@ struct RecipeProcessingView: View {
   
   @State private var skippedLines: [(String, RecipeLineType, Double)] = []
   @State private var classifiedLines: [(String, RecipeLineType, Double)] = []
-  @State private var reconstructedText = RecipeTextReconstructor.TextReconstructorResult(title: "", reconstructedLines: [], artifacts: [])
+  @State private var reconstructedText = ProcessingTextResult(title: "", reconstructedLines: [], artifacts: [])
   @State private var title: String = ""
   @State private var ingredients: [String] = []
   @State private var instructions: [String] = []
@@ -157,7 +160,7 @@ struct RecipeProcessingView: View {
         }
         
         // Primary - Save
-        ToolbarItem(placement: .secondaryAction) {
+        ToolbarItem(placement: .primaryAction) {
           if !title.isEmpty || !ingredients.isEmpty || !instructions.isEmpty {
             Button("Save") {
               saveRecipe()
@@ -641,7 +644,7 @@ struct RecipeProcessingView: View {
         // Auto-classify if we have text
         if !recognizedText.isEmpty {
           // These should be reset before classification
-          reconstructedText = RecipeTextReconstructor.TextReconstructorResult(title: "", reconstructedLines: [], artifacts: [])
+          reconstructedText = ProcessingTextResult(title: "", reconstructedLines: [], artifacts: [])
           title = ""
           ingredients = []
           instructions = []
@@ -686,7 +689,7 @@ struct RecipeProcessingView: View {
     }
   }
   
-  private func reconstructTextAsync(_ lines: [String]) async -> RecipeTextReconstructor.TextReconstructorResult {
+  private func reconstructTextAsync(_ lines: [String]) async -> ProcessingTextResult {
     return await withCheckedContinuation { continuation in
       DispatchQueue.global().async {
         let reconstructed = RecipeTextReconstructor.reconstructText(from: lines)
