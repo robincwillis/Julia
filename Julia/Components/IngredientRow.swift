@@ -45,10 +45,13 @@ struct IngredientLabel: View {
             Text("\(quantity.toFractionString())") // \(unit.shortHand)
               .font(.body)
               .foregroundColor(.blue)
-            Text("\(unit.displayName.pluralized(for: quantity))")
-              .font(.body)
-              .foregroundColor(.blue)
-            Text(ingredient.name)
+            if unit.rawValue != "item" {
+              Text(" \(unit.displayName.pluralized(for: quantity))")
+                .font(.body)
+                .foregroundColor(.blue)
+            }
+            
+            Text(unit.rawValue != "item" ? ingredient.name : ingredient.name.pluralized(for: quantity))
               .font(.body)
               .foregroundColor(.black)
           } else {

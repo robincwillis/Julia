@@ -157,6 +157,7 @@
 		520DE6B72C3465C000CAF570 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				52664EAB2D8606F7008E7673 /* RecipeProcessingviews */,
 				FDCDF3002D73BF4700000001 /* RecipeSections */,
 				5228BD522C2362E7001C845E /* ContentView.swift */,
 				520DE6A12C33208B00CAF570 /* NavigationView.swift */,
@@ -233,6 +234,13 @@
 				5228BD572C2362EB001C845E /* Preview Assets.xcassets */,
 			);
 			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+		52664EAB2D8606F7008E7673 /* RecipeProcessingviews */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = RecipeProcessingviews;
 			sourceTree = "<group>";
 		};
 		52CD8F892D7492CF0076F578 /* Components */ = {

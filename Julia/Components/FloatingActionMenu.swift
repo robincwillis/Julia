@@ -11,6 +11,7 @@ import UIKit
 
 struct FloatingActionMenu: View {
   @Binding var selectedImage: UIImage?
+  @Binding var selectedText: String?
   @Binding var showRecipeProcessing: Bool
   
   // State variables for modal presentations
@@ -57,12 +58,14 @@ struct FloatingActionMenu: View {
           
           Button(action: {
             showRecipeURLImport = true
+            showRecipeProcessing = false
           }) {
             Label("From Website", systemImage: "globe")
           }
           
           Button(action: {
             showRecipeTextImport = true
+            showRecipeProcessing = false
           }) {
             Label("From Notes", systemImage: "text.quote")
           }
@@ -91,6 +94,7 @@ struct FloatingActionMenu: View {
     // Text Import Sheet
     .sheet(isPresented: $showRecipeTextImport) {
       RecipeTextImportView(
+        recipeText: $selectedText,
         showRecipeProcessing: $showRecipeProcessing
       )
     }
@@ -105,9 +109,9 @@ struct FloatingActionMenu: View {
         selectedImage = capturedImage
         
         // Then show the processing modal with a slight delay
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+        //DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
           showRecipeProcessing = true
-        }
+        //}
       }
       .ignoresSafeArea()
     }
@@ -146,9 +150,6 @@ struct FloatingActionMenu: View {
           
           self.selectedImage = inputImage
           self.isLoading = false
-          print("Image set to selectedImage, preparing to show recipe processing")
-          
-          // Move this into the success path, so it only executes if all goes well
           Task { @MainActor in
             self.showRecipeProcessing = true
           }
@@ -174,6 +175,7 @@ struct FloatingActionMenu: View {
 #Preview {
     struct PreviewWrapper: View {
         @State var image: UIImage? = nil
+      @State var text: String? = nil
         @State var showProcessing: Bool = false
         
         var body: some View {
@@ -181,6 +183,7 @@ struct FloatingActionMenu: View {
                 Spacer()
                 FloatingActionMenu(
                     selectedImage: $image,
+                    selectedText: $text,
                     showRecipeProcessing: $showProcessing
                 )
             }

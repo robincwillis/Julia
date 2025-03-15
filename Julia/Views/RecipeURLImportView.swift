@@ -94,9 +94,9 @@ struct RecipeURLImportView: View {
                     dismiss()
                     
                     // Show recipe processing view
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    //DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                         showRecipeProcessing = true
-                    }
+                    //}
                 }
             } catch let error as RecipeWebExtractor.ExtractionError {
                 await MainActor.run {

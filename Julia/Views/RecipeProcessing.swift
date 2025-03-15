@@ -15,17 +15,32 @@ struct RecipeProcessingView: View {
   
   @StateObject private var processingState = RecipeProcessingState()
   
-  init(image: UIImage) {
-    // Set the image in the processing state
-    _processingState = StateObject(wrappedValue: {
-      let state = RecipeProcessingState()
-      state.reset() // Ensure state is fully reset
-      state.image = image
-      state.processingStage = .processing
-      // Clear any saved processing results to ensure we process the new image from scratch
-      UserDefaults.standard.removeObject(forKey: "latestRecipeProcessingResults")
-      return state
-    }())
+  init(image: UIImage?, text: String?) {
+    // Set the image in the processing stateW
+    if let image = image {
+      _processingState = StateObject(wrappedValue: {
+        let state = RecipeProcessingState()
+        state.reset() // Ensure state is fully reset
+        state.image = image
+        state.processingStage = .processing
+        // Clear any saved processing results to ensure we process the new image from scratch
+        UserDefaults.standard.removeObject(forKey: "latestRecipeProcessingResults")
+        return state
+      }())
+    }
+    // Set text
+    if let text = text {
+      _processingState = StateObject(wrappedValue: {
+        let state = RecipeProcessingState()
+        state.reset() // Ensure state is fully reset
+        state.recognizedText = text.components(separatedBy: .newlines)
+        state.processingStage = .processing
+        // Clear any saved processing results to ensure we process the new image from scratch
+        UserDefaults.standard.removeObject(forKey: "latestRecipeProcessingResults")
+        return state
+      }())
+    }
+
     
     // Reset all other state variables to default values
     // These will be set properly when the view appears because _processingState is just initializing the StateObject
@@ -99,7 +114,6 @@ struct RecipeProcessingView: View {
   @State private var isClassifying = false
   @State private var showDismissAlert = false
   @State private var hasUnsavedChanges = false
-  
   
   // State for the classified text view
   @State private var filterType: RecipeLineType? = nil
@@ -600,8 +614,7 @@ struct RecipeProcessingView: View {
     .padding()
   }
   
-  
-  
+
   //  Fuctions
   private func typeIcon(for type: RecipeLineType) -> String {
     switch type {
@@ -764,7 +777,8 @@ extension Collection {
 
 #Preview {
   let image = UIImage(named: "julia") ?? UIImage()
+  //let text = nil
   
-  return RecipeProcessingView(image: image)
+  return RecipeProcessingView(image: image, text:nil)
     .modelContainer(DataController.previewContainer)
 }

@@ -18,37 +18,6 @@ extension Notification.Name {
   static let showTabBar = Notification.Name("showTabBar")
 }
 
-// Keyboard observer class
-//class KeyboardObserver: ObservableObject {
-//  @Published var isKeyboardVisible: Bool = false
-//  
-//  private var cancellables = Set<AnyCancellable>()
-//  
-//  init() {
-//    NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)
-//      .receive(on: DispatchQueue.main)
-//      .sink { [weak self] _ in
-//        guard let self = self else { return }
-//        // Using MainActor to safely update the published property
-//        Task { @MainActor in
-//          self.isKeyboardVisible = true
-//        }
-//      }
-//      .store(in: &cancellables)
-//    
-//    NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)
-//      .receive(on: DispatchQueue.main)
-//      .sink { [weak self] _ in
-//        guard let self = self else { return }
-//        // Using MainActor to safely update the published property
-//        Task { @MainActor in
-//          self.isKeyboardVisible = false
-//        }
-//      }
-//      .store(in: &cancellables)
-//  }
-//}
-
 enum Tabs: String, CaseIterable{
   case grocery
   case pantry
@@ -93,6 +62,7 @@ struct NavigationView: View {
   @State private var selectedTab: String = "grocery"
   @State private var selectedLocation: IngredientLocation = .grocery
   @State private var selectedImage: UIImage?
+  @State private var selectedText: String?
   @State private var showRecipeProcessing = false
   
   // @StateObject private var keyboardObserver = KeyboardObserver()
@@ -146,6 +116,7 @@ struct NavigationView: View {
             // Floating action menu
             FloatingActionMenu(
               selectedImage: $selectedImage,
+              selectedText: $selectedText,
               showRecipeProcessing: $showRecipeProcessing
             )
           }
@@ -159,16 +130,21 @@ struct NavigationView: View {
       // Recipe Processing Sheet
       .sheet(isPresented: $showRecipeProcessing) {
         if let image = selectedImage {
-          RecipeProcessingView(image: image)
+          RecipeProcessingView(image: image, text: nil)
+            .ignoresSafeArea(.keyboard)
+            .presentationDragIndicator(.visible)
+            .interactiveDismissDisabled()
+        } else if let text = selectedText {
+          RecipeProcessingView(image: nil, text: text)
             .ignoresSafeArea(.keyboard)
             .presentationDragIndicator(.visible)
             .interactiveDismissDisabled()
         } else {
           VStack(spacing: 20) {
-            Text("Error: No Image Selected")
+            Text("Error: Missing Input")
               .font(.headline)
             
-            Text("Please try selecting an image again")
+            Text("Please try selecting an import source again")
               .foregroundColor(.secondary)
             
             Button("Dismiss") {
@@ -179,7 +155,7 @@ struct NavigationView: View {
           }
           .padding()
           .onAppear {
-            print("ERROR: RecipeProcessingView appeared without an image")
+            print("ERROR: RecipeProcessingView appeared without image or text")
           }
         }
       }

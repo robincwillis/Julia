@@ -410,9 +410,12 @@ struct IngredientEditor: View {
       unit = MeasurementUnit(from: "item") // Default to "item" unit
       
       // Focus on name field for new ingredient
-      DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+      //DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+      Task { @MainActor in
+        try? await Task.sleep(for: .milliseconds(5000))
         isNameFieldFocused = true
       }
+      //}
       return
     }
     
@@ -467,7 +470,7 @@ struct IngredientEditor: View {
       
       // Insert into context
       context.insert(newIngredient)
-      ingredient = newIngredient
+      //ingredient = newIngredient
     }
     
   }

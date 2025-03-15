@@ -82,9 +82,9 @@ struct RecipeEditInstructionsSection: View {
     withAnimation {
       instructions.append("New step")
       // Focus on the newly added instruction
-      DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+      //DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
         focusedInstructionField = instructions.count - 1
-      }
+      //}
     }
   }
   

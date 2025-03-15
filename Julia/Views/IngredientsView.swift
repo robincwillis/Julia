@@ -112,9 +112,9 @@ struct IngredientsView: View {
           )
         }.onChange(of: showBottomSheet) {
           // Remove currentIngredient if AddIngredientSheet is dismissed
-          if(showBottomSheet == false) {
-            currentIngredient = nil
-          }
+//          if(showBottomSheet == false) {
+//            currentIngredient = nil
+//          }
         }
       }
     }
@@ -131,12 +131,11 @@ struct IngredientsView: View {
   }
   
   func showAddSheet(ingredient: Ingredient? = nil) {
-    // First, reset the current ingredient to ensure we start fresh
-    currentIngredient = nil
-    
     // If an ingredient was passed, it means we're editing an existing one
     if let ingredient = ingredient {
       currentIngredient = ingredient
+    } else {
+      currentIngredient = nil
     }
     
     // Show the bottom sheet after setting the ingredient state
