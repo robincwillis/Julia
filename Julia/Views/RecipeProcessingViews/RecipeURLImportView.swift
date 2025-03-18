@@ -87,7 +87,7 @@ struct RecipeURLImportView: View {
                 await MainActor.run {
                     context.insert(recipe)
                     
-                    let rawText = (recipe.rawText ?? []).joined(separator: "\n")
+                    // let rawText = (recipe.rawText ?? []).joined(separator: "\n")
                     
                     // Clean up and dismiss
                     isLoading = false

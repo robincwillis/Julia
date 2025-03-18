@@ -110,11 +110,6 @@ struct IngredientsView: View {
             ingredient: $currentIngredient,
             showBottomSheet: $showBottomSheet
           )
-        }.onChange(of: showBottomSheet) {
-          // Remove currentIngredient if AddIngredientSheet is dismissed
-//          if(showBottomSheet == false) {
-//            currentIngredient = nil
-//          }
         }
       }
     }

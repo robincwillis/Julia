@@ -100,14 +100,14 @@ struct AddRecipe: View {
       .navigationTitle(recipe == nil ? "Add Recipe" : "Edit Recipe")
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {
-        ToolbarItem(placement: .navigationBarLeading) {
+        ToolbarItem(placement: .cancellationAction) {
           Button("Cancel") {
             dismiss()
           }
           .foregroundColor(.blue)
         }
         
-        ToolbarItem(placement: .navigationBarTrailing) {
+        ToolbarItem(placement: .primaryAction) {
           Button(recipe == nil ? "Save" : "Update") {
             saveRecipe()
             dismiss()
@@ -137,9 +137,15 @@ struct AddRecipe: View {
         if !currentStrings.isEmpty {
           print("save new recipe with title & rawText")
           print(currentStrings)
-          newRecipe = Recipe(title: title, rawText: currentStrings)
+          // Create recipe with the updated model structure
+          newRecipe = Recipe(
+            title: title, 
+            rawText: currentStrings
+            // time is optional, so we don't need to provide it
+          )
         } else {
           print("save new recipe with title")
+          // Create recipe with the updated model structure
           newRecipe = Recipe(title: title)
         }
         // create new recipe

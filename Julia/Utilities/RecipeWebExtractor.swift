@@ -275,10 +275,10 @@ class RecipeWebExtractor {
     // Description extraction
     let description = try document.select("meta[name='description']").attr("content")
     
-    // Attempt to extract other metadata
-    var prepTime = ""
-    var cookTime = ""
-    var totalTime = ""
+    // TODO Attempt to extract other metadata
+    let prepTime = ""
+    let cookTime = ""
+    let totalTime = ""
     var servings = ""
     
     // Try to extract servings
@@ -409,7 +409,9 @@ class RecipeWebExtractor {
   
   // Convert extracted data to your SwiftData Recipe model
   private func convertToSwiftDataModel(_ extractedData: ExtractedRecipeData) -> Recipe {
-    // Create basic Recipe object
+
+    
+    // Create basic Recipe object first (without the time)
     let recipe = Recipe(
       id: UUID().uuidString,
       title: extractedData.title,
@@ -417,8 +419,28 @@ class RecipeWebExtractor {
       ingredients: [], // Will populate below
       instructions: extractedData.instructions,
       sections: [],
+      servings: extractedData.servings.isEmpty ? nil : Int(extractedData.servings.components(separatedBy: CharacterSet.decimalDigits.inverted).joined()),
+      timings: [],
       rawText: extractedData.rawText
     )
+    
+    // After creating the recipe, create and set the Timings if available
+    if !extractedData.totalTime.isEmpty {
+      // Parse time string to extract hours and minutes
+      let (hours, minutes) = parseTimeString(extractedData.totalTime)
+      let totalTime = Timing(type: "total", hours: hours, minutes: minutes)
+      recipe.timings?.append(totalTime)
+    } else if !extractedData.cookTime.isEmpty {
+      // If no total time but cook time is available
+      let (hours, minutes) = parseTimeString(extractedData.cookTime)
+      let cookTime = Timing(type: "cook", hours: hours, minutes: minutes)
+      recipe.timings?.append(cookTime)
+    } else if !extractedData.prepTime.isEmpty {
+      // If only prep time is available
+      let (hours, minutes) = parseTimeString(extractedData.prepTime)
+      let prepTime = Timing(type: "prep", hours: hours, minutes: minutes)
+      recipe.timings?.append(prepTime)
+    }
     
     // Create Ingredient objects for each ingredient string
     for ingredientText in extractedData.ingredients {
@@ -437,17 +459,6 @@ class RecipeWebExtractor {
       recipe.ingredients.append(ingredient)
     }
     
-    // Extract servings information if available
-    if !extractedData.servings.isEmpty {
-      // Add the servings info as a comment in the summary
-      if recipe.summary != nil {
-        recipe.summary = recipe.summary! + "\n\nServings: \(extractedData.servings)"
-      } else {
-        recipe.summary = "Servings: \(extractedData.servings)"
-      }
-    }
-    
-    // Add time information if available
     var timeInfo = ""
     if !extractedData.prepTime.isEmpty {
       timeInfo += "Prep Time: \(extractedData.prepTime)\n"
@@ -468,6 +479,40 @@ class RecipeWebExtractor {
     }
     
     return recipe
+  }
+  
+  // Helper method to parse time strings like "1 hour 15 minutes" or "45 min"
+  private func parseTimeString(_ timeString: String) -> (Int, Int) {
+    var hours = 0
+    var minutes = 0
+    
+    // Look for hours
+    let hourPattern = try! NSRegularExpression(pattern: "(\\d+)\\s*h(our)?s?", options: .caseInsensitive)
+    let hourMatches = hourPattern.matches(in: timeString, options: [], range: NSRange(location: 0, length: timeString.utf16.count))
+    
+    if let match = hourMatches.first, let range = Range(match.range(at: 1), in: timeString) {
+      hours = Int(timeString[range]) ?? 0
+    }
+    
+    // Look for minutes
+    let minutePattern = try! NSRegularExpression(pattern: "(\\d+)\\s*m(in(ute)?s?)?", options: .caseInsensitive)
+    let minuteMatches = minutePattern.matches(in: timeString, options: [], range: NSRange(location: 0, length: timeString.utf16.count))
+    
+    if let match = minuteMatches.first, let range = Range(match.range(at: 1), in: timeString) {
+      minutes = Int(timeString[range]) ?? 0
+    }
+    
+    // If no specific pattern found but it's just a number, assume minutes
+    if hours == 0 && minutes == 0 {
+      let numberPattern = try! NSRegularExpression(pattern: "(\\d+)", options: [])
+      let numberMatches = numberPattern.matches(in: timeString, options: [], range: NSRange(location: 0, length: timeString.utf16.count))
+      
+      if let match = numberMatches.first, let range = Range(match.range(at: 1), in: timeString) {
+        minutes = Int(timeString[range]) ?? 0
+      }
+    }
+    
+    return (hours, minutes)
   }
   
   // Helper method to parse ingredient text into components

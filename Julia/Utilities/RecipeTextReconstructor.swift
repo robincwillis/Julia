@@ -1,5 +1,6 @@
 import Foundation
 import SwiftData
+import SwiftUI
 
 struct TextReconstructorResult {
   var title: String
@@ -52,7 +53,7 @@ class RecipeTextReconstructor {
       
       if isAllUppercase {
         // Find consecutive uppercase lines and add to title
-        var titleEndIndex = 0
+        var titleEndIndex: Int
         for (index, line) in filteredLines.enumerated() {
           if index == 0 {
             continue // Skip first line (already added)

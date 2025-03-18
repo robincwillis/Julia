@@ -9,23 +9,58 @@ import Foundation
 import SwiftData
 
 @Model
+class Timing {
+  var type: String // maybe enum: prep, cook, bake, total
+  var hours: Int
+  var minutes: Int
+  
+  init(type: String, hours: Int, minutes: Int) {
+    self.type = type
+    self.hours = hours
+    self.minutes = minutes
+  }
+}
+
+@Model
 class Recipe: Identifiable, Hashable, CustomStringConvertible {
     @Attribute(.unique) var id: String = UUID().uuidString
     var title: String
     var summary: String?
+    var servings: Int?
+    var timings: [Timing]?
     var instructions : [String]
     @Relationship(deleteRule: .cascade) var ingredients: [Ingredient] = []
     @Relationship(deleteRule: .cascade) var sections: [IngredientSection] = []
-    var rawText : [String]?
+    var notes: [String]?
+    
+    // Meta
+    var rawText: [String]?
+    var source: String?
   
-    init(id: String = UUID().uuidString, title: String, summary: String? = nil, ingredients: [Ingredient] = [], instructions: [String] = [], sections: [IngredientSection] = [], rawText: [String] = []) {
+    init(
+      id: String = UUID().uuidString,
+      title: String,
+      summary: String? = nil,
+      ingredients: [Ingredient] = [],
+      instructions: [String] = [],
+      sections: [IngredientSection] = [],
+      servings: Int? = nil,
+      timings: [Timing]? = nil,
+      notes: [String]? = nil,
+      rawText: [String] = [],
+      source: String? = nil
+    ) {
         self.id = id
         self.title = title
         self.summary = summary
         self.ingredients = ingredients
         self.instructions = instructions
         self.sections = sections
+        self.servings = servings
+        self.timings = timings
+        self.notes = notes
         self.rawText = rawText
+        self.source = source
     }
   
     var description: String {

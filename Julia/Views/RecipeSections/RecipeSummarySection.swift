@@ -17,6 +17,8 @@ struct RecipeSummarySection: View {
         Text(summary)
           .font(.body)
       }
+      // Add Servings
+      // Add Timings
     }
 }
 
@@ -33,7 +35,8 @@ struct RecipeSummarySection: View {
                     title: "Sample Recipe",
                     summary: "A delicious sample recipe",
                     ingredients: [],
-                    instructions: []
+                    instructions: [],
+                    rawText: ["Sample Recipe", "A delicious sample recipe"]
                 )
             )
             .padding()

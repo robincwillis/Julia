@@ -11,11 +11,13 @@ import SwiftData
 struct IngredientEditor: View {
   var ingredientLocation: IngredientLocation
   @Binding var ingredient: Ingredient?
-  //@Binding var section: IngredientSection?
+  var recipe: Recipe? = nil
+  var section: IngredientSection? = nil
   @Binding var showBottomSheet: Bool
   
   @State private var showControls = false
   @State private var showNotes = false
+  @State private var hasSaved = false
   
   @FocusState private var isNameFieldFocused: Bool
   @FocusState private var isCommentFieldFocused: Bool
@@ -28,7 +30,7 @@ struct IngredientEditor: View {
   }
   
   private var canSave: Bool {
-    return !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    return !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !hasSaved
   }
   
   // Instead of a custom binding, we'll use onChange to detect focus changes
@@ -121,6 +123,7 @@ struct IngredientEditor: View {
         Button(action: {
           if canSave {
             saveIngredient()
+            hasSaved = true
           }
           showBottomSheet = false
         }) {
@@ -342,16 +345,15 @@ struct IngredientEditor: View {
               .submitLabel(.done)
               .onSubmit {
                 isCommentFieldFocused = false
-                saveIngredient()
               }
           }
-          //.transition(.opacity.combined(with: .move(edge: .bottom)))
         }
       }
     }
     .onAppear {
       loadIngredient()
       isNameFieldFocused = true
+      hasSaved = false
     }
     .onChange(of: isAnyFieldFocused) { _, _ in
       withAnimation {
@@ -387,22 +389,12 @@ struct IngredientEditor: View {
         }
       }
     }
-    // TODO: See if this is needed
-//    .onChange(of: showBottomSheet) { oldValue, newValue in
-//      // If the sheet is being dismissed and we can save
-//      if oldValue == true && newValue == false && canSave {
-//        saveIngredient()
-//      }
-//    }
-    .onDisappear {
-      // Safety check to save when the view disappears
-      if canSave {
+    .onChange(of: showBottomSheet) { oldValue, newValue in
+      if oldValue == true && newValue == false && canSave && !hasSaved {
         saveIngredient()
       }
     }
-
   }
-  
   
   private func loadIngredient() {
     guard let existingIngredient = ingredient else {
@@ -425,9 +417,6 @@ struct IngredientEditor: View {
     unit = existingIngredient.unit ?? MeasurementUnit(from: "item") // Default to item if nil
     comment = existingIngredient.comment ?? ""
     
-    // For editing, don't immediately focus on any field
-    // isNameFieldFocused = false
-    // isCommentFieldFocused = false
   }
   
   private func saveIngredient() {
@@ -470,9 +459,38 @@ struct IngredientEditor: View {
       
       // Insert into context
       context.insert(newIngredient)
-      //ingredient = newIngredient
+      ingredient = newIngredient
     }
     
+    // Connect to section or recipe if needed
+    if let currentIngredient = ingredient {
+      if let currentSection = section {
+        // Connect to section if provided
+        if currentIngredient.section == nil {
+          withAnimation {
+            currentSection.ingredients.append(currentIngredient)
+          }
+        }
+      } else if let currentRecipe = recipe {
+        // Connect to recipe if no section and not already connected
+        if currentIngredient.recipe == nil && currentIngredient.section == nil {
+          withAnimation {
+            currentRecipe.ingredients.append(currentIngredient)
+          }
+        }
+      }
+    }
+    
+    defer {
+      hasSaved = false
+    }
+    
+    do {
+      try context.save()
+    } catch {
+      print("Error saving ingredient: \(error)")
+      // Reset hasSaved in case of error to allow retry
+    }
   }
 }
 

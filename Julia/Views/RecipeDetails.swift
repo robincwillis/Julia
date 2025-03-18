@@ -16,6 +16,7 @@ struct RecipeDetails: View {
   @Environment(\.modelContext) var context
   @Environment(\.editMode) private var editMode
   
+  
   private var isEditing: Bool {
     return editMode?.wrappedValue.isEditing ?? false
   }
@@ -24,9 +25,12 @@ struct RecipeDetails: View {
   
   @State private var showDeleteConfirmation = false
   @State private var selectedIngredient: Ingredient?
+  @State private var selectedSection: IngredientSection?
   @State private var showIngredientEditor = false
   @State private var selectedIngredients: Set<Ingredient> = []
   @State private var showRawTextSheet = false
+  @State private var isScrolled = false
+
   
   @FocusState private var isTextFieldFocused: Bool
   @FocusState private var focusedInstructionField: Int?
@@ -45,6 +49,7 @@ struct RecipeDetails: View {
           RecipeEditSummarySection(
             title: $recipe.title,
             summary: $recipe.summary,
+            servings: $recipe.servings,
             isTextFieldFocused: _isTextFieldFocused
           )
           
@@ -53,6 +58,7 @@ struct RecipeDetails: View {
             ingredients: $recipe.ingredients,
             sections: $recipe.sections,
             selectedIngredient: $selectedIngredient,
+            selectedSection: $selectedSection,
             showIngredientEditor: $showIngredientEditor,
             isTextFieldFocused: _isTextFieldFocused
           )
@@ -101,21 +107,14 @@ struct RecipeDetails: View {
           .padding(.horizontal, 16)
           .padding(.bottom, 16)
         }
-        .background(Color(.systemBackground))
+        //.adaptiveNavigationTitle(recipe.title, isScrolled: $isScrolled)
+        //.navigationTitlea(isScrolled ? recipe.title : "")
         .navigationTitle(recipe.title)
         .navigationBarTitleDisplayMode(.large)
         .edgesIgnoringSafeArea(.bottom)
+        .background(Color(.systemBackground))
         .toolbar {
-// Not working well
-//          ToolbarItem(placement: .principal) {
-//            Text(recipe.title)
-//              .font(.largeTitle)
-//              .fontWeight(.bold)
-//              .lineLimit(nil) // Remove line limit
-//              .fixedSize(horizontal: false, vertical: true) // Enable wrapping
-//              .multilineTextAlignment(.center) // Optional: center align if desired
-//          }
-         if !selectedIngredients.isEmpty {
+          if !selectedIngredients.isEmpty {
             ToolbarItem(placement: .topBarTrailing) {
               Menu {
                 Button(action: addSelectedToGroceryList) {
@@ -146,18 +145,25 @@ struct RecipeDetails: View {
         IngredientEditor(
           ingredientLocation: ingredientLocation,
           ingredient: $selectedIngredient,
+          recipe: recipe,
+          section: selectedSection,
           showBottomSheet: $showIngredientEditor
         )
-      }.onChange(of: showIngredientEditor) {
-        // Remove selectedIngredient if sheet is dismissed
-        if(showIngredientEditor == false) {
-          // Check if the selected ingredient exists and has an empty name
-          if let ingredient = selectedIngredient, ingredient.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            deleteIngredient(ingredient)
-          }
-          selectedIngredient = nil
-        }
       }
+//      .onChange(of: showIngredientEditor) { oldValue, newValue in
+//        // Only execute when the sheet is being dismissed
+//        if oldValue == true && newValue == false {
+//          // Handle empty ingredients if needed
+////          if let ingredient = selectedIngredient,
+////            ingredient.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+////            deleteIngredient(ingredient)
+////          }
+//          // Clear the selection after handling everything
+//          // This might be the thing breaking it
+//          //selectedIngredient = nil
+//          //selectedSection = nil
+//        }
+//      }
     }
     .toolbar {
       ToolbarItem(placement: .navigationBarTrailing) {
@@ -243,9 +249,9 @@ struct RecipeDetails: View {
         RecipeRawTextSection(recipe: recipe)
       }
       .presentationDetents([.medium, .large])
-      .padding()
+      .background(.background.secondary)
     }
-    .background(.background.secondary)
+    
     
   }
 
@@ -375,7 +381,8 @@ struct RecipeDetails: View {
         ingredients: [],
         instructions: ["Step 1: Mix ingredients", "Step 2: Cook thoroughly"],
         sections: [],
-        rawText: []
+        servings: 4,
+        rawText: ["Sample Recipe", "A delicious sample recipe"]
       )
     }
   } catch {
@@ -387,7 +394,8 @@ struct RecipeDetails: View {
       ingredients: [],
       instructions: ["Step 1: Mix ingredients", "Step 2: Cook thoroughly"],
       sections: [],
-      rawText: []
+      servings: 4,
+      rawText: ["Sample Recipe", "A delicious sample recipe"]
     )
   }
   

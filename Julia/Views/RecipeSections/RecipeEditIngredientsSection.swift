@@ -11,6 +11,7 @@ struct RecipeEditIngredientsSection: View {
   @Binding var ingredients: [Ingredient]
   @Binding var sections: [IngredientSection]
   @Binding var selectedIngredient: Ingredient?
+  @Binding var selectedSection: IngredientSection?
   @Binding var showIngredientEditor: Bool
   @FocusState var isTextFieldFocused: Bool
   
@@ -25,7 +26,7 @@ struct RecipeEditIngredientsSection: View {
           IngredientRow(
             ingredient: ingredient,
             onTap: editIngredient,
-            padding: 3
+            section: nil
           )
             
         }
@@ -37,7 +38,9 @@ struct RecipeEditIngredientsSection: View {
         }
       }
       
-      Button(action: addNewIngredient) {
+      Button {
+        editIngredient()
+      } label: {
         Label("Add Ingredient", systemImage: "plus")
           .foregroundColor(.blue)
       }
@@ -57,10 +60,12 @@ struct RecipeEditIngredientsSection: View {
             .italic()
         } else {
           ForEach(sections[sectionIndex].ingredients) { ingredient in
-            IngredientRow(ingredient: ingredient, padding: 3)
-              .onTapGesture {
-                editIngredient(ingredient)
-              }
+            IngredientRow(
+              ingredient: ingredient,
+              onTap: editIngredient,
+              section: sections[sectionIndex]
+              
+            )
           }
           .onDelete { indices in
             deleteIngredientFromSection(at: indices, in: sectionIndex)
@@ -71,7 +76,7 @@ struct RecipeEditIngredientsSection: View {
         }
         
         Button {
-          addNewIngredientToSection(sectionIndex)
+          editIngredient(section: sections[sectionIndex])
         } label: {
           Label("Add Ingredient", systemImage: "plus")
             .foregroundColor(.blue)
@@ -103,24 +108,6 @@ struct RecipeEditIngredientsSection: View {
   }
   
   
-  private func addNewIngredient() {
-    withAnimation {
-      let newIngredient = Ingredient(name: "", location: .recipe)
-      ingredients.append(newIngredient)
-      // Open edit screen for the new ingredient
-      editIngredient(newIngredient)
-    }
-  }
-  
-  private func addNewIngredientToSection(_ sectionIndex: Int) {
-    withAnimation {
-      let newIngredient = Ingredient(name: "", location: .recipe)
-      sections[sectionIndex].ingredients.append(newIngredient)
-      // Open edit screen for the new ingredient
-      editIngredient(newIngredient)
-    }
-  }
-  
   private func deleteIngredient(at indices: IndexSet) {
     withAnimation {
       ingredients.remove(atOffsets: indices)
@@ -128,9 +115,9 @@ struct RecipeEditIngredientsSection: View {
   }
   
   private func moveIngredient(from source: IndexSet, to destination: Int) {
-    //withAnimation {
-    ingredients.move(fromOffsets: source, toOffset: destination)
-    //}
+    withAnimation {
+      ingredients.move(fromOffsets: source, toOffset: destination)
+    }
   }
   
   private func moveIngredientInSection(from source: IndexSet, to destination: Int, inSection sectionIndex: Int) {
@@ -140,9 +127,9 @@ struct RecipeEditIngredientsSection: View {
   }
   
   private func moveSection(from source: IndexSet, to destination: Int) {
-    //withAnimation {
-    sections.move(fromOffsets: source, toOffset: destination)
-    //}
+    withAnimation {
+      sections.move(fromOffsets: source, toOffset: destination)
+    }
   }
   
   // Delete ingredients from a section
@@ -154,10 +141,19 @@ struct RecipeEditIngredientsSection: View {
     }
   }
   
-  private func editIngredient(_ ingredient: Ingredient?) {
-    if (ingredient != nil) {
-     selectedIngredient = ingredient
+  private func editIngredient(ingredient: Ingredient? = nil, section: IngredientSection? = nil) {
+    
+    if let ingredient = ingredient {
+      selectedIngredient = ingredient
+    } else {
+      selectedIngredient = nil
     }
+    if let section = section {
+      selectedSection = section
+    } else {
+      selectedSection = nil
+    }
+    
     showIngredientEditor = true
   }
   
@@ -200,6 +196,7 @@ struct RecipeEditIngredientsSection: View {
       ])
     ]
     @State private var selectedIngredient: Ingredient?
+    @State private var selectedSection: IngredientSection?
     @State private var showIngredientEditor = false
     @FocusState private var focused: Bool
     
@@ -210,6 +207,7 @@ struct RecipeEditIngredientsSection: View {
             ingredients: $ingredients,
             sections: $sections,
             selectedIngredient: $selectedIngredient,
+            selectedSection: $selectedSection,
             showIngredientEditor: $showIngredientEditor,
             isTextFieldFocused: _focused
           )

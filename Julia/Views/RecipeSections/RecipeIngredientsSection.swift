@@ -30,7 +30,7 @@ struct RecipeIngredientsSection: View {
         if !unsectionedIngredients.isEmpty {
           VStack(alignment: .leading, spacing: 8) {
             ForEach(unsectionedIngredients) { ingredient in
-              IngredientRow(ingredient: ingredient, padding: 3)
+              IngredientRow(ingredient: ingredient)
                 .selectable(selected: selectableBinding(ingredient))
                 .contentShape(Rectangle())
                 .onTapGesture {

@@ -15,6 +15,9 @@ enum RecipeLineType: String, CaseIterable {
   case title = "title"
   case ingredient = "ingredient"
   case instruction = "instruction"
+  case serving = "serving"
+  case summary = "summary"
+  case time = "time"
   case unknown = "unknown"
 }
 
@@ -82,10 +85,13 @@ class RecipeTextClassifier {
   /// Processes a complete recipe text and organizes it into structured data
   /// - Parameter lines: Array of text lines from OCR
   /// - Returns: Structured data for creating a Recipe object
-  func processRecipeText(_ lines: [String]) -> (title: String, ingredients: [String], instructions: [String], skipped: [(String, RecipeLineType, Double)], classified: [(String, RecipeLineType, Double)]) {
+  func processRecipeText(_ lines: [String]) -> (title: String, ingredients: [String], instructions: [String], summary: [String], servings: [String], timings: [String], skipped: [(String, RecipeLineType, Double)], classified: [(String, RecipeLineType, Double)]) {
     var title = "New Recipe"
     var ingredients: [String] = []
     var instructions: [String] = []
+    var summary: [String] = []
+    var servings: [String] = []
+    var timings: [String] = []
     var skippedLines: [(String, RecipeLineType, Double)] = []
     var classifiedLines: [(String, RecipeLineType, Double)] = []
     
@@ -110,6 +116,12 @@ class RecipeTextClassifier {
           ingredients.append(trimmedLine)
         case .instruction:
           instructions.append(trimmedLine)
+        case .summary:
+          summary.append(trimmedLine)
+        case .time:
+          timings.append(trimmedLine)
+        case .serving:
+          servings.append(trimmedLine)
         case .unknown:
           // Skip unknown lines
           skippedLines.append((trimmedLine, classification.lineType, classification.confidence))
@@ -122,7 +134,7 @@ class RecipeTextClassifier {
       }
     }
     
-    return (title, ingredients, instructions, skippedLines, classifiedLines)
+    return (title, ingredients, instructions, summary, timings, servings, skippedLines, classifiedLines)
   }
   
   /// Converts the processed text directly into a Recipe object
@@ -136,7 +148,7 @@ class RecipeTextClassifier {
     // Create the recipe
     let recipe = Recipe(
       title: processed.title,
-      summary: nil,
+      summary: processed.summary.joined(separator: " "),
       ingredients: [],
       instructions: processed.instructions,
       sections: [],

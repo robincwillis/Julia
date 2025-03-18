@@ -11,9 +11,9 @@
 
   struct FloatingBottomSheet<Content: View>: View {
     @Binding var isPresented: Bool
-    let content: Content
     let maxHeightPercentage: CGFloat
     let showHideTabBar: Bool
+    let content: Content
 
     
     init(

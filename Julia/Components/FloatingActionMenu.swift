@@ -91,6 +91,7 @@ struct FloatingActionMenu: View {
         showRecipeProcessing: $showRecipeProcessing
       )
     }
+    .interactiveDismissDisabled()
     // Text Import Sheet
     .sheet(isPresented: $showRecipeTextImport) {
       RecipeTextImportView(
@@ -98,6 +99,7 @@ struct FloatingActionMenu: View {
         showRecipeProcessing: $showRecipeProcessing
       )
     }
+    .interactiveDismissDisabled()
     // Camera component
     .fullScreenCover(isPresented: $showCamera) {
       Camera(
@@ -161,6 +163,11 @@ struct FloatingActionMenu: View {
         }
       }
     }
+    .onChange(of: showRecipeProcessing) { _, newValue in
+      if !newValue {
+        reset()
+      }
+    }
 
     // Error alert
     .alert("Image Error", isPresented: $showError) {
@@ -169,14 +176,42 @@ struct FloatingActionMenu: View {
       Text("errorMessage: \(self.errorMessage) localError:\(self.localError)")
     }
   }
+  
+  private func reset() {
+    UserDefaults.standard.removeObject(forKey: "latestRecipeProcessingResults")
+    selectedImage = nil
+    selectedText = nil
+    photosPickerItem = nil
+  }
+  
+  private func resetStateAndOpenCamera() {
+    reset()
+    showCamera = true
+  }
+  
+  private func resetStateAndOpenPhotosPicker() {
+    reset()
+    showPhotosPicker = true
+  }
+  
+  private func resetStateAndOpenURLImport() {
+    reset()
+    showRecipeURLImport = true
+  }
+  
+  private func resetStateAndOpenTextImport() {
+    reset()
+    showRecipeTextImport = true
+  }
+  
 }
 
 
 #Preview {
     struct PreviewWrapper: View {
-        @State var image: UIImage? = nil
+      @State var image: UIImage? = nil
       @State var text: String? = nil
-        @State var showProcessing: Bool = false
+      @State var showProcessing: Bool = false
         
         var body: some View {
             VStack {

@@ -81,8 +81,31 @@ struct IngredientLabel: View {
 
 struct IngredientRow: View {
   var ingredient: Ingredient
-  var onTap: ((Ingredient?) -> Void)?
+  var onTap: ((Ingredient?, IngredientSection?) -> Void)?
+  var section: IngredientSection? = nil
   var padding: CGFloat = 6
+  
+  init(ingredient: Ingredient, onTap: ((Ingredient?, IngredientSection?) -> Void)? = nil, section: IngredientSection? = nil, padding: CGFloat = 6) {
+    self.ingredient = ingredient
+    self.onTap = onTap
+    self.section = section
+    self.padding = padding
+  }
+  
+  // onTap (Ingredient?) -> Void initializer
+  init(ingredient: Ingredient, onTap: ((Ingredient?) -> Void)?, padding: CGFloat = 6) {
+    self.ingredient = ingredient
+    self.padding = padding
+    self.section = nil
+    
+    if let onTap = onTap {
+      self.onTap = { ingredient, _ in
+        onTap(ingredient)
+      }
+    } else {
+      self.onTap = nil
+    }
+  }
   
   var body: some View {
     HStack {
@@ -91,7 +114,7 @@ struct IngredientRow: View {
     }
     .padding(.vertical, padding)
     .onTapGesture {
-      onTap?(ingredient)  // Call the onTap closure if provided
+      onTap?(ingredient, section)  // Call the onTap closure if provided
     }
   }
 }

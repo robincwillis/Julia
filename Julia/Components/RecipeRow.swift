@@ -21,7 +21,8 @@ struct RecipeRow: View {
         ingredients: [],
         instructions: ["Step 1", "Step 2"],
         sections: [],
-        rawText: []
+        servings: 2,
+        rawText: ["Sample Recipe", "A sample recipe"]
     )
     return RecipeRow(recipe: recipe)
 }

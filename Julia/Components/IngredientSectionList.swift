@@ -26,7 +26,7 @@ struct IngredientSectionList: View {
                       .padding(.vertical, 8)
               } else {
                   ForEach(section.ingredients) { ingredient in
-                      IngredientRow(ingredient: ingredient, padding: 3)
+                    IngredientRow(ingredient: ingredient, section: section)
                           .selectable(selected: selectableBinding(ingredient))
                           .contentShape(Rectangle())
                           .onTapGesture {

@@ -1,250 +1,155 @@
-//
-//  PlaygroundView.swift
-//  Julia
-//
-//  Created by Robin Willis on 7/3/24.
-//
-
 import SwiftUI
-import Combine
+import SwiftData
 
-
-
-struct PlaygroundView<Content: View>: View {
-  @Binding var isPresented: Bool
+struct SimpleTitleScrollView<Content: View>: View {
+  let title: String
   let content: Content
-  let maxHeightPercentage: CGFloat
-  let showHideTabBar: Bool
-
-  init(
-    isPresented: Binding<Bool>,
-    maxHeightPercentage: CGFloat = 0.85,
-    showHideTabBar : Bool = false,
-    @ViewBuilder content: () -> Content
-  ) {
-    self._isPresented = isPresented
-    self.maxHeightPercentage = maxHeightPercentage
-    self.showHideTabBar = showHideTabBar
+  
+  @State private var titleIsVisible: Bool = true
+  @State private var titleRect: CGRect = .zero
+  
+  init(title: String, @ViewBuilder content: () -> Content) {
+    self.title = title
     self.content = content()
   }
   
-  // Initial State
-  @GestureState private var dragOffset: CGFloat = 0
-  
-  @State private var dragEndOffset: CGFloat = 0
-  // TODO Add Keyboard
-  @State private var keyboardOffset: CGFloat = 0
-  @State private var animationOffset: CGFloat = 0
-  @State private var opacity: Double = 0
-  @State private var contentHeight: CGFloat = 0
-  
-  @State private var isContentVisible: Bool = false
-  @State private var isInView: Bool = false
-
-  
   var body: some View {
-    ZStack {
-      if isInView {
-        GeometryReader { geometry in
-          ZStack (alignment: .bottom) {
-            if isContentVisible {
-              Color.black.opacity(0.05)
-                .ignoresSafeArea()
-                .transition(.opacity)
-                .onTapGesture {
-                  isPresented = false
-                }
+    ScrollView {
+      VStack(alignment: .leading, spacing: 0) {
+        // Title that will be tracked for visibility
+        Text(title)
+          .font(.largeTitle)
+          .fontWeight(.bold)
+          .padding(.horizontal)
+          .padding(.top, 8)
+          .padding(.bottom, 12)
+          .background(GeometryReader { geo in
+            Color.clear.onAppear {
+              print("Title height: \(geo.size.height)")
             }
-            
-            VStack {
-              Spacer()
-              ZStack {
-                VStack(spacing: 0) {
-                  // Handle indicator
-                  RoundedRectangle(cornerRadius: 2)
-                    .fill(Color.gray.opacity(0.5))
-                    .frame(width: 40, height: 4)
-                    .padding(.top, 8)
-                  
-                  // Content with sizing
-                  content
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 12)
-                    .background(
-                      GeometryReader { contentGeometry in
-                        Color.clear
-                          .ignoresSafeArea()
-                          .onAppear {
-                            // Store the content height when it appears
-                            contentHeight = contentGeometry.size.height
-                          }
-                      }
-                    )
-                }
-                
-                // Style the Sheet
-                .background(.white)
-                .cornerRadius(24)
-                .padding(.horizontal, 12)
-                .shadow(color: .black.opacity(0.1), radius: 16, x: 0, y: 4)
-                .offset(y: (dragOffset < 0 ? dragOffset * 0.25 : dragOffset) + dragEndOffset - keyboardOffset)
-                
-              }
-            }
-            // Full View
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .opacity(isContentVisible ? 1.0 : 0.0)
-            .offset(y: isContentVisible ? 0 : contentHeight)
-          }
-          .background(
-            Color.clear
-              .contentShape(Rectangle())
-              .allowsHitTesting(isContentVisible)
-          )
-          .simultaneousGesture(
-            DragGesture()
-              .updating($dragOffset) { value, state, _ in
-                state = value.translation.height
-              }
-              .onEnded { value in
-                handleDragEnd(value: value, geometry: geometry)
-              }
-          )
-          .animation(.interactiveSpring(), value: dragOffset)
-          .onAppear {
-            setupKeyboardObservers()
-          }
-          
-        }
-      }
-    }
-    //.animation(.easeInOut(duration: 0.2), value: isContentVisible)
-    .onChange(of: isPresented) { oldValue, newValue in
-      if newValue {
-        dragEndOffset = 0
-        isInView = newValue
-        Task { @MainActor in
-          withAnimation(.easeInOut(duration: 0.3)) {
-            isContentVisible = newValue
-          }
-        }
-        if (showHideTabBar) {
-          NotificationCenter.default.post(name: .hideTabBar, object: nil)
-        }
-      } else {
+          })
         
-        withAnimation(.easeInOut(duration: 0.3)) {
-          isContentVisible = newValue
-        } completion: {
-          isInView = false
-        }
-        if (showHideTabBar) {
-          NotificationCenter.default.post(name: .showTabBar, object: nil)
-
-        }
+        // Main content
+        content
+          .padding(.top, 8)
       }
     }
-    .onAppear {
-      isContentVisible = isPresented
-      isInView = isPresented
+    .coordinateSpace(name: "scrollView")
+    .onPreferenceChange(ViewRectKey.self) { rect in
+      titleRect = rect
+      print(rect.minY)
+      // Title is visible if the bottom of the title is above the top of the screen
+      titleIsVisible = rect.minY > 0
     }
-  }
-  
-  
-  private func handleDragEnd(value: DragGesture.Value, geometry: GeometryProxy) {
-    let dragPercentage = value.translation.height / geometry.size.height
-    if dragPercentage > 0.15 {
-      dragEndOffset = value.translation.height
-      isPresented = false
-    }
-  }
-  
-  private func setupKeyboardObservers() {
-    NotificationCenter.default.addObserver(
-      forName: UIResponder.keyboardWillShowNotification,
-      object: nil,
-      queue: .main
-    ) { notification in
-      if notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] is CGRect {
-        withAnimation(.spring()) {
-          self.keyboardOffset = 12
-        }
-      }
-    }
-    
-    NotificationCenter.default.addObserver(
-      forName: UIResponder.keyboardWillHideNotification,
-      object: nil,
-      queue: .main
-    ) { _ in
-      withAnimation(.spring()) {
-        self.keyboardOffset = 0
+    .navigationBarTitleDisplayMode(.inline)
+    .toolbar {
+      ToolbarItem(placement: .principal) {
+        Text(title)
+          .font(.headline)
+          .foregroundColor(.red)
+          .opacity(titleIsVisible ? 0 : 0.25)
+          .animation(.easeInOut(duration: 0.2), value: titleIsVisible)
       }
     }
   }
 }
 
-#Preview {
-  struct PreviewWrapper: View {
-    @State private var showSheet = true
-    @State private var textInput = ""
-    @State private var showExtraContent = false
-    
-    @FocusState private var isFocused: Bool
-    
-    var body: some View {
-      ZStack {
-        // Main content
-        VStack {
-          Text("Main View")
-          Button("Show Sheet") {
-            showSheet = true
-          }
-        }
-        
-        PlaygroundView(
-          isPresented: $showSheet
-        ) {
-          VStack(spacing: 16) {
-            Text("Dynamic Content Sheet")
-              .font(.headline)
-            
-            TextField("Type something...", text: $textInput)
-              .textFieldStyle(RoundedBorderTextFieldStyle())
-              .focused($isFocused)
-            
-            Button("Toggle Extra Content") {
-              withAnimation {
-                showExtraContent.toggle()
-              }
-            }
-            .buttonStyle(.borderedProminent)
-            
-            Button("Dismiss") {
-              showSheet = false
-            }
-            .buttonStyle(.borderedProminent)
-            
-            if showExtraContent {
-              // This content will only appear when toggled
-              VStack(spacing: 12) {
-                ForEach(0..<5, id: \.self) { index in
-                  Text("Additional item \(index)")
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding()
-                    .background(Color.gray.opacity(0.1))
-                    .cornerRadius(8)
-                }
-              }
-              .transition(.opacity.combined(with: .move(edge: .bottom)))
-              
-            }
-          }
-          .animation(.spring(), value: showExtraContent)
+// Preference key to track view rect
+struct ViewRectKey: PreferenceKey {
+  static var defaultValue: CGRect = .zero
+  static func reduce(value: inout CGRect, nextValue: () -> CGRect) {
+    value = nextValue()
+  }
+}
+
+// Example implementation
+struct RecipeWithScrollingTitle: View {
+  let recipe: Recipe
+  @State private var selectedIngredients: Set<Ingredient> = []
+  
+  // Helper functions for ingredients selection
+  private func selectableBinding(for ingredient: Ingredient) -> Binding<Bool> {
+    Binding(
+      get: { selectedIngredients.contains(ingredient) },
+      set: { isSelected in
+        if isSelected {
+          selectedIngredients.insert(ingredient)
+        } else {
+          selectedIngredients.remove(ingredient)
         }
       }
+    )
+  }
+  
+  private func toggleSelection(for ingredient: Ingredient) {
+    if selectedIngredients.contains(ingredient) {
+      selectedIngredients.remove(ingredient)
+    } else {
+      selectedIngredients.insert(ingredient)
     }
   }
   
-  return PreviewWrapper()
+  var body: some View {
+    SimpleTitleScrollView(title: recipe.title) {
+      VStack(alignment: .leading, spacing: 16) {
+        // Recipe summary section
+        if let summary = recipe.summary {
+          Text("Summary")
+            .font(.headline)
+            .foregroundColor(.gray)
+          Text(summary)
+            .font(.body)
+        }
+        
+        // Ingredients section
+        RecipeIngredientsSection(
+          recipe: recipe,
+          selectableBinding: selectableBinding(for:),
+          toggleSelection: toggleSelection(for:)
+        )
+        
+        // Instructions section
+        RecipeInstructionsSection(recipe: recipe)
+        
+        // Add more sections as needed
+      }
+      .padding()
+    }
+  }
+}
+
+#Preview {
+  let container = DataController.previewContainer
+  let fetchDescriptor = FetchDescriptor<Recipe>()
+  
+  let previewRecipe: Recipe
+  
+  do {
+    let recipes = try container.mainContext.fetch(fetchDescriptor)
+    if let firstRecipe = recipes.first {
+      previewRecipe = firstRecipe
+    } else {
+      // Fallback if no recipes found
+      previewRecipe = Recipe(
+        title: "Homemade Classic Margherita Pizza",
+        summary: "A delicious traditional Italian pizza with simple ingredients.",
+        ingredients: [],
+        instructions: ["Prepare the dough", "Add sauce", "Top with cheese", "Bake until perfect"]
+      )
+    }
+  } catch {
+    print("Error fetching recipes: \(error)")
+    // Error fallback
+    previewRecipe = Recipe(
+      title: "Sample Recipe",
+      summary: "A delicious sample recipe",
+      ingredients: [],
+      instructions: ["Step 1: Mix ingredients", "Step 2: Cook thoroughly"]
+    )
+  }
+  
+  return NavigationStack {
+    RecipeWithScrollingTitle(recipe: previewRecipe)
+      .modelContainer(container)
+  }
 }

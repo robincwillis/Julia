@@ -22,7 +22,7 @@ struct RecipeInstructionsSection: View {
       } else {
         VStack(alignment: .leading, spacing: 12) {
           ForEach(Array(recipe.instructions.enumerated()), id: \.element) { index, step in
-            HStack(alignment: .center, spacing: 8) {
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
               // Step number - Primary button style
               ZStack {
                 Circle()

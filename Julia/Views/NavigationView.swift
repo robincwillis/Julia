@@ -128,7 +128,11 @@ struct NavigationView: View {
       }
       
       // Recipe Processing Sheet
-      .sheet(isPresented: $showRecipeProcessing) {
+      .sheet(isPresented: $showRecipeProcessing,  onDismiss: {
+        // Reset state when sheet is dismissed
+        selectedImage = nil
+        selectedText = nil
+      }) {
         if let image = selectedImage {
           RecipeProcessingView(image: image, text: nil)
             .ignoresSafeArea(.keyboard)

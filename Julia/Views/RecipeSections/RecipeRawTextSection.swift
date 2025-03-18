@@ -23,9 +23,11 @@ struct RecipeRawTextSection: View {
       .font(.system(size: 12, design: .monospaced))
     }
     .frame(maxWidth: .infinity)
-    .padding(6)
+    .padding(.horizontal, 24)
+    .padding(.vertical, 12)
     .foregroundColor(.secondary)
     .background(.background.secondary)
+    // TODO Navigation and Toolbar not showing
     .navigationTitle("Recognized Text")
     .navigationBarTitleDisplayMode(.inline)
     .toolbar {
