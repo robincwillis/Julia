@@ -57,6 +57,7 @@ final class Ingredient: Identifiable, Hashable, Equatable, CustomStringConvertib
     var quantity: Double?
     var unit: MeasurementUnit?
     var comment: String?
+    var position: Int = 0  // Add position property to maintain order
     @Relationship(originalName: "ingredients") var recipe: Recipe?
     @Relationship(originalName: "ingredients") var section: IngredientSection?
   
@@ -68,6 +69,7 @@ final class Ingredient: Identifiable, Hashable, Equatable, CustomStringConvertib
     quantity: Double? = nil,
     unit: String? = nil,
     comment: String? = nil,
+    position: Int = 0,
     imageName: String? = nil,
     recipe: Recipe? = nil,
     section: IngredientSection? = nil
@@ -79,6 +81,7 @@ final class Ingredient: Identifiable, Hashable, Equatable, CustomStringConvertib
         self.quantity = quantity
         self.unit = MeasurementUnit(from: unit)
         self.comment = comment
+        self.position = position
         self.imageName = imageName
         self.recipe = recipe
         self.section = section

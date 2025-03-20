@@ -23,4 +23,9 @@ final class IngredientSection: Identifiable, Hashable {
         self.ingredients = ingredients
         self.recipe = recipe
     }
+    
+    // Get ingredients sorted by position
+    var sortedIngredients: [Ingredient] {
+        return ingredients.sorted { $0.position < $1.position }
+    }
 }

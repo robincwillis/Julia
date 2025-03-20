@@ -16,7 +16,6 @@ struct RecipeDetails: View {
   @Environment(\.modelContext) var context
   @Environment(\.editMode) private var editMode
   
-  
   private var isEditing: Bool {
     return editMode?.wrappedValue.isEditing ?? false
   }
@@ -29,8 +28,7 @@ struct RecipeDetails: View {
   @State private var showIngredientEditor = false
   @State private var selectedIngredients: Set<Ingredient> = []
   @State private var showRawTextSheet = false
-  @State private var isScrolled = false
-
+  @State private var titleIsVisible: Bool = true
   
   @FocusState private var isTextFieldFocused: Bool
   @FocusState private var focusedInstructionField: Int?
@@ -41,197 +39,219 @@ struct RecipeDetails: View {
     recipe.rawText?.joined(separator: "\n") ?? ""
   }
   
-  var body: some View {
-    ZStack {
-      if (isEditing) {
-        Form {
-          // Edit Summary Section
-          RecipeEditSummarySection(
-            title: $recipe.title,
-            summary: $recipe.summary,
-            servings: $recipe.servings,
-            isTextFieldFocused: _isTextFieldFocused
+  @ViewBuilder
+  private var editModeContent: some View {
+    Form {
+      // Edit Summary Section
+      RecipeEditSummarySection(
+        title: $recipe.title,
+        summary: $recipe.summary,
+        servings: $recipe.servings,
+        isTextFieldFocused: _isTextFieldFocused
+    )
+      
+      // Ingredients section
+      RecipeEditIngredientsSection(
+        ingredients: $recipe.ingredients,
+        sections: $recipe.sections,
+        selectedIngredient: $selectedIngredient,
+        selectedSection: $selectedSection,
+        showIngredientEditor: $showIngredientEditor,
+        isTextFieldFocused: _isTextFieldFocused
+      )
+      
+      // Instructions section
+      RecipeEditInstructionsSection(
+        instructions: $recipe.instructions,
+        isTextFieldFocused: _isTextFieldFocused,
+        focusedInstructionField: _focusedInstructionField
+      )
+    }
+    .background(Color(.secondarySystemBackground))
+    .listStyle(.insetGrouped)
+    .navigationTitle(recipe.title)
+    .navigationBarTitleDisplayMode(.inline)
+  }
+  
+  @ViewBuilder
+  private var viewModeContent: some View {
+    ZStack(alignment: .top) {
+      ScrollView(.vertical, showsIndicators: true) {
+        VStack(alignment: .leading, spacing: 12) {
+          ScrollFadeTitle(
+            title: recipe.title,
+            titleIsVisible: $titleIsVisible
           )
           
-          // Ingredients section
-          RecipeEditIngredientsSection(
-            ingredients: $recipe.ingredients,
-            sections: $recipe.sections,
-            selectedIngredient: $selectedIngredient,
-            selectedSection: $selectedSection,
-            showIngredientEditor: $showIngredientEditor,
-            isTextFieldFocused: _isTextFieldFocused
+          // Title and Summary Section
+          RecipeSummarySection(recipe: recipe)
+          
+          // Ingredients Section with selectable ingredients
+          RecipeIngredientsSection(
+            recipe: recipe,
+            selectableBinding: selectableBinding(for:),
+            toggleSelection: toggleSelection(for:)
           )
           
-          // Instructions section
-          RecipeEditInstructionsSection(
-            instructions: $recipe.instructions,
-            isTextFieldFocused: _isTextFieldFocused,
-            focusedInstructionField: _focusedInstructionField
-          )
-        }
-        .background(Color(.secondarySystemBackground))
-        .listStyle(.insetGrouped)
-        .navigationTitle(recipe.title)
-        .navigationBarTitleDisplayMode(.inline)
-        
-      } else {
-        ScrollView(.vertical, showsIndicators: true) {
-          VStack(alignment: .leading, spacing: 12) {
-            // Title and Summary Section
-            RecipeSummarySection(
-              recipe: recipe
-            )
-            
-            // Ingredients Section with selectable ingredients
-            RecipeIngredientsSection(
-              recipe: recipe,
+          // Additional Ingredient Sections
+          if !recipe.sections.isEmpty {
+            IngredientSectionList(
+              sections: recipe.sections,
               selectableBinding: selectableBinding(for:),
               toggleSelection: toggleSelection(for:)
             )
-            
-            // Additional Ingredient Sections
-            if !recipe.sections.isEmpty {
-              IngredientSectionList(
-                sections: recipe.sections,
-                selectableBinding: selectableBinding(for:),
-                toggleSelection: toggleSelection(for:)
-              )
-            }
-            
-            // Instructions Section
-            RecipeInstructionsSection(
-              recipe: recipe
-            )
           }
-          .padding(.horizontal, 16)
-          .padding(.bottom, 16)
+          
+          // Instructions Section
+          RecipeInstructionsSection(recipe: recipe)
         }
-        //.adaptiveNavigationTitle(recipe.title, isScrolled: $isScrolled)
-        //.navigationTitlea(isScrolled ? recipe.title : "")
-        .navigationTitle(recipe.title)
-        .navigationBarTitleDisplayMode(.large)
-        .edgesIgnoringSafeArea(.bottom)
-        .background(Color(.systemBackground))
-        .toolbar {
-          if !selectedIngredients.isEmpty {
-            ToolbarItem(placement: .topBarTrailing) {
-              Menu {
-                Button(action: addSelectedToGroceryList) {
-                  Label("Add to Grocery List", systemImage: "cart.fill.badge.plus")
-                }
-                Button(action: selectAll) {
-                  Label("Select All", systemImage: "checklist.checked")
-                }
-                Button(action: clearSelection) {
-                  Label("Clear Selection", systemImage: "xmark.circle")
-                }
-              } label: {
-                Text("\(selectedIngredients.count) selected")
-                  .foregroundColor(.white)
-                  .padding(.horizontal, 12)
-                  .padding(.vertical, 6)
-                  .background(Color.blue)
-                  .cornerRadius(8)
-              }
-            }
-          }
-        }
+        .padding(.horizontal, 16)
+        .padding(.bottom, 16)
       }
-      FloatingBottomSheet(
-        isPresented: $showIngredientEditor,
-        showHideTabBar : false
-      ) {
-        IngredientEditor(
-          ingredientLocation: ingredientLocation,
-          ingredient: $selectedIngredient,
-          recipe: recipe,
-          section: selectedSection,
-          showBottomSheet: $showIngredientEditor
-        )
-      }
-//      .onChange(of: showIngredientEditor) { oldValue, newValue in
-//        // Only execute when the sheet is being dismissed
-//        if oldValue == true && newValue == false {
-//          // Handle empty ingredients if needed
-////          if let ingredient = selectedIngredient,
-////            ingredient.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-////            deleteIngredient(ingredient)
-////          }
-//          // Clear the selection after handling everything
-//          // This might be the thing breaking it
-//          //selectedIngredient = nil
-//          //selectedSection = nil
-//        }
-//      }
     }
+    .coordinateSpace(name: "scrollContainer")
+    .navigationTitle(!titleIsVisible ? recipe.title : "")
+    .navigationBarTitleDisplayMode(.inline)
+    .edgesIgnoringSafeArea(.bottom)
+    .background(Color(.systemBackground))
     .toolbar {
-      ToolbarItem(placement: .navigationBarTrailing) {
-        if isEditing {
-          Menu {
-            Button("Show Raw Text", systemImage: "text.quote") {
-              showRawTextSheet = true
-            }
-            Button("Delete Recipe", systemImage: "trash", role: .destructive) {
-              showDeleteConfirmation = true
-            }
-            Button("Clear All Recipes", systemImage: "clear", role: .destructive) {
-              do {
-                try context.delete(model: Recipe.self)
-              } catch {
-                print(error.localizedDescription)
-              }
-            }
-          } label: {
-            Image(systemName: "ellipsis")
-              .font(.system(size: 14))
-              .foregroundColor(.blue)
-              .padding(12)
-              .frame(width: 30, height: 30)
-              .background(Color(red: 0.85, green: 0.92, blue: 1.0))
-              .clipShape(Circle())
-              .animation(.snappy, value: isEditing)
-              .transition(.opacity)
-          }
-        }
-      }
-      // Edit/Done button (right side)
-      ToolbarItem(placement: .navigationBarTrailing) {
-        // Custom EditButton to handle confirmation before exiting edit mode
-        Group {
-          if isEditing {
-            Button("Done") {
-              editMode?.wrappedValue = .inactive
-            }
-          } else {
-            Button("Edit") {
-              editMode?.wrappedValue = .active
-            }
-          }
+      if !selectedIngredients.isEmpty {
+        ToolbarItem(placement: .topBarTrailing) {
+          ingredientSelectionMenu
         }
       }
     }
-    .confirmationDialog("Are you sure?",
-                      isPresented: $showDeleteConfirmation,
-                      titleVisibility: .visible
+  }
+  
+  private var ingredientSelectionMenu: some View {
+    Menu {
+      Button(action: addSelectedToGroceryList) {
+        Label("Add to Grocery List", systemImage: "cart.fill.badge.plus")
+      }
+      Button(action: selectAll) {
+        Label("Select All", systemImage: "checklist.checked")
+      }
+      Button(action: clearSelection) {
+        Label("Clear Selection", systemImage: "xmark.circle")
+      }
+    } label: {
+      Text("\(selectedIngredients.count) selected")
+        .foregroundColor(.white)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 6)
+        .background(Color.blue)
+        .cornerRadius(8)
+    }
+  }
+  
+  private var ingredientEditorSheet: some View {
+    FloatingBottomSheet(
+      isPresented: $showIngredientEditor,
+      showHideTabBar: false
+    ) {
+      IngredientEditor(
+        ingredientLocation: ingredientLocation,
+        ingredient: $selectedIngredient,
+        recipe: recipe,
+        section: selectedSection,
+        showBottomSheet: $showIngredientEditor
+      )
+    }
+  }
+  
+  @ToolbarContentBuilder
+  private var mainToolbarItems: some ToolbarContent {
+    ToolbarItem(placement: .navigationBarTrailing) {
+      if isEditing {
+        Menu {
+          Button("Show Raw Text", systemImage: "text.quote") {
+            showRawTextSheet = true
+          }
+          Button("Delete Recipe", systemImage: "trash", role: .destructive) {
+            showDeleteConfirmation = true
+          }
+          Button("Clear All Recipes", systemImage: "clear", role: .destructive) {
+            do {
+              try context.delete(model: Recipe.self)
+            } catch {
+              print(error.localizedDescription)
+            }
+          }
+        } label: {
+          Image(systemName: "ellipsis")
+            .font(.system(size: 14))
+            .foregroundColor(.blue)
+            .padding(12)
+            .frame(width: 30, height: 30)
+            .background(Color(red: 0.85, green: 0.92, blue: 1.0))
+            .clipShape(Circle())
+            .animation(.snappy, value: isEditing)
+            .transition(.opacity)
+        }
+      }
+    }
+    
+    ToolbarItem(placement: .navigationBarTrailing) {
+      if isEditing {
+        Button("Done") {
+          editMode?.wrappedValue = .inactive
+        }
+      } else {
+        Button("Edit") {
+          editMode?.wrappedValue = .active
+        }
+      }
+    }
+  }
+  
+  private var rawTextSheet: some View {
+    ScrollView {
+      RecipeRawTextSection(recipe: recipe)
+    }
+    .presentationDetents([.medium, .large])
+    .padding()
+    .background(.background.secondary)
+  }
+  
+  // MARK: - Body
+  var body: some View {
+    ZStack {
+      // Main content based on edit mode
+      if isEditing {
+        editModeContent
+      } else {
+        viewModeContent
+      }
+      
+      // Floating ingredient editor
+      ingredientEditorSheet
+    }
+    .toolbar { mainToolbarItems }
+    .confirmationDialog(
+      "Are you sure?",
+      isPresented: $showDeleteConfirmation,
+      titleVisibility: .visible
     ) {
       Button("Delete Recipe", role: .destructive) {
         deleteRecipe()
       }
     }
-    // Add this onChange modifier to your view
     .onChange(of: focusedInstructionField) { oldValue, newValue in
       if newValue != nil {
-        // When instruction field gets focus, unfocus the text field
         isTextFieldFocused = false
       }
     }
-    
-    // And vice versa if needed
     .onChange(of: isTextFieldFocused) { oldValue, newValue in
       if newValue == true {
-        // When text field gets focus, unfocus the instruction field
         focusedInstructionField = nil
+      }
+    }
+    .onChange(of: showIngredientEditor) { oldValue, newValue in
+      // Only execute when the sheet is being dismissed
+      if oldValue == true && newValue == false {
+        // Clear the selection after handling everything
+        selectedIngredient = nil
+        selectedSection = nil
       }
     }
     .onAppear {
@@ -239,23 +259,16 @@ struct RecipeDetails: View {
     }
     .onDisappear {
       NotificationCenter.default.post(name: .showTabBar, object: nil)
-      // If leaving while in edit mode, exit edit mode
       if editMode?.wrappedValue.isEditing == true {
         editMode?.wrappedValue = .inactive
       }
     }
     .sheet(isPresented: $showRawTextSheet) {
-      ScrollView {
-        RecipeRawTextSection(recipe: recipe)
-      }
-      .presentationDetents([.medium, .large])
-      .background(.background.secondary)
+      rawTextSheet
     }
-    
-    
   }
 
-  private func deleteIngredient (_ ingredient: Ingredient) {
+  private func deleteIngredient(_ ingredient: Ingredient) {
     // Remove from recipe if needed
     if let recipe = ingredient.recipe {
       recipe.ingredients.removeAll(where: { $0.id == ingredient.id })
@@ -345,6 +358,7 @@ struct RecipeDetails: View {
   private func clearSelection() {
     selectedIngredients.removeAll()
   }
+  
   private func selectAll() {
     // Get all unsectioned ingredients
     let unsectionedIngredients = recipe.ingredients.filter { $0.section == nil }
@@ -364,6 +378,8 @@ struct RecipeDetails: View {
 }
 
 #Preview {
+  // Reset the container to avoid model conflicts
+  DataController.resetPreviewContainer()
   let container = DataController.previewContainer
   let fetchDescriptor = FetchDescriptor<Recipe>()
   
@@ -403,5 +419,4 @@ struct RecipeDetails: View {
     RecipeDetails(recipe: previewRecipe)
       .modelContainer(container)
   }
-
 }

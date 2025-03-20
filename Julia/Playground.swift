@@ -1,73 +1,107 @@
 import SwiftUI
 import SwiftData
 
-struct SimpleTitleScrollView<Content: View>: View {
-  let title: String
-  let content: Content
+struct SimpleTitleScrollView: View {
+  let recipe: Recipe
   
-  @State private var titleIsVisible: Bool = true
-  @State private var titleRect: CGRect = .zero
+  @State private var selectedIngredients: Set<Ingredient> = []
+  @State private var titleIsVisible: Bool = false
+  @State private var titlePosition: CGFloat = 100
+  @State private var titleHeight: CGFloat = 0
+  @State private var titleOpacity: Double = 1.0  // New state for title opacity
+
   
-  init(title: String, @ViewBuilder content: () -> Content) {
-    self.title = title
-    self.content = content()
+  init(recipe: Recipe) {
+    self.recipe = recipe
   }
   
   var body: some View {
-    ScrollView {
-      VStack(alignment: .leading, spacing: 0) {
-        // Title that will be tracked for visibility
-        Text(title)
-          .font(.largeTitle)
-          .fontWeight(.bold)
-          .padding(.horizontal)
-          .padding(.top, 8)
-          .padding(.bottom, 12)
-          .background(GeometryReader { geo in
-            Color.clear.onAppear {
-              print("Title height: \(geo.size.height)")
+    ZStack(alignment: .top) {
+      ScrollView {
+        VStack(alignment: .leading, spacing: 0) {
+          // Title Starts Here
+          GeometryReader { geometry in
+            Text(recipe.title)
+              .font(.largeTitle)
+              .fontWeight(.bold)
+              .padding(.horizontal)
+              .fixedSize(horizontal: false, vertical: true) // Allow text to wrap
+              .background(
+                // Background for height measurement - simpler approach
+                GeometryReader { geo -> Color in
+                  DispatchQueue.main.async {
+                    self.titleHeight = geo.size.height
+                    print("Title height captured: \(self.titleHeight)")
+                  }
+                  return Color.clear
+                }
+              )
+              .onChange(of: geometry.frame(in: .named("scrollContainer")).minY) { oldValue, newValue in
+                titlePosition = newValue
+                titleIsVisible = newValue > -titleHeight
+                
+                if newValue >= 0 {
+                  // Fully visible
+                  titleOpacity = 1.0
+                } else if newValue <= -titleHeight {
+                  // Fully scrolled out
+                  titleOpacity = 0.0
+                } else {
+                  titleOpacity = 1.0 - (-newValue / (titleHeight - 20))
+                }
+                
+                print("Title position: \(newValue)")
+              }
+
+          }
+          .frame(height: titleHeight)
+          .frame(maxWidth: .infinity)
+          .background(.red)
+          .opacity(titleOpacity)
+
+          // Main content starts here
+          VStack(alignment: .leading, spacing: 16) {
+            // Recipe summary section
+            if let summary = recipe.summary {
+              Text("Summary")
+                .font(.headline)
+                .foregroundColor(.gray)
+              Text(summary)
+                .font(.body)
             }
-          })
-        
-        // Main content
-        content
-          .padding(.top, 8)
+            
+            // Ingredients section
+            RecipeIngredientsSection(
+              recipe: recipe,
+              selectableBinding: selectableBinding(for:),
+              toggleSelection: toggleSelection(for:)
+            )
+            
+            // Instructions section
+            RecipeInstructionsSection(recipe: recipe)
+            
+            // Add more sections as needed
+          }
+          .padding()
+        }
       }
+      //.frame(maxWidth: .infinity, maxHeight: .infinity)
     }
-    .coordinateSpace(name: "scrollView")
-    .onPreferenceChange(ViewRectKey.self) { rect in
-      titleRect = rect
-      print(rect.minY)
-      // Title is visible if the bottom of the title is above the top of the screen
-      titleIsVisible = rect.minY > 0
-    }
+    .coordinateSpace(name: "scrollContainer")
+    //.frame(maxWidth: .infinity, maxHeight: .infinity)
+
     .navigationBarTitleDisplayMode(.inline)
+    .navigationTitle(!titleIsVisible ? recipe.title : "")
     .toolbar {
       ToolbarItem(placement: .principal) {
-        Text(title)
+        Text(!titleIsVisible ? recipe.title : "")
           .font(.headline)
-          .foregroundColor(.red)
-          .opacity(titleIsVisible ? 0 : 0.25)
-          .animation(.easeInOut(duration: 0.2), value: titleIsVisible)
+          .foregroundColor(.primary)
+          
       }
     }
   }
-}
-
-// Preference key to track view rect
-struct ViewRectKey: PreferenceKey {
-  static var defaultValue: CGRect = .zero
-  static func reduce(value: inout CGRect, nextValue: () -> CGRect) {
-    value = nextValue()
-  }
-}
-
-// Example implementation
-struct RecipeWithScrollingTitle: View {
-  let recipe: Recipe
-  @State private var selectedIngredients: Set<Ingredient> = []
   
-  // Helper functions for ingredients selection
   private func selectableBinding(for ingredient: Ingredient) -> Binding<Bool> {
     Binding(
       get: { selectedIngredients.contains(ingredient) },
@@ -86,34 +120,6 @@ struct RecipeWithScrollingTitle: View {
       selectedIngredients.remove(ingredient)
     } else {
       selectedIngredients.insert(ingredient)
-    }
-  }
-  
-  var body: some View {
-    SimpleTitleScrollView(title: recipe.title) {
-      VStack(alignment: .leading, spacing: 16) {
-        // Recipe summary section
-        if let summary = recipe.summary {
-          Text("Summary")
-            .font(.headline)
-            .foregroundColor(.gray)
-          Text(summary)
-            .font(.body)
-        }
-        
-        // Ingredients section
-        RecipeIngredientsSection(
-          recipe: recipe,
-          selectableBinding: selectableBinding(for:),
-          toggleSelection: toggleSelection(for:)
-        )
-        
-        // Instructions section
-        RecipeInstructionsSection(recipe: recipe)
-        
-        // Add more sections as needed
-      }
-      .padding()
     }
   }
 }
@@ -149,7 +155,7 @@ struct RecipeWithScrollingTitle: View {
   }
   
   return NavigationStack {
-    RecipeWithScrollingTitle(recipe: previewRecipe)
+    SimpleTitleScrollView(recipe: previewRecipe)
       .modelContainer(container)
   }
 }

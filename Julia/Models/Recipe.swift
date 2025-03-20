@@ -9,15 +9,25 @@ import Foundation
 import SwiftData
 
 @Model
-class Timing {
+class Timing: Identifiable {
+  @Attribute(.unique) var id: String = UUID().uuidString
   var type: String // maybe enum: prep, cook, bake, total
   var hours: Int
   var minutes: Int
   
-  init(type: String, hours: Int, minutes: Int) {
+  init(id: String = UUID().uuidString, type: String, hours: Int, minutes: Int) {
+    self.id = id
     self.type = type
     self.hours = hours
     self.minutes = minutes
+  }
+  
+  var display: String {
+    let hourText = hours > 0 ? "\(hours) hr" : ""
+    let minuteText = minutes > 0 ? "\(minutes) min" : ""
+    let separator = (hours > 0 && minutes > 0) ? " " : ""
+    
+    return "\(hourText)\(separator)\(minuteText)"
   }
 }
 
@@ -81,6 +91,11 @@ class Recipe: Identifiable, Hashable, CustomStringConvertible {
             allIngredients.append(contentsOf: section.ingredients)
         }
         return allIngredients
+    }
+    
+    // Get ingredients sorted by position
+    var sortedIngredients: [Ingredient] {
+        return ingredients.sorted { $0.position < $1.position }
     }
     
     // Helper method to move an ingredient to a section

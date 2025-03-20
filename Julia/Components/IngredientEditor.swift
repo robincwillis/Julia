@@ -468,6 +468,8 @@ struct IngredientEditor: View {
         // Connect to section if provided
         if currentIngredient.section == nil {
           withAnimation {
+            // Set position to end of the list for proper ordering
+            currentIngredient.position = currentSection.ingredients.count
             currentSection.ingredients.append(currentIngredient)
           }
         }
@@ -475,6 +477,8 @@ struct IngredientEditor: View {
         // Connect to recipe if no section and not already connected
         if currentIngredient.recipe == nil && currentIngredient.section == nil {
           withAnimation {
+            // Set position to end of the list for proper ordering
+            currentIngredient.position = currentRecipe.ingredients.count
             currentRecipe.ingredients.append(currentIngredient)
           }
         }
@@ -495,10 +499,9 @@ struct IngredientEditor: View {
 }
 
 #Preview {
-  
-  // Create a preview container for SwiftData
-  let config = ModelConfiguration(isStoredInMemoryOnly: true)
-  let container = try! ModelContainer(for: Ingredient.self, IngredientSection.self, Recipe.self, configurations: config)
+  // Reset and use the shared preview container that includes all models
+  DataController.resetPreviewContainer()
+  let container = DataController.previewContainer
   
   // Insert our ingredient into the container
   let previewIngredient = Ingredient(

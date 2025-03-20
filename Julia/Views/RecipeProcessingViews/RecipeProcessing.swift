@@ -280,6 +280,9 @@ extension RecipeTextClassifier {
 }
 
 #Preview {
+  // Reset the container to avoid conflicts
+  DataController.resetPreviewContainer()
+  
   let image = UIImage(named: "julia") ?? UIImage()
   
   return RecipeProcessingView(image: image, text: nil)

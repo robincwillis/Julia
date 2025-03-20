@@ -22,13 +22,14 @@ struct RecipeEditIngredientsSection: View {
         Text("No ingredients added")
           .foregroundColor(.gray)
       } else {
-        ForEach(ingredients) { ingredient in
+        // Sort ingredients by position for consistent display order
+        let sortedIngredients = ingredients.sorted { $0.position < $1.position }
+        ForEach(sortedIngredients) { ingredient in
           IngredientRow(
             ingredient: ingredient,
             onTap: editIngredient,
             section: nil
           )
-            
         }
         .onDelete { indices in
           deleteIngredient(at: indices)
@@ -59,12 +60,13 @@ struct RecipeEditIngredientsSection: View {
             .foregroundColor(.secondary)
             .italic()
         } else {
-          ForEach(sections[sectionIndex].ingredients) { ingredient in
+          // Sort ingredients by position for consistent display order
+          let sortedSectionIngredients = sections[sectionIndex].ingredients.sorted { $0.position < $1.position }
+          ForEach(sortedSectionIngredients) { ingredient in
             IngredientRow(
               ingredient: ingredient,
               onTap: editIngredient,
               section: sections[sectionIndex]
-              
             )
           }
           .onDelete { indices in
@@ -116,12 +118,36 @@ struct RecipeEditIngredientsSection: View {
   
   private func moveIngredient(from source: IndexSet, to destination: Int) {
     withAnimation {
+      // Get sorted ingredients first
+      var sortedIngredients = ingredients.sorted { $0.position < $1.position }
+      
+      // Move them
+      sortedIngredients.move(fromOffsets: source, toOffset: destination)
+      
+      // Update positions for all ingredients
+      for (index, ingredient) in sortedIngredients.enumerated() {
+        ingredient.position = index
+      }
+      
+      // The array itself still needs the move operation for SwiftUI
       ingredients.move(fromOffsets: source, toOffset: destination)
     }
   }
   
   private func moveIngredientInSection(from source: IndexSet, to destination: Int, inSection sectionIndex: Int) {
     if sections.count > sectionIndex {
+      // Get sorted ingredients first
+      var sortedIngredients = sections[sectionIndex].ingredients.sorted { $0.position < $1.position }
+      
+      // Move them
+      sortedIngredients.move(fromOffsets: source, toOffset: destination)
+      
+      // Update positions for all ingredients
+      for (index, ingredient) in sortedIngredients.enumerated() {
+        ingredient.position = index
+      }
+      
+      // The array itself still needs the move operation for SwiftUI
       sections[sectionIndex].ingredients.move(fromOffsets: source, toOffset: destination)
     }
   }
