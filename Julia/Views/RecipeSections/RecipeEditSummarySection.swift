@@ -13,7 +13,8 @@ struct RecipeEditSummarySection: View {
   @Binding var servings: Int?
   @FocusState var isTextFieldFocused: Bool
   @FocusState var isSummaryFieldFocused: Bool
-  
+    
+  @State private var servingsText: String = ""
   
   private var summaryTextBinding: Binding<String> {
     Binding<String>(
@@ -22,10 +23,21 @@ struct RecipeEditSummarySection: View {
     )
   }
   
-  private var servingsTextBinding: Binding<Int> {
-    Binding<Int>(
-      get: { self.servings ?? 0 },
-      set: { self.servings = $0 < 1 ? nil : $0 }
+  private var servingsTextBinding: Binding<String> {
+    Binding<String>(
+      get: { self.servingsText },
+      set: { newValue in
+        if newValue.isEmpty {
+          self.servings = nil
+        } else {
+          self.servings = Int(newValue)
+        }
+        if newValue == "0" {
+          self.servingsText = ""
+        } else {
+          self.servingsText = newValue
+        }
+      }
     )
   }
   
@@ -69,7 +81,7 @@ struct RecipeEditSummarySection: View {
           .multilineTextAlignment(.trailing)
           .padding(.vertical, 8)
           .padding(.horizontal, 4)
-          .background(Color(.systemGray6))
+          //.background(Color(.systemGray6))
           .toolbar {
             ToolbarItemGroup(placement: .keyboard) {
               Button("Clear") {
@@ -81,14 +93,23 @@ struct RecipeEditSummarySection: View {
               }
             }
           }
+          .onAppear {
+            if let servings = servings, servings > 0 {
+              servingsText = String(servings)
+            }
+          }
+          .onChange(of: servings) {
+            if let servings = servings, servings > 0 {
+              servingsText = String(servings)
+            } else {
+              servingsText = ""
+            }
+          }
         
         
       }
-      .padding(.vertical, 8)
-      // TODO Add Timings Here
-      HStack {
-        
-      }
+      //.padding(.vertical, 8)
+      // TODO  Combine with Timings
     }
   }
 }

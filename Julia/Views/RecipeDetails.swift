@@ -48,7 +48,11 @@ struct RecipeDetails: View {
         summary: $recipe.summary,
         servings: $recipe.servings,
         isTextFieldFocused: _isTextFieldFocused
-    )
+      )
+      
+      RecipeEditTimingsSection(
+        timings: $recipe.timings
+      )
       
       // Ingredients section
       RecipeEditIngredientsSection(
@@ -191,7 +195,7 @@ struct RecipeDetails: View {
       }
     }
     
-    ToolbarItem(placement: .navigationBarTrailing) {
+    ToolbarItem(placement: .primaryAction) {
       if isEditing {
         Button("Done") {
           editMode?.wrappedValue = .inactive
@@ -209,8 +213,8 @@ struct RecipeDetails: View {
       RecipeRawTextSection(recipe: recipe)
     }
     .presentationDetents([.medium, .large])
-    .padding()
     .background(.background.secondary)
+    .presentationDragIndicator(.hidden)
   }
   
   // MARK: - Body

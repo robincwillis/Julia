@@ -22,12 +22,28 @@ class Timing: Identifiable {
     self.minutes = minutes
   }
   
-  var display: String {
+  var displayShort: String {
     let hourText = hours > 0 ? "\(hours) hr" : ""
     let minuteText = minutes > 0 ? "\(minutes) min" : ""
     let separator = (hours > 0 && minutes > 0) ? " " : ""
     
     return "\(hourText)\(separator)\(minuteText)"
+  }
+  
+  var display: String {
+    if hours == 0 && minutes == 0 {
+      return "Set time"
+    }
+    
+    if hours == 0 {
+      return "\(minutes) \(minutes == 1 ? "minute" :  "minutes")"
+    }
+    
+    if minutes == 0 {
+      return "\(hours) \(hours == 1 ? "hour" : "hours")"
+    }
+    
+    return "\(hours) \(hours == 1 ? "hour" : "hours") \(minutes) \(minutes == 1 ? "minute" :  "minutes")"
   }
 }
 

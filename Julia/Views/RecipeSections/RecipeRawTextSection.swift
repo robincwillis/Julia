@@ -15,35 +15,37 @@ struct RecipeRawTextSection: View {
   }
   
   var body: some View {
-    
-    VStack(alignment: .leading, spacing: 8) {
-      ForEach(recipe.rawText ?? [], id: \.self) { item in
-        Text(item)
-      }
-      .font(.system(size: 12, design: .monospaced))
-    }
-    .frame(maxWidth: .infinity)
-    .padding(.horizontal, 24)
-    .padding(.vertical, 12)
-    .foregroundColor(.secondary)
-    .background(.background.secondary)
-    // TODO Navigation and Toolbar not showing
-    .navigationTitle("Recognized Text")
-    .navigationBarTitleDisplayMode(.inline)
-    .toolbar {
-      ToolbarItem(placement: .primaryAction) {
-        Button("Copy") {
-          UIPasteboard.general.string = rawTextString
+    GeometryReader { geometry in
+      ZStack (alignment: .bottom) {
+        ScrollView {
+          Text(rawTextString)
+            .font(.system(size: 12, design: .monospaced))
+            .textSelection(.enabled)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 12)
+            .padding(.bottom, geometry.safeAreaInsets.bottom > 0 ? geometry.safeAreaInsets.bottom : 16)
+          
+            .foregroundColor(.secondary)
         }
-        .foregroundColor(.blue)
-        .padding(.horizontal, 12)
-        .padding(.vertical, 6)
-        .background(Color(red: 0.85, green: 0.92, blue: 1.0))
-        .cornerRadius(8)
+        //.frame(maxWidth: .infinity)
+        
+        VStack {
+          Spacer()
+          Button("Copy") {
+            UIPasteboard.general.string = rawTextString
+          }
+          .foregroundColor(.blue)
+          .padding(.horizontal, 12)
+          .padding(.vertical, 6)
+          .background(Color(red: 0.85, green: 0.92, blue: 1.0))
+          .cornerRadius(12)
+        }
+        .padding(.bottom, geometry.safeAreaInsets.bottom > 0 ? geometry.safeAreaInsets.bottom : 16)
+
       }
-      
     }
-}
+  }
 }
 
 #Preview {
