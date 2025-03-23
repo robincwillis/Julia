@@ -76,7 +76,7 @@ struct RecipeEditSummarySection: View {
           .foregroundColor(.primary)
         
         Spacer()
-        TextField("Optional", value: servingsTextBinding, formatter: NumberFormatter())
+        TextField("Optional", text: servingsTextBinding)
           .keyboardType(.numberPad)
           .multilineTextAlignment(.trailing)
           .padding(.vertical, 8)

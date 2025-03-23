@@ -14,15 +14,8 @@ struct RecipeRow: View {
     }
 }
 
-#Preview {
-    let recipe = Recipe(
-        title: "Sample Recipe",
-        summary: "A sample recipe for preview",
-        ingredients: [],
-        instructions: ["Step 1", "Step 2"],
-        sections: [],
-        servings: 2,
-        rawText: ["Sample Recipe", "A sample recipe"]
-    )
-    return RecipeRow(recipe: recipe)
+#Preview("Recipe Row") {
+  Previews.recipeComponent { recipe in
+    RecipeRow(recipe: recipe)
+  }
 }

@@ -47,29 +47,15 @@ struct RecipeIngredientsSection: View {
 }
 
 #Preview {
-    struct PreviewWrapper: View {
-        @State private var ingredients: [Ingredient] = [
-            Ingredient(name: "Flour", location: .recipe, unit: "cup"),
-            Ingredient(name: "Sugar", location: .recipe, unit: "cup")
-        ]
-        @State private var sections: [IngredientSection] = []
-        @State private var selectedIngredient: Ingredient?
-        @State private var showEditor = false
-        @FocusState private var focused: Bool
-        
-        var body: some View {
-            RecipeIngredientsSection(
-                recipe: Recipe(
-                    title: "Sample Recipe",
-                    summary: "A delicious sample recipe",
-                    ingredients: ingredients,
-                    instructions: []
-                ),
-                selectableBinding: { _ in .constant(false) },
-                toggleSelection: { _ in }
-            )
-        }
-    }
-    
-    return PreviewWrapper()
+  Previews.recipeComponent { recipe in
+    RecipeIngredientsSection(
+      recipe: recipe,
+      selectableBinding: { _ in .constant(false) },
+      toggleSelection: { _ in }
+    )
+    .padding()
+  }
 }
+
+
+

@@ -233,7 +233,7 @@ struct RecipeProcessingView: View {
       instructions: recipeData.instructions,
       sections: [],
       servings: nil,
-      timings: nil,
+      //timings: nil,
       notes: nil,
       rawText: processingState.recognizedText,
       source: nil
@@ -281,7 +281,7 @@ extension RecipeTextClassifier {
 
 #Preview {
   // Reset the container to avoid conflicts
-  DataController.resetPreviewContainer()
+  //DataController.resetPreviewContainer()
   
   let image = UIImage(named: "julia") ?? UIImage()
   

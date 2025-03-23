@@ -48,15 +48,44 @@ struct RecipeRawTextSection: View {
   }
 }
 
-#Preview {
-  RecipeRawTextSection(
-    recipe: Recipe(
-      title: "Sample Recipe",
-      summary: "A delicious sample recipe",
-      ingredients: [],
-      instructions: [],
-      rawText: ["Line 1: Sample recipe text", "Line 2: More sample text", "Line 3: Final line of text"]
-    )
-  )
-  .padding()
+#Preview("Recipe Raw Text Section") {
+  PreviewContainer {
+    RecipeRawTextPreview()
+  }
 }
+
+struct RecipeRawTextPreview: View {
+  @State private var showRawTextSheet = true
+  @State private var recipe: Recipe?
+  
+
+  var body: some View {
+    ZStack {
+      Button("Show Sheet") {
+        showRawTextSheet = true
+      }
+      .buttonStyle(.borderedProminent)
+    }
+    .task {
+      // Safely call the MainActor-isolated method
+      if recipe == nil {
+        self.recipe = await MainActor.run {
+          MockData.createSampleRecipe()
+        }
+      }
+    }
+    .sheet(isPresented: $showRawTextSheet) {
+      if let recipe = recipe {
+        ScrollView {
+          RecipeRawTextSection(recipe: recipe)
+        }
+        .presentationDetents([.medium, .large])
+        .background(.background.secondary)
+        .presentationDragIndicator(.hidden)
+      } else {
+        ProgressView("Loading recipe...")
+      }
+    }
+  }
+}
+

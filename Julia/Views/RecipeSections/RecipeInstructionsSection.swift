@@ -45,17 +45,9 @@ struct RecipeInstructionsSection: View {
 }
 
 #Preview {
-  struct PreviewWrapper: View {
-    var body: some View {
-        RecipeInstructionsSection(
-          recipe: Recipe(
-            title: "Sample Recipe",
-            summary: "A delicious sample recipe",
-            ingredients: [],
-            instructions: ["Step 1", "Step 2"]
-          )
-        )
-      }
-    }
-  return PreviewWrapper()
+  Previews.recipeComponent { recipe in
+    RecipeInstructionsSection( recipe: recipe)
+      .padding()
+  }
+
 }

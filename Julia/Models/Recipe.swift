@@ -9,59 +9,21 @@ import Foundation
 import SwiftData
 
 @Model
-class Timing: Identifiable {
-  @Attribute(.unique) var id: String = UUID().uuidString
-  var type: String // maybe enum: prep, cook, bake, total
-  var hours: Int
-  var minutes: Int
-  
-  init(id: String = UUID().uuidString, type: String, hours: Int, minutes: Int) {
-    self.id = id
-    self.type = type
-    self.hours = hours
-    self.minutes = minutes
-  }
-  
-  var displayShort: String {
-    let hourText = hours > 0 ? "\(hours) hr" : ""
-    let minuteText = minutes > 0 ? "\(minutes) min" : ""
-    let separator = (hours > 0 && minutes > 0) ? " " : ""
-    
-    return "\(hourText)\(separator)\(minuteText)"
-  }
-  
-  var display: String {
-    if hours == 0 && minutes == 0 {
-      return "Set time"
-    }
-    
-    if hours == 0 {
-      return "\(minutes) \(minutes == 1 ? "minute" :  "minutes")"
-    }
-    
-    if minutes == 0 {
-      return "\(hours) \(hours == 1 ? "hour" : "hours")"
-    }
-    
-    return "\(hours) \(hours == 1 ? "hour" : "hours") \(minutes) \(minutes == 1 ? "minute" :  "minutes")"
-  }
-}
-
-@Model
 class Recipe: Identifiable, Hashable, CustomStringConvertible {
     @Attribute(.unique) var id: String = UUID().uuidString
     var title: String
     var summary: String?
     var servings: Int?
-    var timings: [Timing]?
     var instructions : [String]
-    @Relationship(deleteRule: .cascade) var ingredients: [Ingredient] = []
-    @Relationship(deleteRule: .cascade) var sections: [IngredientSection] = []
     var notes: [String]?
     
     // Meta
     var rawText: [String]?
     var source: String?
+  
+    @Relationship(deleteRule: .cascade) var ingredients: [Ingredient] = []
+    @Relationship(deleteRule: .cascade) var sections: [IngredientSection] = []
+    @Relationship(deleteRule: .cascade) var timings: [Timing] = []
   
     init(
       id: String = UUID().uuidString,
@@ -71,7 +33,7 @@ class Recipe: Identifiable, Hashable, CustomStringConvertible {
       instructions: [String] = [],
       sections: [IngredientSection] = [],
       servings: Int? = nil,
-      timings: [Timing]? = nil,
+      timings: [Timing] = [],
       notes: [String]? = nil,
       rawText: [String] = [],
       source: String? = nil

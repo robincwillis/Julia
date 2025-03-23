@@ -429,17 +429,17 @@ class RecipeWebExtractor {
       // Parse time string to extract hours and minutes
       let (hours, minutes) = parseTimeString(extractedData.totalTime)
       let totalTime = Timing(type: "total", hours: hours, minutes: minutes)
-      recipe.timings?.append(totalTime)
+      recipe.timings.append(totalTime)
     } else if !extractedData.cookTime.isEmpty {
       // If no total time but cook time is available
       let (hours, minutes) = parseTimeString(extractedData.cookTime)
       let cookTime = Timing(type: "cook", hours: hours, minutes: minutes)
-      recipe.timings?.append(cookTime)
+      recipe.timings.append(cookTime)
     } else if !extractedData.prepTime.isEmpty {
       // If only prep time is available
       let (hours, minutes) = parseTimeString(extractedData.prepTime)
       let prepTime = Timing(type: "prep", hours: hours, minutes: minutes)
-      recipe.timings?.append(prepTime)
+      recipe.timings.append(prepTime)
     }
     
     // Create Ingredient objects for each ingredient string

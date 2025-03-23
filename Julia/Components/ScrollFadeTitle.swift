@@ -49,3 +49,25 @@ struct ScrollFadeTitle: View {
     .opacity(titleOpacity)
   }
 }
+
+
+
+
+#Preview("Scroll Fade Title") {
+  struct ScrollFadeTitlePreview: View {
+    @State var titleIsVisible: Bool = true
+    var body: some View {
+      ScrollView {
+        VStack {
+          ScrollFadeTitle(
+            title: "Preview Long Title",
+            titleIsVisible: $titleIsVisible
+          )
+          Text("TODO A lot of content")
+        }
+      }
+    }
+  }
+  
+  return ScrollFadeTitlePreview()
+}

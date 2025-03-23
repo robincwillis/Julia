@@ -381,46 +381,12 @@ struct RecipeDetails: View {
   }
 }
 
-#Preview {
-  // Reset the container to avoid model conflicts
-  DataController.resetPreviewContainer()
-  let container = DataController.previewContainer
-  let fetchDescriptor = FetchDescriptor<Recipe>()
-  
-  let previewRecipe: Recipe
-  
-  do {
-    let recipes = try container.mainContext.fetch(fetchDescriptor)
-    if let firstRecipe = recipes.first {
-      previewRecipe = firstRecipe
-    } else {
-      // Fallback if no recipes found
-      previewRecipe = Recipe(
-        title: "Sample Recipe",
-        summary: "A delicious sample recipe",
-        ingredients: [],
-        instructions: ["Step 1: Mix ingredients", "Step 2: Cook thoroughly"],
-        sections: [],
-        servings: 4,
-        rawText: ["Sample Recipe", "A delicious sample recipe"]
-      )
-    }
-  } catch {
-    print("Error fetching recipes: \(error)")
-    // Error fallback
-    previewRecipe = Recipe(
-      title: "Sample Recipe",
-      summary: "A delicious sample recipe",
-      ingredients: [],
-      instructions: ["Step 1: Mix ingredients", "Step 2: Cook thoroughly"],
-      sections: [],
-      servings: 4,
-      rawText: ["Sample Recipe", "A delicious sample recipe"]
-    )
-  }
-  
-  return NavigationStack {
-    RecipeDetails(recipe: previewRecipe)
-      .modelContainer(container)
+#Preview("Recipe Details") {
+  Previews.customRecipe(
+    hasSections:true,
+    hasTimings: true
+  ) { recipe in
+    RecipeDetails(recipe: recipe)
+      .padding()
   }
 }

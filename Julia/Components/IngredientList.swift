@@ -41,34 +41,24 @@ struct IngredientList: View {
 
 }
 
-#Preview {
-  let container = DataController.previewContainer
-  let fetchDescriptor = FetchDescriptor<Ingredient>()
-  
-  do {
-    let ingredients = try container.mainContext.fetch(fetchDescriptor)
-        // let selectedIngredients = Set<Ingredient>()
+#Preview("Ingredient List") {
+  Previews.previewModels(with: { context in
+    // Create sample ingredients using MockData
+    let ingredients = MockData.createSampleIngredients()
     
-    func showAddSheet(_ ingredient: Ingredient?) {
-      // Preview only
+    // Insert ingredients into context
+    for ingredient in ingredients {
+      context.insert(ingredient)
     }
     
-    func removeIngredients(from offsets: IndexSet) {
-      // Preview only
-    }
-    
-    func isSelected(_ ingredient: Ingredient) -> Binding<Bool> {
-      .constant(false)
-    }
-    
-    return IngredientList(
-      ingredients: ingredients.prefix(10).map { $0 },
-      showAddSheet: showAddSheet,
-      removeIngredients: removeIngredients,
-      isSelected: isSelected
+    return ingredients
+  }) { ingredients in
+    // Content closure receives the ingredients array
+    IngredientList(
+      ingredients: ingredients,
+      showAddSheet: { _ in /* Noop */ },
+      removeIngredients: { _ in /* Noop */ },
+      isSelected: { _ in .constant(false) }
     )
-  } catch {
-    return Text("Failed to load ingredients: \(error.localizedDescription)")
   }
 }
-

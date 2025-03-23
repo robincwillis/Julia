@@ -40,24 +40,46 @@ struct IngredientSectionList: View {
     }
 }
 
-#Preview {
+#Preview("Ingredient Section List") {
+  Previews.previewModels(with: { context in
+    // Create sections
     let section1 = IngredientSection(name: "Main Ingredients", position: 0)
     let section2 = IngredientSection(name: "Sauce", position: 1)
     
+    // Insert sections into context
+    context.insert(section1)
+    context.insert(section2)
+    
+    // Create ingredients
     let ingredient1 = Ingredient(name: "Chicken", location: .recipe, quantity: 2.0, unit: "pounds")
     let ingredient2 = Ingredient(name: "Olive Oil", location: .recipe, quantity: 2.0, unit: "tablespoons")
-    section1.ingredients.append(ingredient1)
-    section1.ingredients.append(ingredient2)
     
+    // Insert ingredients into context and establish relationships
+    context.insert(ingredient1)
+    context.insert(ingredient2)
+    ingredient1.section = section1
+    ingredient2.section = section1	
+    section1.ingredients = [ingredient1, ingredient2]
+    
+    // Create more ingredients
     let ingredient3 = Ingredient(name: "Tomato Sauce", location: .recipe, quantity: 1.0, unit: "cup")
     let ingredient4 = Ingredient(name: "Garlic", location: .recipe, quantity: 3.0, unit: "cloves")
-    section2.ingredients.append(ingredient3)
-    section2.ingredients.append(ingredient4)
     
-    return IngredientSectionList(
-        sections: [section1, section2],
-        selectableBinding: { _ in .constant(false) },
-        toggleSelection: { _ in }
+    // Insert ingredients into context and establish relationships
+    context.insert(ingredient3)
+    context.insert(ingredient4)
+    ingredient3.section = section2
+    ingredient4.section = section2
+    section2.ingredients = [ingredient3, ingredient4]
+    
+    // Return an array of sections for the preview
+    return [section1, section2]
+  }) { (sections: [IngredientSection]) in
+    IngredientSectionList(
+      sections: sections,
+      selectableBinding: { _ in .constant(false) },
+      toggleSelection: { _ in }
     )
     .padding()
+  }
 }

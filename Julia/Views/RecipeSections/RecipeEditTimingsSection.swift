@@ -10,12 +10,12 @@ import SwiftData
 
 struct RecipeEditTimingsSection: View {
   @Environment(\.modelContext) private var context
-  @Binding var timings: [Timing]?
+  @Binding var timings: [Timing]
   
   private var timingsBinding: Binding<[Timing]> {
     Binding(
-      get: { timings ?? [] },
-      set: { timings = $0.isEmpty ? nil : $0 }
+      get: { timings },
+      set: { timings = $0 }
     )
   }
   
@@ -207,49 +207,19 @@ struct TimingRow: View {
   }
 }
 
-
-#Preview("EditTimings - Simple") {
-  // Use a completely minimal approach for reliability
-  let config = ModelConfiguration(isStoredInMemoryOnly: true)
-  let container = try! ModelContainer(
-    for: Schema([
-      Timing.self,
-      Ingredient.self,
-      Recipe.self,
-      IngredientSection.self
-    ])
-  )
+struct TimingsPreview: View {
+  @State var recipe: Recipe
   
-  // Use a container-aware preview
-  struct PreviewContent: View {
-    @Environment(\.modelContext) private var context
-    @State private var timings: [Timing]? = []
-
-    
-    var body: some View {
-      Form {
-        RecipeEditTimingsSection(timings: $timings)
-      }
-      .onAppear {
-        // Create sample timings when the view appears
-        if timings == nil || timings!.isEmpty {
-          createSampleTimings()
-        }
-      }
-    }
-    
-    private func createSampleTimings() {
-      let timing1 = Timing(type: "Prep", hours: 0, minutes: 15)
-      let timing2 = Timing(type: "Cook", hours: 1, minutes: 30)
-      
-      context.insert(timing1)
-      context.insert(timing2)
-      
-      timings = [timing1, timing2]
+  var body: some View {
+    Form {
+      RecipeEditTimingsSection(timings: $recipe.timings)
     }
   }
-  
-  return PreviewContent()
-    .modelContainer(container)
+}
+
+#Preview("Edit Timings") {
+  Previews.customRecipe( hasTimings: true) { recipe in
+    TimingsPreview(recipe: recipe)
+  }
 }
 

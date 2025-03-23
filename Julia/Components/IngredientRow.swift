@@ -136,23 +136,28 @@ extension View {
   }
 }
 
-#Preview {
-  do {
-    @State var selected = false
-    let container = DataController.previewContainer
-    let fetchDescriptor = FetchDescriptor<Ingredient>()
-    let ingredients = try container.mainContext.fetch(fetchDescriptor)
-    func handleTap(with ingredient: Ingredient?) {
-
+#Preview("Ingredient Row") {
+  Previews.previewModels(with: { context in
+    // Get ingredients from MockData
+    let ingredients = MockData.createSampleIngredients()
+    
+    // Insert them into the context
+    for ingredient in ingredients {
+      context.insert(ingredient)
     }
-    return Group {
-      ForEach(ingredients[0..<5]) { ingredient in
-        IngredientRow(ingredient: ingredient, onTap: handleTap(with:))
-          .selectable(selected: $selected)
+    
+    return ingredients
+  }) { (ingredients: [Ingredient]) in
+    VStack(spacing: 16) {
+      ForEach(ingredients.prefix(5)) { ingredient in
+        IngredientRow(
+          ingredient: ingredient,
+          onTap: { _ in /* Noop */ }
+        )
+        .selectable(selected: .constant(false))
       }
     }
-  } catch {
-    return Text("Failed to create container: \(error.localizedDescription)")
+    .padding()
   }
-  
 }
+

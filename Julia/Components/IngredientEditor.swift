@@ -500,7 +500,7 @@ struct IngredientEditor: View {
 
 #Preview {
   // Reset and use the shared preview container that includes all models
-  DataController.resetPreviewContainer()
+  // DataController.resetPreviewContainer()
   let container = DataController.previewContainer
   
   // Insert our ingredient into the container

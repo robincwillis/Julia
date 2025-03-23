@@ -206,41 +206,63 @@ struct RecipeEditIngredientsSection: View {
   }
   
 }
-#Preview {
-  struct PreviewWrapper: View {
-    @State private var ingredients: [Ingredient] = [
-      Ingredient(name: "Flour", location: .recipe, quantity: 2, unit: "cups"),
-      Ingredient(name: "Sugar", location: .recipe, quantity: 1, unit: "cup")
-    ]
-    @State private var sections: [IngredientSection] = [
-      IngredientSection(name: "Sauce", position: 0, ingredients: [
-        Ingredient(name: "Tomato", location: .recipe, quantity: 2, unit: "cups"),
-        Ingredient(name: "Garlic", location: .recipe, quantity: 2, unit: "cloves")
-      ]),
-      IngredientSection(name: "Garnish", position: 1, ingredients: [
-        Ingredient(name: "Parsley", location: .recipe, quantity: 0.25, unit: "cup")
-      ])
-    ]
-    @State private var selectedIngredient: Ingredient?
-    @State private var selectedSection: IngredientSection?
-    @State private var showIngredientEditor = false
-    @FocusState private var focused: Bool
+
+
+#Preview("Recipe Edit Ingredients") {
+  LoadablePreviewContainer(loader: {
+    // This closure runs asynchronously and handles MainActor isolation
+   let ingredients:[Ingredient] = await MainActor.run { MockData.createSampleIngredients() }
+   let sections: [IngredientSection] = []
+   // TODO figure out why this MockData is breaking the view
+    //await MainActor.run { MockData.createSampleIngredientSections() }
+//
+    // Return a tuple of the data needed for the preview
+    return (ingredients, sections)
+  }) { (data: ([Ingredient], [IngredientSection])) in
+    // This closure receives the loaded data
+    let (ingredients, sections) = data
     
-    var body: some View {
-      NavigationStack {
-        Form {
-          RecipeEditIngredientsSection(
-            ingredients: $ingredients,
-            sections: $sections,
-            selectedIngredient: $selectedIngredient,
-            selectedSection: $selectedSection,
-            showIngredientEditor: $showIngredientEditor,
-            isTextFieldFocused: _focused
-          )
-        }
+    // Your preview with non-optional bindings
+    RecipeEditIngredientsPreview(
+      ingredients: ingredients,
+      sections: sections
+    )
+  }
+}
+
+
+struct RecipeEditIngredientsPreview: View {
+  @State private var ingredients: [Ingredient]
+  //@State private var sections: [IngredientSection]
+  
+  @State private var sections = [
+    IngredientSection(name: "Section 1", position: 0),
+    IngredientSection(name: "Section 2", position: 1)
+  ]
+  
+  @State private var selectedIngredient: Ingredient?
+  @State private var selectedSection: IngredientSection?
+  @State private var showIngredientEditor = false
+  @FocusState private var focused: Bool
+  
+  init(ingredients: [Ingredient], sections: [IngredientSection]) {
+    self._ingredients = State(initialValue: ingredients)
+    //self._sections = State(initialValue: sections)
+  }
+  
+  var body: some View {
+    NavigationStack {
+      Form {
+        RecipeEditIngredientsSection(
+          ingredients: $ingredients,
+          sections: $sections,
+          selectedIngredient: $selectedIngredient,
+          selectedSection: $selectedSection,
+          showIngredientEditor: $showIngredientEditor,
+          isTextFieldFocused: _focused
+        )
       }
     }
   }
-  
-  return PreviewWrapper()
 }
+
