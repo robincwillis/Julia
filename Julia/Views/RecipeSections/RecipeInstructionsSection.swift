@@ -27,7 +27,7 @@ struct RecipeInstructionsSection: View {
               ZStack {
                 Circle()
                   .fill(Color(red: 0.85, green: 0.92, blue: 1.0))
-                  .frame(width: 40, height: 40)
+                  .frame(width: 30, height: 30)
                 Text("\(index + 1)")
                   .font(.subheadline)
                   .foregroundColor(.blue)

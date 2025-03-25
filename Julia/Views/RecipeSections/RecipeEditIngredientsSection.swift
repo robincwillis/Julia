@@ -13,7 +13,8 @@ struct RecipeEditIngredientsSection: View {
   @Binding var selectedIngredient: Ingredient?
   @Binding var selectedSection: IngredientSection?
   @Binding var showIngredientEditor: Bool
-  @FocusState var isTextFieldFocused: Bool
+  
+  @FocusState private var isSectionNameFieldFocused: Bool
   
   var body: some View {
     // Unsectioned ingredients section
@@ -53,7 +54,8 @@ struct RecipeEditIngredientsSection: View {
       Section {
         TextField("Section name", text: $sections[sectionIndex].name)
           .font(.headline)
-          .focused($isTextFieldFocused)
+          .focused($isSectionNameFieldFocused)
+          .submitLabel(.done)
         
         if sections[sectionIndex].ingredients.isEmpty {
           Text("No ingredients in this section")
@@ -243,7 +245,6 @@ struct RecipeEditIngredientsPreview: View {
   @State private var selectedIngredient: Ingredient?
   @State private var selectedSection: IngredientSection?
   @State private var showIngredientEditor = false
-  @FocusState private var focused: Bool
   
   init(ingredients: [Ingredient], sections: [IngredientSection]) {
     self._ingredients = State(initialValue: ingredients)
@@ -258,8 +259,7 @@ struct RecipeEditIngredientsPreview: View {
           sections: $sections,
           selectedIngredient: $selectedIngredient,
           selectedSection: $selectedSection,
-          showIngredientEditor: $showIngredientEditor,
-          isTextFieldFocused: _focused
+          showIngredientEditor: $showIngredientEditor
         )
       }
     }

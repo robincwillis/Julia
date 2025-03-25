@@ -129,6 +129,8 @@ struct PreviewHelpers {
     hasIngredients: Bool = true,
     hasSections: Bool = false,
     hasTimings: Bool = false,
+    hasServings: Bool = true,
+    timingsCount: Int = 1,
     ingredientCount: Int = 3,
     instructionCount: Int = 3,
     @ViewBuilder content: @escaping (Recipe) -> Content
@@ -192,15 +194,32 @@ struct PreviewHelpers {
         recipe.sections = [section1, section2]
       }
       
+      if hasServings {
+        recipe.servings = 4
+      }
+      
       // Add timings if requested
       if hasTimings {
-        let prepTime = Timing(type: "Prep", hours: 0, minutes: 15)
-        let cookTime = Timing(type: "Cook", hours: 0, minutes: 30)
+        let prepTime = Timing(type: "Prep", hours: 0, minutes: 15, position: 0)
+        let cookTime = Timing(type: "Cook", hours: 1, minutes: 30, position: 1)
+        let totalTime = Timing(type: "Total", hours: 1, minutes: 45, position: 2)
+        
+        var timings: [Timing] = []
+        if timingsCount > 0 {
+          timings.append(prepTime)
+        }
+        if timingsCount > 1 {
+          timings.append(cookTime)
+        }
+        if timingsCount > 2 {
+          timings.append(totalTime)
+        }
         
         context.insert(prepTime)
         context.insert(cookTime)
+        context.insert(totalTime)
         
-        recipe.timings = [prepTime, cookTime]
+        recipe.timings = timings
       }
       
       return content(recipe)

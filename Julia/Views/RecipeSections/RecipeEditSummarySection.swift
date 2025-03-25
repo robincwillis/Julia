@@ -11,9 +11,13 @@ struct RecipeEditSummarySection: View {
   @Binding var title: String
   @Binding var summary: String?
   @Binding var servings: Int?
-  @FocusState var isTextFieldFocused: Bool
-  @FocusState var isSummaryFieldFocused: Bool
-    
+  @Binding var focusedField: RecipeFocusedField
+
+  
+  @FocusState private var isTitleFieldFocused: Bool
+  @FocusState private var isSummaryFieldFocused: Bool
+  @FocusState private var isServingsFieldFocused: Bool
+  
   @State private var servingsText: String = ""
   
   private var summaryTextBinding: Binding<String> {
@@ -45,10 +49,10 @@ struct RecipeEditSummarySection: View {
   var body: some View {
     // Title and Summary
     Section {
-      // Wrap if long
+      //TODO Wrap if long
       TextField("Recipe Title", text: $title)
         .font(.title)
-        .focused($isTextFieldFocused)
+        .focused($isTitleFieldFocused)
         .submitLabel(.done)
         .padding(.vertical, 2)
       
@@ -58,16 +62,14 @@ struct RecipeEditSummarySection: View {
         .onSubmit {
           isSummaryFieldFocused = false
         }
-        .toolbar {
-          ToolbarItemGroup(placement: .keyboard) {
-            if isSummaryFieldFocused {
-              Spacer()
-              Button("Done") {
-                isSummaryFieldFocused = false
-              }
-            }
+        .onChange(of: isTitleFieldFocused) { _, newValue in
+          if newValue {
+            focusedField = .summary
+          } else {
+            focusedField = .none
           }
         }
+      
     }
     Section {
       HStack {
@@ -77,22 +79,15 @@ struct RecipeEditSummarySection: View {
         
         Spacer()
         TextField("Optional", text: servingsTextBinding)
+          .focused($isServingsFieldFocused)
           .keyboardType(.numberPad)
+          .onSubmit {
+            isServingsFieldFocused = false
+          }
           .multilineTextAlignment(.trailing)
           .padding(.vertical, 8)
           .padding(.horizontal, 4)
-          //.background(Color(.systemGray6))
-          .toolbar {
-            ToolbarItemGroup(placement: .keyboard) {
-              Button("Clear") {
-                servings = nil
-              }
-              Spacer()
-              Button("Done") {
-                hideKeyboard()
-              }
-            }
-          }
+        
           .onAppear {
             if let servings = servings, servings > 0 {
               servingsText = String(servings)
@@ -105,10 +100,14 @@ struct RecipeEditSummarySection: View {
               servingsText = ""
             }
           }
-        
-        
+          .onChange(of: isServingsFieldFocused) { _, newValue in
+            if newValue {
+              focusedField = .servings
+            } else {
+              focusedField = .none
+            }
+          }
       }
-      //.padding(.vertical, 8)
       // TODO  Combine with Timings
     }
   }
@@ -119,7 +118,8 @@ struct RecipeEditSummarySection: View {
     @State private var servings: Int? = 4
     @State private var title = "Classic Chocolate Cake"
     @State private var summary: String? = "A rich, moist chocolate cake perfect for any occasion. This recipe has been in my family for generations."
-    @FocusState private var focused: Bool
+    
+    @State private var focusedField: RecipeFocusedField = .none
     
     var body: some View {
       NavigationStack {
@@ -128,7 +128,7 @@ struct RecipeEditSummarySection: View {
             title: $title,
             summary: $summary,
             servings: $servings,
-            isTextFieldFocused: _focused
+            focusedField: $focusedField
           )
         }
       }

@@ -9,32 +9,52 @@ import SwiftUI
 import SwiftData
 import UIKit // For UIPasteboard
 
+// @State private var tags = []
+
 struct AddRecipe: View {
   @Environment(\.modelContext) var context
   @Environment(\.dismiss) var dismiss
   
   var recipe: Recipe?
   var recognizedText: [String]?
+  var ingredientLocation: IngredientLocation = .recipe
   
+  // State variables for recipe data
   @State private var title = ""
-  @State private var summary = ""
-  @State private var tags = []
-  @State private var instructions = []
+  @State private var summary: String? = nil
+  @State private var servings: Int? = nil
   @State private var ingredients = [Ingredient]()
+  @State private var sections = [IngredientSection]()
+  @State private var instructions = [String]()
+  @State private var timings = [Timing]()
   @State private var rawText: String = ""
   
+  // State for managing UI
+  @State private var selectedIngredient: Ingredient?
+  @State private var selectedSection: IngredientSection?
+  @State private var showIngredientEditor = false
+  
   @FocusState var isRawTextFieldFocused: Bool
+  
+  @State private var focusedField: RecipeFocusedField = .none
 
   
   init(recognizedText: [String]? = [], recipe: Recipe? = nil) {
     self.recognizedText = recognizedText
     self._rawText = State(initialValue: recognizedText?.joined(separator: "\n") ?? "")
-
+    
     self.recipe = recipe
     
-    // Set initial state based on existing recipe or empty strings
-    _title = State(initialValue: recipe?.title ?? "")
-    _ingredients = State(initialValue: recipe?.ingredients ?? [])
+    // Set initial state based on existing recipe or empty values
+    if let existingRecipe = recipe {
+      _title = State(initialValue: existingRecipe.title)
+      _summary = State(initialValue: existingRecipe.summary)
+      _servings = State(initialValue: existingRecipe.servings)
+      _ingredients = State(initialValue: existingRecipe.ingredients)
+      _sections = State(initialValue: existingRecipe.sections)
+      _instructions = State(initialValue: existingRecipe.instructions)
+      _timings = State(initialValue: existingRecipe.timings )
+    }
   }
   
   var currentStrings: [String] {
@@ -43,68 +63,96 @@ struct AddRecipe: View {
       .filter { !$0.isEmpty }  // Optional: remove empty lines
   }
   
+  private var ingredientEditorSheet: some View {
+    FloatingBottomSheet(
+      isPresented: $showIngredientEditor,
+      showHideTabBar: false
+    ) {
+      IngredientEditor(
+        ingredientLocation: ingredientLocation,
+        ingredient: $selectedIngredient,
+        recipe: recipe,
+        section: selectedSection,
+        showBottomSheet: $showIngredientEditor
+      )
+    }
+  }
+  
   var body: some View {
     NavigationStack {
       Form {
-        TextField("Recipe Title", text: $title, axis: .vertical)
-          //.font(.system(size: 24, weight: .medium))
-          .font(.title)
-          //.padding(.horizontal, 12)
-          .padding(.vertical, 2)
-          .shadow(color: Color.gray.opacity(0.1), radius: 2)
-          .cornerRadius(12)
-          .submitLabel(.done)
-        Section {
-          TextEditor(text: $rawText)
-            .font(.system(size: 12, design: .monospaced))
-            //.padding(0)
-            .frame(minHeight: 200)
-            .frame(maxWidth: .infinity)
-            .foregroundColor(.secondary)
-            .background(.white)
-            .cornerRadius(12)
-            .focused($isRawTextFieldFocused)
-            .onSubmit {
-              isRawTextFieldFocused = false
-            }
-            .toolbar {
-              ToolbarItemGroup(placement: .keyboard) {
-                if isRawTextFieldFocused {
-                  Spacer()
-                  Button("Done") {
-                    isRawTextFieldFocused = false
-                  }
-                }
-              }
-            }
-        } header: {
-          HStack(alignment: .center) {
-            Text("Recipe Text")
-            Spacer()
-            Button("Paste from Clipboard") {
-              if let clipboardString = UIPasteboard.general.string {
-                rawText += clipboardString
-              }
-            }
-            .foregroundColor(.blue)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 6)
-            .background(Color(red: 0.85, green: 0.92, blue: 1.0))
-            .cornerRadius(8)
-          }
-          .frame(maxWidth: .infinity, alignment: .leading)
-          
-        }
+//        TextField("Recipe Title", text: $title, axis: .vertical)
+//          .font(.title)
+//          .padding(.vertical, 2)
+//          .shadow(color: Color.gray.opacity(0.1), radius: 2)
+//          .cornerRadius(12)
+//          .submitLabel(.done)
+        
+        RecipeEditSummarySection(
+          title: $title,
+          summary: $summary,
+          servings: $servings,
+          focusedField: $focusedField
+        )
+        
+        RecipeEditTimingsSection(
+          timings: $timings
+        )
+        
+        RecipeEditIngredientsSection(
+          ingredients: $ingredients,
+          sections: $sections,
+          selectedIngredient: $selectedIngredient,
+          selectedSection: $selectedSection,
+          showIngredientEditor: $showIngredientEditor
+        )
+        
+        // Instructions Section
+        RecipeEditInstructionsSection(
+          instructions: $instructions,
+          focusedField: $focusedField
+        )
+        
+        RecipeEditMetaSection(
+          rawText: $rawText,
+          isRawTextFieldFocused: $isRawTextFieldFocused
+        )
+        
+        ingredientEditorSheet
+        
       }
       .background(Color(.secondarySystemBackground))
       .navigationTitle(recipe == nil ? "Add Recipe" : "Edit Recipe")
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {
+        
+        ToolbarItemGroup(placement: .keyboard) {
+          if isRawTextFieldFocused {
+            Spacer()
+            Button("Done") {
+              isRawTextFieldFocused = false
+            }
+          }
+        }
+        
         ToolbarItem(placement: .cancellationAction) {
           Button("Cancel") {
             dismiss()
           }
           .foregroundColor(.blue)
+        }
+        
+        ToolbarItem(placement: .secondaryAction) {
+          Button("Paste") {
+            if let clipboardString = UIPasteboard.general.string {
+              rawText += clipboardString
+            }
+          }
+          .foregroundColor(.blue)
+          .padding(.horizontal, 6)
+          .padding(.vertical, 6)
+          .background(Color(red: 0.85, green: 0.92, blue: 1.0))
+          .cornerRadius(12)
         }
         
         ToolbarItem(placement: .primaryAction) {
@@ -116,6 +164,14 @@ struct AddRecipe: View {
         }
       }
     }
+    .onChange(of: showIngredientEditor) { oldValue, newValue in
+      // Only execute when the sheet is being dismissed
+      if oldValue == true && newValue == false {
+        // Clear the selection after handling everything
+        selectedIngredient = nil
+        selectedSection = nil
+      }
+    }
     .onAppear {
       if recipe != nil {
         print("editing existing recipe")
@@ -123,8 +179,8 @@ struct AddRecipe: View {
     }
   }
   
+  // TODO Update with all the New Fields
   private func saveRecipe() {
-    print("save recipe")
     var newRecipe: Recipe
     do {
       if recipe != nil {

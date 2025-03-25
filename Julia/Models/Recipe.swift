@@ -8,6 +8,47 @@
 import Foundation
 import SwiftData
 
+enum RecipeFocusedField: Hashable {
+  case none
+  case title
+  case summary
+  case servings
+  case ingredientName(String) // can include IDs if needed
+  case ingredientQuantity(String)
+  case instruction(Int) // index of the instruction
+}
+
+extension RecipeFocusedField {
+  var needsDoneButton: Bool {
+    switch self {
+    case .servings, .summary, .instruction:
+      return true
+    default:
+      return false
+    }
+  }
+}
+
+
+enum SourceType: String, Codable, CaseIterable {
+  case photo = "photo"
+  case website = "website"
+  case book = "book"
+  case manual = "manual"
+  case unknown = "unknown"
+  
+  var displayName: String {
+    switch self {
+    case .photo: return "Photo"
+    case .website: return "Website"
+    case .book: return "Book/Publication"
+    case .manual: return "Manually Entered"
+    case .unknown: return "Unknown"
+    }
+  }
+}
+
+
 @Model
 class Recipe: Identifiable, Hashable, CustomStringConvertible {
     @Attribute(.unique) var id: String = UUID().uuidString
@@ -15,12 +56,17 @@ class Recipe: Identifiable, Hashable, CustomStringConvertible {
     var summary: String?
     var servings: Int?
     var instructions : [String]
-    var notes: [String]?
+    var notes: [String]
+    var tags: [String]
     
     // Meta
     var rawText: [String]?
     var source: String?
-  
+    var sourceType: SourceType?
+    var sourceTitle: String?
+    var website: String?
+    var author: String?
+    
     @Relationship(deleteRule: .cascade) var ingredients: [Ingredient] = []
     @Relationship(deleteRule: .cascade) var sections: [IngredientSection] = []
     @Relationship(deleteRule: .cascade) var timings: [Timing] = []
@@ -34,9 +80,14 @@ class Recipe: Identifiable, Hashable, CustomStringConvertible {
       sections: [IngredientSection] = [],
       servings: Int? = nil,
       timings: [Timing] = [],
-      notes: [String]? = nil,
+      notes: [String] = [],
+      tags: [String] = [],
       rawText: [String] = [],
-      source: String? = nil
+      source: String? = nil,
+      sourceType: SourceType? = nil,
+      sourceTitle: String? = nil,
+      website: String? = nil,
+      author: String? = nil
     ) {
         self.id = id
         self.title = title
@@ -47,8 +98,13 @@ class Recipe: Identifiable, Hashable, CustomStringConvertible {
         self.servings = servings
         self.timings = timings
         self.notes = notes
+        self.tags = tags
         self.rawText = rawText
         self.source = source
+        self.sourceType = sourceType
+        self.sourceTitle = sourceTitle
+        self.website = website
+        self.author = author
     }
   
     var description: String {

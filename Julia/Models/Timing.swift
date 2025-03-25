@@ -14,12 +14,15 @@ class Timing: Identifiable {
   var type: String // maybe enum: prep, cook, bake, total
   var hours: Int
   var minutes: Int
+  var position: Int = 0  // Add position property to maintain order
+
   
-  init(id: String = UUID().uuidString, type: String, hours: Int, minutes: Int) {
+  init(id: String = UUID().uuidString, type: String, hours: Int, minutes: Int, position: Int = 0) {
     self.id = id
     self.type = type
     self.hours = hours
     self.minutes = minutes
+    self.position = position
   }
   
   var displayShort: String {

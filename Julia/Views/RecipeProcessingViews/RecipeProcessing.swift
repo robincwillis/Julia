@@ -233,8 +233,8 @@ struct RecipeProcessingView: View {
       instructions: recipeData.instructions,
       sections: [],
       servings: nil,
-      //timings: nil,
-      notes: nil,
+      timings: [],
+      notes: [],
       rawText: processingState.recognizedText,
       source: nil
     )

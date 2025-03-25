@@ -331,7 +331,7 @@ struct IngredientEditor: View {
             
             
           }
-          //.transition(.opacity.combined(with: .move(edge: .bottom)))
+          
         }
         
         if showNotes {

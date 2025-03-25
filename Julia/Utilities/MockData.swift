@@ -9,6 +9,7 @@ import SwiftUI
 import SwiftData
 import Foundation
 
+// TODO Refactor loading json -> Models into MockData class
 enum MockIngredientLocation: String, Codable {
   case recipe
   case grocery

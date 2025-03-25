@@ -12,15 +12,16 @@ struct RecipeEditTimingsSection: View {
   @Environment(\.modelContext) private var context
   @Binding var timings: [Timing]
   
+  private var sortedTimings: [Timing] {
+    timings.sorted(by: { $0.position < $1.position })
+  }
+  
   private var timingsBinding: Binding<[Timing]> {
     Binding(
       get: { timings },
       set: { timings = $0 }
     )
   }
-  
-  // State for adding new timing
-  @State private var isAddingNew = false
   
   // Common time types for recipes
   let timeTypes = ["Prep", "Cook", "Total", "Rest", "Chill", "Bake", "Freeze", "Rise", "Inactive", "Simmer"]
@@ -31,16 +32,16 @@ struct RecipeEditTimingsSection: View {
   var body: some View {
     Section(header: Text("Timings")) {
       // Existing timings
-      ForEach(timingsBinding.wrappedValue) { timing in
+      ForEach(sortedTimings) { timing in
         let index = getIndex(for: timing)
         TimingRow(
           timing: timingsBinding[index],
           timeTypes: timeTypes,
-          isEditing: Binding(
-            get: { editingTimingId == timing.id },
-            set: { if $0 { editingTimingId = timing.id } else { editingTimingId = nil } }
-          )
+          editingId: $editingTimingId
+          
         )
+        .animation(.spring(response: 0.3, dampingFraction: 0.8), value: editingTimingId)
+        
       }
       .onDelete { indices in
         // Delete timings
@@ -57,27 +58,38 @@ struct RecipeEditTimingsSection: View {
           }
         }
       }
-      
+      .onMove { from, to in
+        // Handle moving timings
+        var updatedTimings = sortedTimings
+        updatedTimings.move(fromOffsets: from, toOffset: to)
+        
+        // Update positions
+        for (index, timing) in updatedTimings.enumerated() {
+          timing.position = index
+        }
+        
+        // Update binding
+        timings = updatedTimings
+      }
       // Add timing button with improved styling
       Button(action: addTiming) {
-        HStack {
-          Image(systemName: "plus.circle.fill")
-            .foregroundColor(.blue)
-          Text("Add Timing")
-            .foregroundColor(.blue)
-          Spacer()
-        }
-        .padding(.vertical, 4)
+        Label("Add Timing", systemImage: "plus")
       }
     }
   }
   
   // Helper to find the index of a timing in the array
   private func getIndex(for timing: Timing) -> Int {
-    guard let index = timingsBinding.wrappedValue.firstIndex(where: { $0.id == timing.id }) else {
+    guard let index = sortedTimings.firstIndex(where: { $0.id == timing.id }) else {
       return 0
     }
     return index
+  }
+  
+  private func updateTimingPositions() {
+    for (index, timing) in sortedTimings.enumerated() {
+      timing.position = index
+    }
   }
   
   private func addTiming() {
@@ -92,16 +104,16 @@ struct RecipeEditTimingsSection: View {
       }
     }
     
+    let position = timings.count
+    
     // Create new timing with default values
-    let timing = Timing(type: newTimeType, hours: 0, minutes: 15)
+    let timing = Timing(type: newTimeType, hours: 0, minutes: 15, position: position)
     context.insert(timing)
     
     // Add to our list and set it as the one being edited
     withAnimation {
-      var updatedArray = timingsBinding.wrappedValue
-      updatedArray.append(timing)
-      timingsBinding.wrappedValue = updatedArray
-      editingTimingId = timing.id
+      timings.append(timing)
+      editingTimingId = nil
     }
   }
 }
@@ -109,11 +121,14 @@ struct RecipeEditTimingsSection: View {
 struct TimingRow: View {
   @Binding var timing: Timing
   let timeTypes: [String]
-  @Binding var isEditing: Bool
+  @Binding var editingId: String?
+  @Environment(\.modelContext) private var context
+  
+  @State var isEditing: Bool = false
   
   var body: some View {
-    VStack(spacing: 8) {
-      // Main row content
+    VStack (spacing: 8) { //
+                          // Main row content
       HStack {
         // Type picker menu
         Menu {
@@ -132,19 +147,22 @@ struct TimingRow: View {
         
         // Time display with edit on tap
         Button(action: {
-          withAnimation {
-            isEditing.toggle()
+          if editingId == timing.id {
+              editingId = nil
+          } else {
+            editingId = timing.id
           }
+          //withAnimation {
+          //}
         }) {
           Text(timing.display)
             .foregroundColor(.secondary)
             .padding(.vertical, 4)
         }
       }
-      
       // Time editor that animates in and out
       if isEditing {
-        VStack(spacing: 12) {
+        VStack (spacing: 12) {
           HStack {
             Picker("Hours", selection: $timing.hours) {
               ForEach(0..<73) { hour in
@@ -170,40 +188,58 @@ struct TimingRow: View {
             .pickerStyle(.wheel)
             .frame(height: 100)
           }
-          
           HStack {
             Button(action: {
               timing.hours = 0
               timing.minutes = 0
-              withAnimation {
-                isEditing = false
-              }
+              saveChanges()
+              editingId = nil
             }) {
               Text("Clear")
                 .foregroundColor(.red)
             }
-            .buttonStyle(.borderless)
-            
+            .padding(.horizontal, 4)
+            .buttonStyle(BorderlessButtonStyle())
             Spacer()
-            
             Button(action: {
-              withAnimation {
-                isEditing = false
-              }
+              saveChanges()
+              editingId = nil
             }) {
               Text("Done")
                 .foregroundColor(.blue)
                 .fontWeight(.medium)
             }
-            .buttonStyle(.borderless)
+            .padding(.horizontal, 4)
+            .buttonStyle(BorderlessButtonStyle())
+
           }
-          .padding(.horizontal, 4)
         }
-        .padding(.top, 4)
-        .transition(.opacity.combined(with: .move(edge: .top)))
       }
     }
     .padding(.vertical, 4)
+    .onChange(of: editingId) { oldValue, newValue in
+      withAnimation(.easeInOut(duration: 0.3)) {
+        isEditing = newValue == timing.id
+      }
+    }
+    .onChange(of: timing.hours) { _, _ in
+      saveChanges()
+    }
+    .onChange(of: timing.minutes) { _, _ in
+      saveChanges()
+    }
+    .onChange(of: timing.type) { _, _ in
+      saveChanges()
+    }
+    .id(timing.id + "-" + String(isEditing))
+  }
+  
+  private func saveChanges() {
+    do {
+      try context.save()
+    } catch {
+      print("Error saving timing changes: \(error.localizedDescription)")
+    }
   }
 }
 
