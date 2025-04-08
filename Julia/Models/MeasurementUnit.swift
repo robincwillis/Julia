@@ -12,14 +12,10 @@ import SwiftUI
 // Quart (qt)
 // Gallon (gal)
 
-// Oounce
-// Pound
-
-// Gram
-
-// Can
-// Bunch
-//
+// Income ...
+// Clove
+// Sprig
+// 
 
 enum MeasurementUnit: String, CaseIterable, Codable {
   case item, teaspoon, tablespoon, cup,

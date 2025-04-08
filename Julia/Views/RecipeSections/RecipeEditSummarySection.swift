@@ -51,7 +51,14 @@ struct RecipeEditSummarySection: View {
     Section {
       //TODO Wrap if long
       TextField("Recipe Title", text: $title)
-        .font(.title)
+        .font(.system(
+          size: calculateTitleFontSize(for: title),
+          weight: .semibold
+        ))
+        .lineLimit(2)  // Allow text to wrap to two lines
+        .multilineTextAlignment(.leading)
+        .padding(.vertical, 2)
+        .multilineTextAlignment(.leading) // Adjust alignment as needed
         .focused($isTitleFieldFocused)
         .submitLabel(.done)
         .padding(.vertical, 2)
@@ -62,7 +69,7 @@ struct RecipeEditSummarySection: View {
         .onSubmit {
           isSummaryFieldFocused = false
         }
-        .onChange(of: isTitleFieldFocused) { _, newValue in
+        .onChange(of: isSummaryFieldFocused) { _, newValue in
           if newValue {
             focusedField = .summary
           } else {
@@ -109,6 +116,22 @@ struct RecipeEditSummarySection: View {
           }
       }
       // TODO  Combine with Timings
+    }
+  }
+  
+  private func calculateTitleFontSize(for text: String) -> CGFloat {
+    // Start with large font for short titles
+    let maxSize: CGFloat = 28
+    let minSize: CGFloat = 18
+    let threshold = 24  // Character count where scaling begins
+    
+    if text.count <= threshold {
+      return maxSize
+    } else {
+      // Scale down linearly, with a minimum size
+      let scaleFactor = 1.0 - min(1.0, CGFloat(text.count - threshold) / 30)
+      print(max(minSize, maxSize * scaleFactor))
+      return max(minSize, maxSize * scaleFactor)
     }
   }
 }

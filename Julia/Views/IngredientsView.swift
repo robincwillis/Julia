@@ -103,7 +103,7 @@ struct IngredientsView: View {
         
         FloatingBottomSheet(
           isPresented: $showBottomSheet,
-          showHideTabBar : true
+          showHideTabBar: true
         ) {
           IngredientEditor(
             ingredientLocation: location,

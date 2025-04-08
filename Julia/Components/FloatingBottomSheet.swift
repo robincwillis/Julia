@@ -20,8 +20,8 @@
       isPresented: Binding<Bool>,
       // TODO Add Max Height
       maxHeightPercentage: CGFloat = 0.85,
-      @ViewBuilder content: () -> Content,
-      showHideTabBar: Bool = true
+      showHideTabBar: Bool = true,
+      @ViewBuilder content: () -> Content
     ) {
       self._isPresented = isPresented
       self.maxHeightPercentage = maxHeightPercentage
@@ -199,7 +199,8 @@ struct ContentHeightPreferenceKey: PreferenceKey {
           
           FloatingBottomSheet(
             isPresented: $showSheet,
-            content: {
+            showHideTabBar: false
+          ) {
             VStack(spacing: 16) {
               Text("Dynamic Content Sheet")
                 .font(.headline)
@@ -236,8 +237,7 @@ struct ContentHeightPreferenceKey: PreferenceKey {
               }
             }
             .animation(.spring(), value: showExtraContent)
-            },
-            showHideTabBar: false)
+          } 
         }
       }
     }

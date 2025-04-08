@@ -32,7 +32,7 @@ struct RecipeInstructionsSection: View {
                   .font(.subheadline)
                   .foregroundColor(.blue)
               }
-              Text(step)
+              Text(step.value)
                 .foregroundColor(.black)
                 .padding(.vertical, 4)
                 .frame(maxWidth: .infinity, alignment: .leading)

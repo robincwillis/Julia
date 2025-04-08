@@ -30,11 +30,12 @@ struct RecipesView: View {
             .background(Color(red: 0.85, green: 0.92, blue: 1.0))
             .clipShape(Circle())
         }
-      
-        
       }
       .sheet(isPresented: $showAddSheet) {
         AddRecipe()
+          .interactiveDismissDisabled()
+          .presentationDetents([.height(240), .large])
+          .presentationDragIndicator(.hidden)
       }
       
     } detail: {

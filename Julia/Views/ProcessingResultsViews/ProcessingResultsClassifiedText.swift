@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct ProcessingResultsClassifiedText: View {
-  @Binding var recipeData: RecipeProcessingView.RecipeData
+  @Binding var recipeData: RecipeData
   let saveProcessingResults: () -> Void
 
   @State private var hasUnsavedChanges = false
@@ -147,7 +147,7 @@ struct ProcessingResultsClassifiedText: View {
 
 #Preview {
   struct PreviewWrapper: View {
-    @State var mockRecipeData = RecipeProcessingView.RecipeData()
+    @State var mockRecipeData = RecipeData()
     let saveProcessingResults: () -> Void
 
     init() {
@@ -156,7 +156,7 @@ struct ProcessingResultsClassifiedText: View {
         print("Mock save processing results called")
       }
       // Set up mock recipe data
-      var data = RecipeProcessingView.RecipeData()
+      var data = RecipeData()
       data.title = "Sample Recipe"
       data.ingredients = ["2 cups flour", "1 cup sugar", "3 eggs"]
       data.instructions = ["Mix dry ingredients", "Add eggs", "Bake at 350°F for 30 minutes"]

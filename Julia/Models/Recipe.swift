@@ -12,16 +12,19 @@ enum RecipeFocusedField: Hashable {
   case none
   case title
   case summary
+  case timings
   case servings
+  case rawText
   case ingredientName(String) // can include IDs if needed
   case ingredientQuantity(String)
-  case instruction(Int) // index of the instruction
+  case instruction(String) // id of the instruction
+  case note(String) // id of the instruction
 }
 
 extension RecipeFocusedField {
   var needsDoneButton: Bool {
     switch self {
-    case .servings, .summary, .instruction:
+    case .servings, .summary, .instruction, .rawText, .note:
       return true
     default:
       return false
@@ -55,11 +58,11 @@ class Recipe: Identifiable, Hashable, CustomStringConvertible {
     var title: String
     var summary: String?
     var servings: Int?
-    var instructions : [String]
-    var notes: [String]
-    var tags: [String]
-    
+
+
+  
     // Meta
+    var tags: [String]
     var rawText: [String]?
     var source: String?
     var sourceType: SourceType?
@@ -70,17 +73,20 @@ class Recipe: Identifiable, Hashable, CustomStringConvertible {
     @Relationship(deleteRule: .cascade) var ingredients: [Ingredient] = []
     @Relationship(deleteRule: .cascade) var sections: [IngredientSection] = []
     @Relationship(deleteRule: .cascade) var timings: [Timing] = []
+    @Relationship(deleteRule: .cascade) var instructions: [Step] = []
+    @Relationship(deleteRule: .cascade) var notes: [Note] = []
+    @Relationship(deleteRule: .cascade) var images: [ImageItem] = []
   
     init(
       id: String = UUID().uuidString,
       title: String,
       summary: String? = nil,
       ingredients: [Ingredient] = [],
-      instructions: [String] = [],
+      instructions: [Step] = [],
       sections: [IngredientSection] = [],
       servings: Int? = nil,
       timings: [Timing] = [],
-      notes: [String] = [],
+      notes: [Note] = [],
       tags: [String] = [],
       rawText: [String] = [],
       source: String? = nil,

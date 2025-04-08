@@ -38,19 +38,30 @@ struct RecipeList: View {
     let recipe1 = Recipe(
       title: "Chocolate Chip Cookies",
       summary: "Classic homemade cookies with chocolate chips",
-      instructions: ["Mix ingredients", "Bake at 350°F for 12 minutes"]
+      instructions: [
+        Step(value:"Mix ingredients"),
+        Step(value:"Bake at 350°F for 12 minutes")
+      ]
     )
     
     let recipe2 = Recipe(
       title: "Pasta Primavera",
       summary: "Light pasta dish with spring vegetables",
-      instructions: ["Cook pasta", "Sauté vegetables", "Combine and serve"]
+      instructions: [
+        Step(value:"Cook pasta"),
+        Step(value:"Sauté vegetables"),
+        Step(value:"Combine and serve")
+      ]
     )
     
     let recipe3 = Recipe(
       title: "Greek Salad",
       summary: "Fresh Mediterranean salad with feta cheese",
-      instructions: ["Chop vegetables", "Add dressing", "Top with feta"]
+      instructions: [
+        Step(value:"Chop vegetables"),
+        Step(value:"Add dressing"),
+        Step(value:"Top with feta")
+      ]
     )
     
     // Insert recipes into context

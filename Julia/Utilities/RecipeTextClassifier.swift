@@ -150,7 +150,7 @@ class RecipeTextClassifier {
       title: processed.title,
       summary: processed.summary.joined(separator: " "),
       ingredients: [],
-      instructions: processed.instructions,
+      instructions: [],
       sections: [],
       rawText: lines
     )
@@ -160,6 +160,12 @@ class RecipeTextClassifier {
       if let ingredient = IngredientParser.fromString(input: ingredientText, location: .recipe) {
         recipe.ingredients.append(ingredient)
       }
+    }
+    
+    // Create instructiosn and add them to the recipe
+    for instructionText in processed.instructions {
+      let step = Step(value: instructionText)
+      recipe.instructions.append(step)
     }
     
     // Insert into context

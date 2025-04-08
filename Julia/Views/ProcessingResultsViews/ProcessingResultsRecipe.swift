@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct ProcessingResultsRecipe: View {
-  @Binding var recipeData: RecipeProcessingView.RecipeData
+  @Binding var recipeData: RecipeData
   let saveProcessingResults: () -> Void
   @State private var hasUnsavedChanges = false
 
@@ -25,6 +25,54 @@ struct ProcessingResultsRecipe: View {
         ))
         .font(.headline)
         .submitLabel(.done)
+      }
+      
+      if !recipeData.summary.isEmpty {
+        Section("Summary") {
+          ForEach(0..<recipeData.summary.count, id: \.self) { index in
+            TextField("Summary", text: Binding(
+              get: { recipeData.summary[index] },
+              set: {
+                recipeData.summary[index] = $0
+                hasUnsavedChanges = true
+                saveProcessingResults()
+              }
+            ))
+            .submitLabel(.done)
+          }
+        }
+      }
+      
+      if !recipeData.timings.isEmpty {
+        Section("Timings") {
+          ForEach(0..<recipeData.timings.count, id: \.self) { index in
+            TextField("Timing", text: Binding(
+              get: { recipeData.timings[index] },
+              set: {
+                recipeData.timings[index] = $0
+                hasUnsavedChanges = true
+                saveProcessingResults()
+              }
+            ))
+            .submitLabel(.done)
+          }
+        }
+      }
+      
+      if !recipeData.servings.isEmpty {
+        Section("Servings") {
+          ForEach(0..<recipeData.servings.count, id: \.self) { index in
+            TextField("Servings", text: Binding(
+              get: { recipeData.servings[index] },
+              set: {
+                recipeData.servings[index] = $0
+                hasUnsavedChanges = true
+                saveProcessingResults()
+              }
+            ))
+            .submitLabel(.done)
+          }
+        }
       }
       
       Section("Ingredients") {
@@ -54,19 +102,75 @@ struct ProcessingResultsRecipe: View {
           .submitLabel(.done)
         }
       }
+      
+      if !recipeData.notes.isEmpty {
+        Section("Notes") {
+          ForEach(0..<recipeData.notes.count, id: \.self) { index in
+            TextField("Note", text: Binding(
+              get: { recipeData.notes[index] },
+              set: {
+                recipeData.notes[index] = $0
+                hasUnsavedChanges = true
+                saveProcessingResults()
+              }
+            ))
+            .submitLabel(.done)
+          }
+        }
+      }
+      
+      if recipeData.source != nil || recipeData.website != nil || recipeData.author != nil {
+        Section("Source") {
+          if let source = recipeData.source {
+            TextField("Source", text: Binding(
+              get: { source },
+              set: {
+                recipeData.source = $0
+                hasUnsavedChanges = true
+                saveProcessingResults()
+              }
+            ))
+            .submitLabel(.done)
+          }
+          
+          if let website = recipeData.website {
+            TextField("Website", text: Binding(
+              get: { website },
+              set: {
+                recipeData.website = $0
+                hasUnsavedChanges = true
+                saveProcessingResults()
+              }
+            ))
+            .submitLabel(.done)
+          }
+          
+          if let author = recipeData.author {
+            TextField("Author", text: Binding(
+              get: { author },
+              set: {
+                recipeData.author = $0
+                hasUnsavedChanges = true
+                saveProcessingResults()
+              }
+            ))
+            .submitLabel(.done)
+          }
+        }
+      }
     }
   }
 }
 
 #Preview {
   struct PreviewWrapper: View {
-    @State var mockRecipeData = RecipeProcessingView.RecipeData()
+    @State var mockRecipeData = RecipeData()
     let saveProcessingResults: () -> Void
     init() {
       self.saveProcessingResults = {
         print("Mock save processing results called")
       }
-      var data = RecipeProcessingView.RecipeData()
+      var data = RecipeData()
       data.title = "Sample Recipe"
       data.ingredients = ["2 cups flour", "1 cup sugar", "3 eggs"]
       data.instructions = ["Mix dry ingredients", "Add eggs", "Bake at 350°F for 30 minutes"]

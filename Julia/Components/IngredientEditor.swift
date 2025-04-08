@@ -163,7 +163,7 @@ struct IngredientEditor: View {
         }
         
         // Ingredient name field - either enter name or full ingredient text
-        TextField(isNameFieldFocused ? name : "Enter ingredient name", text: $name)
+        TextField("Ingredient", text: $name)
           .font(.system(size: min(32, max(18, 700 / max(1, CGFloat(name.count)))), weight: .medium))
           .foregroundColor(.black)
           .tint(.blue)

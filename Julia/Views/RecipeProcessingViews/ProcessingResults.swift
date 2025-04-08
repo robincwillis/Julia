@@ -3,7 +3,7 @@ import SwiftData
 
 struct ProcessingResults: View {
   @ObservedObject var processingState: RecipeProcessingState
-  @Binding var recipeData: RecipeProcessingView.RecipeData
+  @Binding var recipeData: RecipeData
   
 
   
@@ -155,7 +155,7 @@ struct ProcessingResults: View {
 #Preview {
   struct PreviewWrapper: View {
     @StateObject var mockProcessingState = RecipeProcessingState()
-    @State var mockRecipeData = RecipeProcessingView.RecipeData()
+    @State var mockRecipeData = RecipeData()
     
     init() {
       // Configure your mock state with sample data
@@ -166,7 +166,7 @@ struct ProcessingResults: View {
       _mockProcessingState = StateObject(wrappedValue: state)
       
       // Set up mock recipe data
-      var data = RecipeProcessingView.RecipeData()
+      var data = RecipeData()
       data.title = "Sample Recipe"
       data.ingredients = ["2 cups flour", "1 cup sugar", "3 eggs"]
       data.instructions = ["Mix dry ingredients", "Add eggs", "Bake at 350°F for 30 minutes"]

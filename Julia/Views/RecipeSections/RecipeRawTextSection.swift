@@ -29,8 +29,10 @@ struct RecipeRawTextSection: View {
       .frame(maxWidth: .infinity, maxHeight: .infinity)
       VStack {
         Spacer()
-        Button("Copy") {
+        Button {
           UIPasteboard.general.string = rawTextString
+        } label: {
+          Label("Copy", systemImage: "square.on.square")
         }
         .foregroundColor(.blue)
         .padding(.horizontal, 12)

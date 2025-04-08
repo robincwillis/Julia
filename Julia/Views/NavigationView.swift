@@ -64,8 +64,8 @@ struct NavigationView: View {
   @State private var selectedImage: UIImage?
   @State private var selectedText: String?
   @State private var showRecipeProcessing = false
-  
-  // @StateObject private var keyboardObserver = KeyboardObserver()
+
+  @State private var extractedRecipeData: RecipeData?
   
   var body: some View {
     ZStack(alignment: .bottom) {
@@ -98,7 +98,7 @@ struct NavigationView: View {
             HStack{
               ForEach((Tabs.allCases), id: \.self){ item in
                 Button {
-                  withAnimation(.spring()) {
+                  withAnimation(.spring(duration: 0.3)) {
                     selectedTab = item.rawValue
                     selectedLocation = item.location
                   }
@@ -113,18 +113,23 @@ struct NavigationView: View {
             .coordinateSpace(name: "TabStack")
             .cornerRadius(35)
             
-            // Floating action menu
-            FloatingActionMenu(
-              selectedImage: $selectedImage,
-              selectedText: $selectedText,
-              showRecipeProcessing: $showRecipeProcessing
-            )
+            Circle()
+              .fill(Color.clear)
+              .frame(width: 60, height: 60)
           }
         }
         .padding(.horizontal, 24)
         .opacity(isTabBarVisible ? 1.0 : 0.0)
         .offset(y: isTabBarVisible ? 0 : 100) // Slide down when hiding
         .animation(.easeInOut(duration: 0.3), value: isTabBarVisible)
+        
+        // Floating action menu
+        FloatingActionMenu(
+          selectedImage: $selectedImage,
+          selectedText: $selectedText,
+          extractedRecipeData: $extractedRecipeData,
+          showRecipeProcessing: $showRecipeProcessing
+        )
       }
       
       // Recipe Processing Sheet
@@ -132,17 +137,23 @@ struct NavigationView: View {
         // Reset state when sheet is dismissed
         selectedImage = nil
         selectedText = nil
+        extractedRecipeData = nil
       }) {
         if let image = selectedImage {
-          RecipeProcessingView(image: image, text: nil)
+          RecipeProcessingView(image: image, text: nil, data: nil)
             .ignoresSafeArea(.keyboard)
-            .presentationDragIndicator(.visible)
+            .presentationDragIndicator(.hidden)
             .interactiveDismissDisabled()
         } else if let text = selectedText {
-          RecipeProcessingView(image: nil, text: text)
+          RecipeProcessingView(image: nil, text: text, data: nil)
             .ignoresSafeArea(.keyboard)
-            .presentationDragIndicator(.visible)
+            .presentationDragIndicator(.hidden)
             .interactiveDismissDisabled()
+        } else if let recipeData = extractedRecipeData {
+            RecipeProcessingView(image: nil, text: nil, data: recipeData)
+              .ignoresSafeArea(.keyboard)
+              .presentationDragIndicator(.hidden)
+              .interactiveDismissDisabled()
         } else {
           VStack(spacing: 20) {
             Text("Error: Missing Input")

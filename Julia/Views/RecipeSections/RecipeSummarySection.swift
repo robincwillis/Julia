@@ -92,42 +92,42 @@ struct RecipeSummarySection: View {
       Text(summary)
         .font(.body)
     }
-    
-    // Dynamic cards layout
-    GeometryReader { geometry in
-      let hasServings = recipe.servings != nil
-      let hasTimings = !recipe.timings.isEmpty
-      let singleTiming = recipe.timings.count == 1
-      
-      HStack (spacing: 12) { //
-        // Servings card - grows to fill half space if we only have one timing item
-        if hasServings {
-          ServingsCard(servings: recipe.servings!)
+    let hasServings = recipe.servings != nil
+    let hasTimings = !recipe.timings.isEmpty
+    let singleTiming = recipe.timings.count == 1
+
+    if (hasServings || hasTimings) {
+      // Dynamic cards layout
+      GeometryReader { geometry in
+        HStack (spacing: 12) {  // Servings card - grows to fill half space if we only have one timing item
+          if hasServings {
+            ServingsCard(servings: recipe.servings!)
+              .frame(
+                width: hasTimings && singleTiming ?
+                geometry.size.width * 0.5 : nil
+              )
+              .background(Color(.systemGray6))
+              .cornerRadius(12)
+          }
+          
+          // Timings card - expands to fill available width
+          if hasTimings {
+            TimingsCard(
+              timings: recipe.timings,
+              allowExpand: !hasServings || !singleTiming
+            )
             .frame(
-              width: hasTimings && singleTiming ?
+              width: hasServings && singleTiming ?
               geometry.size.width * 0.5 : nil
             )
             .background(Color(.systemGray6))
             .cornerRadius(12)
+          }
         }
-        
-        // Timings card - expands to fill available width
-        if hasTimings {
-          TimingsCard(
-            timings: recipe.timings,
-            allowExpand: !hasServings || !singleTiming
-          )
-          .frame(
-            width: hasServings && singleTiming ?
-            geometry.size.width * 0.5 : nil
-          )
-          .background(Color(.systemGray6))
-          .cornerRadius(12)
-        }
+        .frame(maxWidth: geometry.size.width)
       }
-      .frame(maxWidth: geometry.size.width)
+      .frame(height: 80)
     }
-    .frame(height: 80)
   }
 }
 

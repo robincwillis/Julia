@@ -53,7 +53,7 @@ class RecipeTextReconstructor {
       
       if isAllUppercase {
         // Find consecutive uppercase lines and add to title
-        var titleEndIndex: Int
+        //var titleEndIndex: Int
         for (index, line) in filteredLines.enumerated() {
           if index == 0 {
             continue // Skip first line (already added)
@@ -62,7 +62,7 @@ class RecipeTextReconstructor {
           let isLineUppercase = line == line.uppercased() && line != line.lowercased()
           if isLineUppercase {
             title += " " + line
-            titleEndIndex = index
+            //titleEndIndex = index
           } else {
             break
           }

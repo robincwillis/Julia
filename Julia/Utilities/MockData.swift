@@ -145,13 +145,13 @@ class MockData {
       summary: "A delicious sample recipe for pancakes that's perfect for breakfast. Light, fluffy, and easy to make.",
       ingredients: [ingredient1, ingredient2, ingredient3, ingredient4, ingredient5],
       instructions: [
-        "In a large bowl, whisk together the flour and sugar.",
-        "In another bowl, beat the eggs, then add milk and vanilla extract.",
-        "Pour the wet ingredients into the dry ingredients and stir until just combined.",
-        "Heat a lightly oiled griddle or frying pan over medium-high heat.",
-        "Pour or scoop the batter onto the griddle.",
-        "Cook until bubbles form and the edges are dry.",
-        "Flip and cook until browned on the other side."
+        Step(value:"In a large bowl, whisk together the flour and sugar."),
+        Step(value:"In another bowl, beat the eggs, then add milk and vanilla extract."),
+        Step(value:"Pour the wet ingredients into the dry ingredients and stir until just combined."),
+        Step(value:"Heat a lightly oiled griddle or frying pan over medium-high heat."),
+        Step(value:"Pour or scoop the batter onto the griddle."),
+        Step(value:"Cook until bubbles form and the edges are dry."),
+        Step(value:"Flip and cook until browned on the other side.")
       ],
       rawText: [
         "PANCAKES",
@@ -177,11 +177,11 @@ class MockData {
       title: "Structured Recipe",
       summary: "A recipe with organized sections for better organization",
       instructions: [
-        "Prepare all ingredients according to the sections.",
-        "Start by preparing the sauce.",
-        "Cook the main ingredients.",
-        "Combine everything and simmer for 30 minutes.",
-        "Garnish before serving."
+        Step(value:"Prepare all ingredients according to the sections."),
+        Step(value:"Start by preparing the sauce."),
+        Step(value:"Cook the main ingredients."),
+        Step(value:"Combine everything and simmer for 30 minutes."),
+        Step(value:"Garnish before serving.")
       ]
     )
     
@@ -325,7 +325,10 @@ class MockData {
       title: "Quick Sample Recipe",
       summary: "A simple recipe for preview purposes",
       ingredients: [],
-      instructions: ["Step 1: Sample instruction", "Step 2: Another instruction"],
+      instructions: [
+        Step(value:"Step 1: Sample instruction"),
+        Step(value:"Step 2: Another instruction")
+      ],
       rawText: [
         "PANCAKES",
         "2 cups flour",
@@ -353,7 +356,9 @@ class MockData {
     let recipe = Recipe(
       title: "Sample Sectioned Recipe",
       summary: "A recipe with sections for preview purposes",
-      instructions: ["Follow the sections in order"]
+      instructions: [
+        Step(value:"Follow the sections in order")
+      ]
     )
     
     // Create sections

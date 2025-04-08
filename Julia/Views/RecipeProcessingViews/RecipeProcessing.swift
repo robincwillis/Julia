@@ -20,33 +20,8 @@ struct RecipeProcessingView: View {
   @State private var isClassifying = false
   @State private var showDismissAlert = false
   
-  // Centralize all recipe data in a single struct for easier management
-  // TODO Move to Models
-  struct RecipeData {
-    var title: String = ""
-    var ingredients: [String] = []
-    var instructions: [String] = []
-    var summary: [String] = []
-    var timings: [String] = []
-    var servings: [String] = []
-    var reconstructedText = ProcessingTextResult(title: "", reconstructedLines: [], artifacts: [])
-    var classifiedLines: [(String, RecipeLineType, Double)] = []
-    var skippedLines: [(String, RecipeLineType, Double)] = []
-    
-    mutating func reset() {
-      title = ""
-      ingredients = []
-      instructions = []
-      summary = []
-      timings = []
-      servings = []
-      reconstructedText = ProcessingTextResult(title: "", reconstructedLines: [], artifacts: [])
-      classifiedLines = []
-      skippedLines = []
-    }
-  }
-  
-  init(image: UIImage?, text: String?) {
+
+  init(image: UIImage?, text: String?, data: RecipeData?) {
     // Create and configure the processing state based on input
     _processingState = StateObject(wrappedValue: {
       let state = RecipeProcessingState()
@@ -66,6 +41,16 @@ struct RecipeProcessingView: View {
       UserDefaults.standard.removeObject(forKey: "latestRecipeProcessingResults")
       return state
     }())
+    
+    if let recipe = data {
+      if !recipe.rawText.isEmpty {
+        // state.text = rawText
+        processingState.recognizedText = recipe.rawText
+      }
+      _recipeData = State(initialValue: recipe)  // recipe
+      // Mark the processing as complete since we already have the data
+      processingState.processingStage = .completed
+    }
   }
   
   var body: some View {
@@ -139,6 +124,10 @@ struct RecipeProcessingView: View {
   
   // Start the appropriate processing pipeline based on input
   private func startProcessing() {
+    if processingState.processingStage == .completed && !recipeData.title.isEmpty {
+      return
+    }
+    
     if processingState.processingStage == .processing && processingState.recognizedText.isEmpty {
       if let image = processingState.image {
         Task {
@@ -225,33 +214,11 @@ struct RecipeProcessingView: View {
   
   private func saveRecipe() {
     // Create a Recipe with all required fields
-    let recipe = Recipe(
-      id: UUID().uuidString,
-      title: recipeData.title,
-      summary: nil,
-      ingredients: [],
-      instructions: recipeData.instructions,
-      sections: [],
-      servings: nil,
-      timings: [],
-      notes: [],
-      rawText: processingState.recognizedText,
-      source: nil
-    )
-    
-    // Add ingredients
-    for ingredientText in recipeData.ingredients {
-      if let ingredient = IngredientParser.fromString(input: ingredientText, location: .recipe) {
-        recipe.ingredients.append(ingredient)
-      }
-    }
-    
+    let recipe = recipeData.convertToSwiftDataModel()
     // Save to context
     context.insert(recipe)
-    
     // Remove from UserDefaults since we've saved properly
     UserDefaults.standard.removeObject(forKey: "latestRecipeProcessingResults")
-    
     dismiss()
   }
 }
@@ -285,6 +252,6 @@ extension RecipeTextClassifier {
   
   let image = UIImage(named: "julia") ?? UIImage()
   
-  return RecipeProcessingView(image: image, text: nil)
+  return RecipeProcessingView(image: image, text: nil, data: nil)
     .modelContainer(DataController.previewContainer)
 }

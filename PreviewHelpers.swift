@@ -57,7 +57,10 @@ struct PreviewHelpers {
         title: "Sample Recipe",
         summary: "A delicious sample recipe",
         ingredients: [],
-        instructions: ["Step 1: Mix ingredients", "Step 2: Cook thoroughly"],
+        instructions: [
+          Step(value:"Step 1: Mix ingredients"),
+          Step(value: "Step 2: Cook thoroughly")
+        ],
         rawText: ["Line 1: Sample recipe text", "Line 2: More sample text", "Line 3: Final line of text"]
       )
       
@@ -84,7 +87,7 @@ struct PreviewHelpers {
       let recipe = Recipe(
         title: "Structured Recipe",
         summary: "A recipe with organized sections",
-        instructions: ["Follow each section carefully"]
+        instructions: [Step(value:"Follow each section carefully")]
       )
       
       // Insert the recipe first
@@ -141,7 +144,7 @@ struct PreviewHelpers {
         title: title,
         summary: summary,
         ingredients: [],
-        instructions: (1...instructionCount).map { "Step \($0): Instruction text here." }
+        instructions: (1...instructionCount).map { Step(value:"Step \($0): Instruction text here.")}
       )
       
       // Insert recipe first

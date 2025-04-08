@@ -18,8 +18,8 @@ class RecipeWebExtractor {
     case noRecipeFound
   }
   
-  // Main function that returns your SwiftData Recipe model
-  func extractRecipe(from urlString: String) async throws -> Recipe {
+  // Main function that returns RecipeData
+  func extractRecipe(from urlString: String) async throws -> RecipeData {
     guard let url = URL(string: urlString) else {
       throw ExtractionError.invalidURL
     }
@@ -28,10 +28,7 @@ class RecipeWebExtractor {
     let htmlContent = try await fetchHTML(from: url)
     
     // Parse the HTML
-    let extractedData = try parseRecipeFromHTML(htmlContent, sourceURL: urlString)
-    
-    // Convert to your SwiftData Recipe model
-    return convertToSwiftDataModel(extractedData)
+    return try parseRecipeFromHTML(htmlContent, sourceURL: urlString)
   }
   
   // Fetch HTML content from URL
@@ -54,22 +51,8 @@ class RecipeWebExtractor {
     }
   }
   
-  // Intermediate data structure to hold extracted recipe data
-  private struct ExtractedRecipeData {
-    let title: String
-    let ingredients: [String]
-    let instructions: [String]
-    let description: String
-    let prepTime: String
-    let cookTime: String
-    let totalTime: String
-    let servings: String
-    let sourceURL: String
-    let rawText: [String]
-  }
-  
   // Parse recipe data from HTML
-  private func parseRecipeFromHTML(_ html: String, sourceURL: String) throws -> ExtractedRecipeData {
+  private func parseRecipeFromHTML(_ html: String, sourceURL: String) throws -> RecipeData {
     do {
       let document = try SwiftSoup.parse(html)
       
@@ -85,8 +68,17 @@ class RecipeWebExtractor {
     }
   }
   
+  // Helper to extract ISO8601 duration strings
+  private func extractTimeString(_ timeValue: Any?) -> String {
+    if let timeString = timeValue as? String {
+      // You could add ISO8601 duration parsing here if needed
+      return timeString
+    }
+    return ""
+  }
+  
   // Extract recipe from JSON-LD structured data
-  private func extractStructuredData(from document: Document, sourceURL: String) throws -> ExtractedRecipeData? {
+  private func extractStructuredData(from document: Document, sourceURL: String) throws -> RecipeData? {
     let scriptElements = try document.select("script[type='application/ld+json']")
     
     for element in scriptElements {
@@ -97,11 +89,11 @@ class RecipeWebExtractor {
         
         // Handle both direct Recipe and Graph with Recipe
         if let context = json["@context"] as? String,
-            context.contains("schema.org") {
+           context.contains("schema.org") {
           
           // Direct Recipe object
           if let type = json["@type"] as? String,
-              type == "Recipe" || type == "schema:Recipe" {
+             type == "Recipe" || type == "schema:Recipe" {
             return createExtractedDataFromJSON(json, sourceURL: sourceURL)
           }
           
@@ -109,7 +101,7 @@ class RecipeWebExtractor {
           if let graph = json["@graph"] as? [[String: Any]] {
             for item in graph {
               if let type = item["@type"] as? String,
-                  type == "Recipe" || type == "schema:Recipe" {
+                 type == "Recipe" || type == "schema:Recipe" {
                 return createExtractedDataFromJSON(item, sourceURL: sourceURL)
               }
             }
@@ -121,75 +113,105 @@ class RecipeWebExtractor {
     return nil
   }
   
-  // Create ExtractedRecipeData from JSON-LD data
-  private func createExtractedDataFromJSON(_ json: [String: Any], sourceURL: String) -> ExtractedRecipeData {
-    let title = json["name"] as? String ?? "Untitled Recipe"
+  // Create RecipeData from JSON-LD data
+  private func createExtractedDataFromJSON(_ json: [String: Any], sourceURL: String) -> RecipeData {
+    var recipeData = RecipeData()
     
-    var ingredients: [String] = []
-    if let jsonIngredients = json["recipeIngredient"] as? [String] {
-      ingredients = jsonIngredients
-    } else if let ingredient = json["recipeIngredient"] as? String {
-      ingredients = [ingredient]
+    // Basic fields
+    recipeData.title = json["name"] as? String ?? "Untitled Recipe"
+    
+    // Description/Summary
+    if let description = json["description"] as? String, !description.isEmpty {
+      recipeData.summary = [description]
     }
     
-    var instructions: [String] = []
+    // Ingredients
+    if let jsonIngredients = json["recipeIngredient"] as? [String] {
+      recipeData.ingredients = jsonIngredients
+    } else if let ingredient = json["recipeIngredient"] as? String {
+      recipeData.ingredients = [ingredient]
+    }
+    
+    // Instructions
     if let jsonInstructions = json["recipeInstructions"] as? [String] {
-      instructions = jsonInstructions
+      recipeData.instructions = jsonInstructions
     } else if let jsonInstructions = json["recipeInstructions"] as? [[String: Any]] {
       for step in jsonInstructions {
         if let text = step["text"] as? String {
-          instructions.append(text)
+          recipeData.instructions.append(text)
         }
       }
     } else if let instruction = json["recipeInstructions"] as? String {
-      instructions = [instruction]
+      recipeData.instructions = [instruction]
     }
     
-    let description = json["description"] as? String ?? ""
+    // Time related fields
     let prepTime = extractTimeString(json["prepTime"])
     let cookTime = extractTimeString(json["cookTime"])
     let totalTime = extractTimeString(json["totalTime"])
-    let servings = json["recipeYield"] as? String ?? ""
     
-    // Collect raw text for your classifier
+    if !prepTime.isEmpty {
+      recipeData.timings.append("prep: \(prepTime)")
+    }
+    
+    if !cookTime.isEmpty {
+      recipeData.timings.append("cook: \(cookTime)")
+    }
+    
+    if !totalTime.isEmpty {
+      recipeData.timings.append("total: \(totalTime)")
+    }
+    
+    // Servings
+    if let servings = json["recipeYield"] as? String, !servings.isEmpty {
+      recipeData.servings = [servings]
+    }
+    
+    // Source information
+    recipeData.source = sourceURL
+    recipeData.website = sourceURL
+    
+    if let author = json["author"] as? [String: Any], let authorName = author["name"] as? String {
+      recipeData.author = authorName
+    } else if let author = json["author"] as? String {
+      recipeData.author = author
+    }
+    
+    // Source type
+    recipeData.sourceType = "website"
+    
+    // Add source title (could be publication name)
+    if let publisher = json["publisher"] as? [String: Any], let publisherName = publisher["name"] as? String {
+      recipeData.sourceTitle = publisherName
+    }
+    
+    // Collect raw text for classification
     var rawText: [String] = []
-    rawText.append("TITLE: \(title)")
-    if !description.isEmpty { rawText.append("DESCRIPTION: \(description)") }
+    rawText.append("TITLE: \(recipeData.title)")
+    for summary in recipeData.summary {
+      rawText.append("DESCRIPTION: \(summary)")
+    }
     rawText.append("INGREDIENTS:")
-    rawText.append(contentsOf: ingredients)
+    rawText.append(contentsOf: recipeData.ingredients)
     rawText.append("INSTRUCTIONS:")
-    rawText.append(contentsOf: instructions)
-    if !prepTime.isEmpty { rawText.append("PREP TIME: \(prepTime)") }
-    if !cookTime.isEmpty { rawText.append("COOK TIME: \(cookTime)") }
-    if !totalTime.isEmpty { rawText.append("TOTAL TIME: \(totalTime)") }
-    if !servings.isEmpty { rawText.append("SERVINGS: \(servings)") }
+    rawText.append(contentsOf: recipeData.instructions)
+    for timing in recipeData.timings {
+      rawText.append("TIMING: \(timing)")
+    }
+    for serving in recipeData.servings {
+      rawText.append("SERVINGS: \(serving)")
+    }
     rawText.append("SOURCE URL: \(sourceURL)")
     
-    return ExtractedRecipeData(
-      title: title,
-      ingredients: ingredients,
-      instructions: instructions,
-      description: description,
-      prepTime: prepTime,
-      cookTime: cookTime,
-      totalTime: totalTime,
-      servings: servings,
-      sourceURL: sourceURL,
-      rawText: rawText
-    )
-  }
-  
-  // Helper to extract ISO8601 duration strings
-  private func extractTimeString(_ timeValue: Any?) -> String {
-    if let timeString = timeValue as? String {
-      // You could add ISO8601 duration parsing here if needed
-      return timeString
-    }
-    return ""
+    recipeData.rawText = rawText
+    
+    return recipeData
   }
   
   // Extract recipe from HTML patterns when structured data isn't available
-  private func extractFromHTMLPattern(_ document: Document, sourceURL: String) throws -> ExtractedRecipeData {
+  private func extractFromHTMLPattern(_ document: Document, sourceURL: String) throws -> RecipeData {
+    var recipeData = RecipeData()
+    
     // Title extraction strategies
     var title = try document.select("h1").first()?.text() ?? ""
     if title.isEmpty {
@@ -198,6 +220,7 @@ class RecipeWebExtractor {
     if title.isEmpty {
       title = try document.title()
     }
+    recipeData.title = title
     
     // Ingredients extraction strategies
     var ingredients: [String] = []
@@ -272,52 +295,70 @@ class RecipeWebExtractor {
       throw ExtractionError.noRecipeFound
     }
     
+    recipeData.ingredients = ingredients
+    recipeData.instructions = instructions
+    
     // Description extraction
     let description = try document.select("meta[name='description']").attr("content")
-    
-    // TODO Attempt to extract other metadata
-    let prepTime = ""
-    let cookTime = ""
-    let totalTime = ""
-    var servings = ""
+    if !description.isEmpty {
+      recipeData.summary = [description]
+    }
     
     // Try to extract servings
     let servingsSelectors = ["[itemprop='recipeYield']", ".recipe-yield", ".recipe-servings"]
     for selector in servingsSelectors {
       if let element = try document.select(selector).first() {
-        servings = try element.text().trimmingCharacters(in: .whitespacesAndNewlines)
+        let servings = try element.text().trimmingCharacters(in: .whitespacesAndNewlines)
         if !servings.isEmpty {
+          recipeData.servings = [servings]
           break
         }
       }
     }
     
-    // Collect raw text
+    // Source information
+    recipeData.source = sourceURL
+    recipeData.website = sourceURL
+    recipeData.sourceType = "website"
+    
+    // Try to extract author
+    let authorSelectors = ["[itemprop='author']", ".recipe-author", ".byline"]
+    for selector in authorSelectors {
+      if let element = try document.select(selector).first() {
+        let author = try element.text().trimmingCharacters(in: .whitespacesAndNewlines)
+        if !author.isEmpty {
+          recipeData.author = author
+          break
+        }
+      }
+    }
+    
+    // Try to extract website/publication name
+    if let siteName = try document.select("meta[property='og:site_name']").first()?.attr("content") {
+      recipeData.sourceTitle = siteName
+    }
+    
+    // Collect raw text for classification
     var rawText: [String] = []
-    rawText.append("TITLE: \(title)")
-    if !description.isEmpty { rawText.append("DESCRIPTION: \(description)") }
+    rawText.append("TITLE: \(recipeData.title)")
+    for summary in recipeData.summary {
+      rawText.append("DESCRIPTION: \(summary)")
+    }
     rawText.append("INGREDIENTS:")
-    rawText.append(contentsOf: ingredients)
+    rawText.append(contentsOf: recipeData.ingredients)
     rawText.append("INSTRUCTIONS:")
-    rawText.append(contentsOf: instructions)
-    if !prepTime.isEmpty { rawText.append("PREP TIME: \(prepTime)") }
-    if !cookTime.isEmpty { rawText.append("COOK TIME: \(cookTime)") }
-    if !totalTime.isEmpty { rawText.append("TOTAL TIME: \(totalTime)") }
-    if !servings.isEmpty { rawText.append("SERVINGS: \(servings)") }
+    rawText.append(contentsOf: recipeData.instructions)
+    for timing in recipeData.timings {
+      rawText.append("TIMING: \(timing)")
+    }
+    for serving in recipeData.servings {
+      rawText.append("SERVINGS: \(serving)")
+    }
     rawText.append("SOURCE URL: \(sourceURL)")
     
-    return ExtractedRecipeData(
-      title: title,
-      ingredients: ingredients,
-      instructions: instructions,
-      description: description,
-      prepTime: prepTime,
-      cookTime: cookTime,
-      totalTime: totalTime,
-      servings: servings,
-      sourceURL: sourceURL,
-      rawText: rawText
-    )
+    recipeData.rawText = rawText
+    
+    return recipeData
   }
   
   // Smart text extraction for unstructured content
@@ -406,190 +447,16 @@ class RecipeWebExtractor {
     
     return instructions
   }
-  
-  // Convert extracted data to your SwiftData Recipe model
-  private func convertToSwiftDataModel(_ extractedData: ExtractedRecipeData) -> Recipe {
-
-    
-    // Create basic Recipe object first (without the time)
-    let recipe = Recipe(
-      id: UUID().uuidString,
-      title: extractedData.title,
-      summary: extractedData.description.isEmpty ? nil : extractedData.description,
-      ingredients: [], // Will populate below
-      instructions: extractedData.instructions,
-      sections: [],
-      servings: extractedData.servings.isEmpty ? nil : Int(extractedData.servings.components(separatedBy: CharacterSet.decimalDigits.inverted).joined()),
-      timings: [],
-      rawText: extractedData.rawText
-    )
-    
-    // After creating the recipe, create and set the Timings if available
-    if !extractedData.totalTime.isEmpty {
-      // Parse time string to extract hours and minutes
-      let (hours, minutes) = parseTimeString(extractedData.totalTime)
-      let totalTime = Timing(type: "total", hours: hours, minutes: minutes)
-      recipe.timings.append(totalTime)
-    } else if !extractedData.cookTime.isEmpty {
-      // If no total time but cook time is available
-      let (hours, minutes) = parseTimeString(extractedData.cookTime)
-      let cookTime = Timing(type: "cook", hours: hours, minutes: minutes)
-      recipe.timings.append(cookTime)
-    } else if !extractedData.prepTime.isEmpty {
-      // If only prep time is available
-      let (hours, minutes) = parseTimeString(extractedData.prepTime)
-      let prepTime = Timing(type: "prep", hours: hours, minutes: minutes)
-      recipe.timings.append(prepTime)
-    }
-    
-    // Create Ingredient objects for each ingredient string
-    for ingredientText in extractedData.ingredients {
-      // Parse the ingredient text to extract quantity, unit, and name
-      let (quantity, unit, name, comment) = parseIngredientText(ingredientText)
-      
-      let ingredient = Ingredient(
-        name: name,
-        location: .recipe,
-        quantity: quantity,
-        unit: unit,
-        comment: comment,
-        recipe: recipe
-      )
-      
-      recipe.ingredients.append(ingredient)
-    }
-    
-    var timeInfo = ""
-    if !extractedData.prepTime.isEmpty {
-      timeInfo += "Prep Time: \(extractedData.prepTime)\n"
-    }
-    if !extractedData.cookTime.isEmpty {
-      timeInfo += "Cook Time: \(extractedData.cookTime)\n"
-    }
-    if !extractedData.totalTime.isEmpty {
-      timeInfo += "Total Time: \(extractedData.totalTime)"
-    }
-    
-    if !timeInfo.isEmpty {
-      if recipe.summary != nil {
-        recipe.summary = recipe.summary! + "\n\n" + timeInfo
-      } else {
-        recipe.summary = timeInfo
-      }
-    }
-    
-    return recipe
-  }
-  
-  // Helper method to parse time strings like "1 hour 15 minutes" or "45 min"
-  private func parseTimeString(_ timeString: String) -> (Int, Int) {
-    var hours = 0
-    var minutes = 0
-    
-    // Look for hours
-    let hourPattern = try! NSRegularExpression(pattern: "(\\d+)\\s*h(our)?s?", options: .caseInsensitive)
-    let hourMatches = hourPattern.matches(in: timeString, options: [], range: NSRange(location: 0, length: timeString.utf16.count))
-    
-    if let match = hourMatches.first, let range = Range(match.range(at: 1), in: timeString) {
-      hours = Int(timeString[range]) ?? 0
-    }
-    
-    // Look for minutes
-    let minutePattern = try! NSRegularExpression(pattern: "(\\d+)\\s*m(in(ute)?s?)?", options: .caseInsensitive)
-    let minuteMatches = minutePattern.matches(in: timeString, options: [], range: NSRange(location: 0, length: timeString.utf16.count))
-    
-    if let match = minuteMatches.first, let range = Range(match.range(at: 1), in: timeString) {
-      minutes = Int(timeString[range]) ?? 0
-    }
-    
-    // If no specific pattern found but it's just a number, assume minutes
-    if hours == 0 && minutes == 0 {
-      let numberPattern = try! NSRegularExpression(pattern: "(\\d+)", options: [])
-      let numberMatches = numberPattern.matches(in: timeString, options: [], range: NSRange(location: 0, length: timeString.utf16.count))
-      
-      if let match = numberMatches.first, let range = Range(match.range(at: 1), in: timeString) {
-        minutes = Int(timeString[range]) ?? 0
-      }
-    }
-    
-    return (hours, minutes)
-  }
-  
-  // Helper method to parse ingredient text into components
-  private func parseIngredientText(_ text: String) -> (Double?, String?, String, String?) {
-    let normalizedText = text.trimmingCharacters(in: .whitespacesAndNewlines)
-    
-    // Common patterns for ingredients:
-    // "2 cups flour"
-    // "1/2 teaspoon salt"
-    // "3 large eggs, beaten"
-    
-    // Try to extract quantity (number)
-    var quantity: Double? = nil
-    var unit: String? = nil
-    var name = normalizedText
-    var comment: String? = nil
-    
-    // Look for fractions and decimals at the beginning
-    let quantityPattern = try! NSRegularExpression(pattern: "^(\\d+[\\s]?[\\d\\/\\.]+|\\d+)", options: [])
-    let quantityMatches = quantityPattern.matches(in: normalizedText, options: [], range: NSRange(location: 0, length: normalizedText.utf16.count))
-    
-    if let match = quantityMatches.first, let range = Range(match.range, in: normalizedText) {
-      let quantityStr = String(normalizedText[range])
-      name = normalizedText.replacingCharacters(in: range, with: "").trimmingCharacters(in: .whitespacesAndNewlines)
-      
-      // Convert fraction strings to decimal
-      if quantityStr.contains("/") {
-        let components = quantityStr.components(separatedBy: "/")
-        if components.count == 2,
-            let numerator = Double(components[0].trimmingCharacters(in: .whitespacesAndNewlines)),
-           let denominator = Double(components[1].trimmingCharacters(in: .whitespacesAndNewlines)) {
-          quantity = numerator / denominator
-        }
-      } else if let doubleValue = Double(quantityStr.trimmingCharacters(in: .whitespacesAndNewlines)) {
-        quantity = doubleValue
-      }
-    }
-    
-    // Look for common units after the quantity
-    let unitPattern = try! NSRegularExpression(pattern: "^\\s*(cup|tablespoon|teaspoon|tbsp|tsp|oz|ounce|pound|lb|g|kg|ml|l)s?\\b", options: .caseInsensitive)
-    let unitMatches = unitPattern.matches(in: name, options: [], range: NSRange(location: 0, length: name.utf16.count))
-    
-    if let match = unitMatches.first, let range = Range(match.range, in: name) {
-      unit = String(name[range]).trimmingCharacters(in: .whitespacesAndNewlines)
-      name = name.replacingCharacters(in: range, with: "").trimmingCharacters(in: .whitespacesAndNewlines)
-    }
-    
-    // Look for comments (often after a comma)
-    if name.contains(",") {
-      let parts = name.split(separator: ",", maxSplits: 1)
-      if parts.count == 2 {
-        name = String(parts[0]).trimmingCharacters(in: .whitespacesAndNewlines)
-        comment = String(parts[1]).trimmingCharacters(in: .whitespacesAndNewlines)
-      }
-    }
-    
-    // If name is empty after all parsing, use the original text
-    if name.isEmpty {
-      name = normalizedText
-    }
-    
-    return (quantity, unit, name, comment)
-  }
 }
 
 // Example usage in your app:
-func importRecipeFromURL(_ urlString: String) async -> Recipe? {
+func importRecipeFromURL(_ urlString: String) async -> RecipeData? {
   let extractor = RecipeWebExtractor()
   
   do {
-    // Extract the recipe
-    let recipe = try await extractor.extractRecipe(from: urlString)
-    
-    // Here you could run your classifier on recipe.rawText
-    // let classification = myRecipeClassifier.classify(recipe.rawText)
-    
-    return recipe
+    // Extract the recipe data
+    let recipeData = try await extractor.extractRecipe(from: urlString)
+    return recipeData
     
   } catch let error as RecipeWebExtractor.ExtractionError {
     switch error {
