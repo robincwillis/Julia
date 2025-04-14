@@ -33,7 +33,6 @@ struct IngredientEditor: View {
     return !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !hasSaved
   }
   
-  // Instead of a custom binding, we'll use onChange to detect focus changes
   
   @Environment(\.modelContext) private var context
   

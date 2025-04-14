@@ -39,7 +39,7 @@ enum Tabs: String, CaseIterable{
     case .grocery:
       return "basket"
     case .pantry:
-      return "refrigerator" // "sink" // "house"
+      return "cabinet" // "refrigerator" // "sink" // "house"
     case .recipe:
       return "book"
     }
@@ -57,136 +57,158 @@ enum Tabs: String, CaseIterable{
   }
 }
 
+
 struct NavigationView: View {
+  @Environment(\.modelContext) private var context
+  
+  // Tab bar state
   @State private var isTabBarVisible: Bool = true
   @State private var selectedTab: String = "grocery"
   @State private var selectedLocation: IngredientLocation = .grocery
+  
+  // Recipe processing state
   @State private var selectedImage: UIImage?
   @State private var selectedText: String?
-  @State private var showRecipeProcessing = false
-
   @State private var extractedRecipeData: RecipeData?
+  @StateObject private var recipeProcessor = RecipeProcessor()
   
   var body: some View {
     ZStack(alignment: .bottom) {
-      TabView(selection: $selectedTab) {
-        RecipesView()
-          .tag("recipe")
-          .toolbar(.hidden, for: .tabBar)
-          .frame(maxHeight: .infinity)
-        IngredientsView(
-          location: IngredientLocation.pantry
-        )
-        .tag("pantry")
-        .toolbar(.hidden, for: .tabBar)
-        .frame(maxHeight: .infinity)
-        IngredientsView(
-          location: IngredientLocation.grocery
-        )
-        .tag("grocery")
-        .toolbar(.hidden, for: .tabBar)
-        .frame(maxHeight: .infinity)
-        
-      }
-      
-      // Bottom Navigation
-      VStack {
-        Spacer() // Push tab bar to bottom
-        ZStack{
-          HStack(spacing: 10) {
-            // Tabs
-            HStack{
-              ForEach((Tabs.allCases), id: \.self){ item in
-                Button {
-                  withAnimation(.spring(duration: 0.3)) {
-                    selectedTab = item.rawValue
-                    selectedLocation = item.location
-                  }
-                } label: {
-                  TabItem(imageName: item.iconName, title: item.title, isActive: (selectedTab == item.rawValue))
-                }
-              }
-            }
-            .padding(6)
-            .frame(height: 70)
-            .background(Color(red: 0.85, green: 0.92, blue: 1.0))
-            .coordinateSpace(name: "TabStack")
-            .cornerRadius(35)
-            
-            Circle()
-              .fill(Color.clear)
-              .frame(width: 60, height: 60)
-          }
-        }
-        .padding(.horizontal, 24)
-        .opacity(isTabBarVisible ? 1.0 : 0.0)
-        .offset(y: isTabBarVisible ? 0 : 100) // Slide down when hiding
-        .animation(.easeInOut(duration: 0.3), value: isTabBarVisible)
-        
-        // Floating action menu
-        FloatingActionMenu(
-          selectedImage: $selectedImage,
-          selectedText: $selectedText,
-          extractedRecipeData: $extractedRecipeData,
-          showRecipeProcessing: $showRecipeProcessing
-        )
-      }
-      
-      // Recipe Processing Sheet
-      .sheet(isPresented: $showRecipeProcessing,  onDismiss: {
-        // Reset state when sheet is dismissed
-        selectedImage = nil
-        selectedText = nil
-        extractedRecipeData = nil
-      }) {
-        if let image = selectedImage {
-          RecipeProcessingView(image: image, text: nil, data: nil)
-            .ignoresSafeArea(.keyboard)
-            .presentationDragIndicator(.hidden)
-            .interactiveDismissDisabled()
-        } else if let text = selectedText {
-          RecipeProcessingView(image: nil, text: text, data: nil)
-            .ignoresSafeArea(.keyboard)
-            .presentationDragIndicator(.hidden)
-            .interactiveDismissDisabled()
-        } else if let recipeData = extractedRecipeData {
-            RecipeProcessingView(image: nil, text: nil, data: recipeData)
-              .ignoresSafeArea(.keyboard)
-              .presentationDragIndicator(.hidden)
-              .interactiveDismissDisabled()
-        } else {
-          VStack(spacing: 20) {
-            Text("Error: Missing Input")
-              .font(.headline)
-            
-            Text("Please try selecting an import source again")
-              .foregroundColor(.secondary)
-            
-            Button("Dismiss") {
-              showRecipeProcessing = false
-            }
-            .buttonStyle(.borderedProminent)
-            .padding()
-          }
-          .padding()
-          .onAppear {
-            print("ERROR: RecipeProcessingView appeared without image or text")
-          }
-        }
-      }
-      .onChange(of: showRecipeProcessing) { oldValue, newValue in
-        print("showRecipeProcessing changed from \(oldValue) to \(newValue)")
-      }
-      .onChange(of: selectedImage) { oldValue, newValue in
-        print("selectedImage changed: \(newValue != nil ? "Image set" : "nil")")
-      }
+      tabView
+      bottomNavigationAndActions
     }
     .ignoresSafeArea(.keyboard, edges: .bottom)
     .onAppear {
       setupNotificationObservers()
+      recipeProcessor.setModelContext(context)
     }
     .onDisappear {
       removeNotificationObservers()
+    }
+    .onChange(of: selectedImage) { oldValue, newValue in
+      if let image = selectedImage {
+        recipeProcessor.processImage(image)
+      }
+    }
+    .onChange(of: selectedText) { oldValue, newValue in
+      if let text = selectedText {
+        recipeProcessor.processText(text)
+      }
+    }
+    .onChange(of: extractedRecipeData) { oldValue, newValue in
+      if let recipeData = newValue {
+        recipeProcessor.processData(recipeData)
+      }
+    }
+  }
+  
+  // MARK: - View Components
+  
+  private var tabView: some View {
+    TabView(selection: $selectedTab) {
+      RecipesView()
+        .tag("recipe")
+        .toolbar(.hidden, for: .tabBar)
+        .frame(maxHeight: .infinity)
+      
+      IngredientsView(location: IngredientLocation.pantry)
+        .tag("pantry")
+        .toolbar(.hidden, for: .tabBar)
+        .frame(maxHeight: .infinity)
+      
+      IngredientsView(location: IngredientLocation.grocery)
+        .tag("grocery")
+        .toolbar(.hidden, for: .tabBar)
+        .frame(maxHeight: .infinity)
+    }
+  }
+  
+  private var bottomNavigationAndActions: some View {
+    ZStack {
+      bottomNavigation
+      floatingActionMenu
+      processingStatusSheet
+    }
+    .opacity(isTabBarVisible ? 1.0 : 0.0)
+    .offset(y: isTabBarVisible ? 0 : 100)
+    .animation(.easeInOut(duration: 0.3), value: isTabBarVisible)
+    .sheet(
+      isPresented: $recipeProcessor.processingState.showResultsSheet,
+      onDismiss: {
+        extractedRecipeData = nil
+        selectedImage = nil
+        selectedText = nil
+      }
+    ) {
+      ProcessingResults(
+        processingState: recipeProcessor.processingState,
+        recipeData: $recipeProcessor.recipeData,
+        saveRecipe: recipeProcessor.saveRecipe
+      )
+      .presentationDragIndicator(.hidden)
+      .interactiveDismissDisabled()
+    }
+  }
+  
+  private var bottomNavigation: some View {
+    VStack {
+      Spacer()
+      HStack(spacing: 10) {
+        tabButtons
+        Circle()
+          .fill(Color.clear)
+          .frame(width: 60, height: 60)
+      }
+      .padding(.horizontal, 24)
+    }
+  }
+  
+  private var tabButtons: some View {
+    HStack {
+      ForEach(Tabs.allCases, id: \.self) { item in
+        Button {
+          withAnimation(.spring(duration: 0.3)) {
+            selectedTab = item.rawValue
+            selectedLocation = item.location
+          }
+        } label: {
+          TabItem(
+            imageName: item.iconName,
+            title: item.title,
+            isActive: (selectedTab == item.rawValue)
+          )
+        }
+      }
+    }
+    .padding(5)
+    .frame(height: 70)
+    .background(Color(red: 0.85, green: 0.92, blue: 1.0))
+    .coordinateSpace(name: "TabStack")
+    .cornerRadius(35)
+  }
+  
+  private var floatingActionMenu: some View {
+    FloatingActionMenu(
+      selectedImage: $selectedImage,
+      selectedText: $selectedText,
+      extractedRecipeData: $extractedRecipeData,
+      processingState: recipeProcessor.processingState
+    )
+  }
+  
+  private var processingStatusSheet: some View {
+    FloatingStatusSheet(
+      isPresented: $recipeProcessor.processingState.showProcessingSheet,
+      dismissAfter: 5,
+      // minimumDuration: 3,
+       onDismiss: {
+       selectedImage = nil
+       selectedText = nil
+       }
+    ) {
+      RecipeProcessing(
+        processingState: recipeProcessor.processingState
+      )
     }
   }
   

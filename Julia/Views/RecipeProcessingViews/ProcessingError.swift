@@ -9,49 +9,75 @@ import SwiftUI
 
 struct ProcessingError: View {
   @Environment(\.dismiss) private var dismiss
-
+  var message: String
   @ObservedObject var processingState: RecipeProcessingState
+  var retry: (() -> Void)?
+
+  private var displayMessage: String {
+    if !message.isEmpty {
+      return message
+    } else {
+      return "We couldn't process this content. Try another image with clear, visible text."
+    }
+  }
+  
+  private var iconName: String {
+    if message.contains("text") {
+      return "text.magnifyingglass"
+    } else if message.contains("network") || message.contains("connection") {
+      return "wifi.exclamationmark"
+    } else if message.contains("permission") {
+      return "lock.shield"
+    } else {
+      return "exclamationmark.triangle"
+    }
+  }
 
   var body: some View {
-    VStack(spacing: 24) {
-      if let image = processingState.image {
-        Image(uiImage: image)
-          .resizable()
-          .scaledToFit()
-          .frame(height: 200)
-          .cornerRadius(12)
+    VStack(spacing: 12) {
+      Image(systemName: iconName)
+        .font(.system(size: 24))
+        .foregroundColor(.orange)
+      
+      Text(displayMessage)
+        .multilineTextAlignment(.center)
+        .foregroundColor(.secondary)
+        .padding(.horizontal)
+
+      // Action buttons
+      HStack(spacing: 6) {
+        // Cancel button
+        Button("Cancel") {
+          dismiss()
+        }
+        .buttonStyle(.bordered)
+        
+        // Retry button if handler provided
+        if let retryAction = retry {
+          Button("Retry") {
+            retryAction()
+          }
+          .buttonStyle(.borderedProminent)
+        }
       }
       
-      VStack(spacing: 16) {
-        Image(systemName: "text.magnifyingglass")
-          .font(.system(size: 70))
-          .foregroundColor(.secondary)
-        
-        Text("No Text Detected")
-          .font(.headline)
-        
-        Text("We couldn't find any text in this image. Try another image with clear, visible text.")
-          .multilineTextAlignment(.center)
-          .foregroundColor(.secondary)
-          .padding(.horizontal)
-      }
-      
-      Button("Try Again") {
-        dismiss()
-      }
-      .buttonStyle(.borderedProminent)
-      .padding(.top)
     }
-    .padding()
+
   }
 }
 
 #Preview {
   struct PreviewWrapper: View {
     @StateObject private var processingState = RecipeProcessingState()
-    
+   private var message: String =  "We couldn't find any text in this image. Try another image with clear, visible text."
     var body: some View {
-      ProcessingError(processingState: processingState)
+      ProcessingError(
+        message: message,
+        processingState: processingState,
+        retry: {
+          print("Retry tapped")
+        }
+      )
     }
   }
   return PreviewWrapper()

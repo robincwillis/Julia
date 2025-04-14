@@ -30,7 +30,7 @@ struct ProcessingResultsRecipe: View {
       if !recipeData.summary.isEmpty {
         Section("Summary") {
           ForEach(0..<recipeData.summary.count, id: \.self) { index in
-            TextField("Summary", text: Binding(
+            TextEditor(text: Binding(
               get: { recipeData.summary[index] },
               set: {
                 recipeData.summary[index] = $0
@@ -38,6 +38,7 @@ struct ProcessingResultsRecipe: View {
                 saveProcessingResults()
               }
             ))
+            .frame(height: 150)
             .submitLabel(.done)
           }
         }
@@ -172,6 +173,7 @@ struct ProcessingResultsRecipe: View {
       }
       var data = RecipeData()
       data.title = "Sample Recipe"
+      data.summary = ["Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat."]
       data.ingredients = ["2 cups flour", "1 cup sugar", "3 eggs"]
       data.instructions = ["Mix dry ingredients", "Add eggs", "Bake at 350°F for 30 minutes"]
       // Use the typealias defined in RecipeProcessing.swift to avoid ambiguity

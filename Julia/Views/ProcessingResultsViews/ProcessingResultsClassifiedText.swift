@@ -19,6 +19,14 @@ struct ProcessingResultsClassifiedText: View {
   var body: some View {
     VStack {
       HStack {
+        Toggle("Skipped Only", isOn: $showSkippedOnly)
+          .toggleStyle(.button)
+          .background(.white)
+          .cornerRadius(6)
+          .font(.caption)
+        
+        Spacer()
+        
         Menu {
           Button("All Types") { filterType = nil }
           Divider()
@@ -33,12 +41,6 @@ struct ProcessingResultsClassifiedText: View {
         }
         .font(.caption)
         
-        Toggle("Skipped Only", isOn: $showSkippedOnly)
-          .toggleStyle(.button)
-          .font(.caption)
-        
-        Spacer()
-        
         Button(sortByConfidence ? "Sort: Confidence" : "Sort: Order") {
           withAnimation {
             sortByConfidence.toggle()
@@ -46,14 +48,14 @@ struct ProcessingResultsClassifiedText: View {
         }
         .font(.caption)
       }
-      .padding(.horizontal)
+      .padding()
       
       List {
         // Filter and sort the classified lines
         let filteredLines = recipeData.classifiedLines.enumerated().filter { index, item in
           let (_, type, confidence) = item
           let typeMatch = filterType == nil || type == filterType
-          let confidenceMatch = !showSkippedOnly || confidence < RecipeProcessingView.confidenceThreshold
+          let confidenceMatch = !showSkippedOnly || confidence < RecipeProcessor.confidenceThreshold
           return typeMatch && confidenceMatch
         }.sorted { a, b in
           if sortByConfidence {
@@ -75,7 +77,7 @@ struct ProcessingResultsClassifiedText: View {
               VStack(alignment: .leading) {
                 Text(text)
                   .font(.body)
-                  .foregroundColor(confidence >= RecipeProcessingView.confidenceThreshold ? .primary : .secondary)
+                  .foregroundColor(confidence >= RecipeProcessor.confidenceThreshold ? .primary : .secondary)
                 
                 HStack {
                   Label(type.rawValue.capitalized, systemImage: typeIcon(for: type))
@@ -85,11 +87,11 @@ struct ProcessingResultsClassifiedText: View {
                   
                   Text("Confidence: \(String(format: "%.2f", confidence))")
                     .font(.caption2)
-                    .foregroundColor(confidence >= RecipeProcessingView.confidenceThreshold ? .green : .red)
+                    .foregroundColor(confidence >= RecipeProcessor.confidenceThreshold ? .green : .red)
                 }
                 .font(.caption)
                 
-                if confidence < RecipeProcessingView.confidenceThreshold {
+                if confidence < RecipeProcessor.confidenceThreshold {
                   HStack {
                     Button("Add as Ingredient") {
                       recipeData.ingredients.append(text)
@@ -116,14 +118,15 @@ struct ProcessingResultsClassifiedText: View {
         }
       }
     }
+    .background(.background.secondary)
   }
   
   //  Helper Functions
   private func typeIcon(for type: RecipeLineType) -> String {
     switch type {
-    case .title: return "text.badge.star"
-    case .ingredient: return "list.bullet"
-    case .instruction: return "1.square"
+    case .title: return "textformat.characters"
+    case .ingredient: return "carrot"
+    case .instruction: return "frying.pan"
     case .summary: return "text.quote"
     case .serving: return "fork.knife"
     case .time: return "stopwatch"
@@ -135,7 +138,7 @@ struct ProcessingResultsClassifiedText: View {
     switch type {
     case .title: return .blue
     case .ingredient: return .green
-    case .instruction: return .orange
+    case .instruction: return .indigo
     case .summary: return .red
     case .serving: return .pink
     case .time: return .purple

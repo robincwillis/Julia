@@ -13,8 +13,12 @@ struct FloatingActionMenu: View {
   @Binding var selectedImage: UIImage?
   @Binding var selectedText: String?
   @Binding var extractedRecipeData: RecipeData?
-  @Binding var showRecipeProcessing: Bool
   
+  @ObservedObject var processingState: RecipeProcessingState
+
+  // @Binding var showRecipeProcessing: Bool
+  // showRecipeProcessing: $recipeProcessor.processingState.showProcessingSheet
+
   // State variables for modal presentations
   @State private var showCamera = false
   @State private var showPhotosPicker = false
@@ -27,7 +31,6 @@ struct FloatingActionMenu: View {
   @State private var animationTriggered = false
   @State var isExpanded: Bool = false
 
-  
   // Error handling
   @State private var showError = false
   @State private var showDone = false
@@ -130,65 +133,50 @@ struct FloatingActionMenu: View {
           
           // Main action button - always positioned at the same spot
           ZStack {
-            Button(action: {
-              withAnimation(.spring(response: 0.3, dampingFraction: 0.75)) {
-                isExpanded.toggle()
-                
+            
+              Dot(
+                isLoading: $isLoading,
+                isExpanded: $isExpanded
+              )
+              .onTapGesture {
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.75)) {
+                  isExpanded.toggle()
+                }
                 if !animationTriggered {
                   animationTriggered = true
                 }
               }
-            }) {
-              Image(systemName: isExpanded ? "xmark" : "sparkles")
-                .font(.system(size: 24))
-                .foregroundColor(.white)
-                .frame(width: 60, height: 60)
-                .background(Color.blue)
-                .clipShape(Circle())
-                .shadow(radius: 10)
-                .rotationEffect(.degrees(isExpanded ? 90 : 0))
-            }
-            .disabled(isLoading)
-            .opacity(isLoading ? 0 : 1)
-            
-            // Loading indicator
-            if isLoading {
-              ProgressView()
-                .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                .frame(width: 60, height: 60)
-                .background(Color.blue)
-                .clipShape(Circle())
-                .shadow(radius: 10)
-            }
+              .padding(.vertical, 5)
           }
         }
         .padding(.trailing, 24)
       }
     }
     }
-    //.zIndex(10)
     // URL Import Sheet
     .sheet(isPresented: $showRecipeURLImport) {
       RecipeURLImportView(
-        showRecipeProcessing: $showRecipeProcessing,
-        selectedText: $selectedText,
         extractedRecipeData: $extractedRecipeData
       )
       .presentationDetents([.height(250), .medium])
       .background(.background.secondary)
       .presentationDragIndicator(.hidden)
-
-      
+      .onDisappear {
+        isExpanded = false
+      }
     }
-    .interactiveDismissDisabled()
     // Text Import Sheet
     .sheet(isPresented: $showRecipeTextImport) {
       RecipeTextImportView(
-        recipeText: $selectedText,
-        showRecipeProcessing: $showRecipeProcessing
+        recipeText: $selectedText      
       )
+      .presentationDetents([.medium])
+      .background(.background.secondary)
+      .presentationDragIndicator(.hidden)
+      .onDisappear {
+        isExpanded = false
+      }
     }
-    .interactiveDismissDisabled()
     // Camera component
     .fullScreenCover(isPresented: $showCamera) {
       Camera(
@@ -198,11 +186,6 @@ struct FloatingActionMenu: View {
         print("Camera returned with image: \(capturedImage.size)")
         // First set the image
         selectedImage = capturedImage
-        
-        // Then show the processing modal with a slight delay
-        //DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-          showRecipeProcessing = true
-        //}
       }
       .ignoresSafeArea()
     }
@@ -241,9 +224,7 @@ struct FloatingActionMenu: View {
           
           self.selectedImage = inputImage
           self.isLoading = false
-          Task { @MainActor in
-            self.showRecipeProcessing = true
-          }
+          
           
         } catch {
           self.errorMessage = "Error loading image: \(error.localizedDescription)"
@@ -252,9 +233,22 @@ struct FloatingActionMenu: View {
         }
       }
     }
-    .onChange(of: showRecipeProcessing) { _, newValue in
-      if !newValue {
-        reset()
+    .onChange(of: processingState.isProcessing) { _, newValue in
+      if newValue {
+        self.isLoading = true
+        self.isExpanded = false
+      }
+    }
+    .onChange(of: processingState.processingComplete) { _, newValue in
+      if newValue {
+        self.isLoading = false
+        self.isExpanded = false
+      }
+    }
+    .onChange(of: processingState.processingFailed) { _, newValue in
+      if newValue {
+        self.isLoading = false
+        self.isExpanded = false
       }
     }
 
@@ -282,7 +276,6 @@ struct FloatingActionMenu: View {
           .foregroundColor(.primary)
         
       }
-      //.frame(width: 100)
       .padding(.vertical, 12)
       .padding(.horizontal, 16)
       .background(Color.white)
@@ -334,7 +327,7 @@ extension View {
   func slideInFromLeft(
     isVisible: Bool,
     delay: Double = 0,
-    distance: CGFloat = -150
+    distance: CGFloat = -32
   ) -> some View {
     self
       .opacity(isVisible ? 1 : 0)
@@ -356,17 +349,18 @@ extension View {
     struct PreviewWrapper: View {
       @State var image: UIImage? = nil
       @State var text: String? = nil
-      @State var showProcessing: Bool = false
+      let processingState = RecipeProcessingState()
       @State var extractedRecipeData: RecipeData? = nil
         
       var body: some View {
-        
-        FloatingActionMenu(
-          selectedImage: $image,
-          selectedText: $text,
-          extractedRecipeData: $extractedRecipeData,
-          showRecipeProcessing: $showProcessing
-        )
+        ZStack {
+          FloatingActionMenu(
+            selectedImage: $image,
+            selectedText: $text,
+            extractedRecipeData: $extractedRecipeData,
+            processingState: processingState
+          )
+        }
       }
     }
     

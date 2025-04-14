@@ -11,14 +11,9 @@ struct ProcessingResultsRawText: View {
   let recognizedText: [String]
 
   var body: some View {
-      VStack {
-        HStack {
-          Text("Raw OCR Text (\(recognizedText.count) lines)")
-            .font(.headline)
-        }
-        .padding(.horizontal)
-        
-        List {
+
+      Form {
+        Section {
           ForEach(Array(recognizedText.enumerated()), id: \.offset) { index, line in
             VStack(alignment: .leading) {
               HStack(alignment: .top) {
@@ -29,24 +24,26 @@ struct ProcessingResultsRawText: View {
                   .padding(.top, 2)
                 
                 Text(line)
-                  .font(.system(.body, design: .monospaced))
+                  .font(.system(size: 14, design: .monospaced))
                   .textSelection(.enabled)
               }
             }
-            .listRowInsets(EdgeInsets(top: 4, leading: 8, bottom: 4, trailing: 8))
             .listRowSeparator(.visible)
           }
+        } header: {
+          Text("Raw Text (\(recognizedText.count) lines)")
         }
-        .listStyle(.inset)
       }
-    }
+      .listStyle(.inset)
+  }
 }
+  
 
 #Preview {
     let recognizedText: [String] = [
      "Line 1",
      "Line 2",
-     "Line 3"
+     "Line 3",
     ]
     return ProcessingResultsRawText(recognizedText:recognizedText)
 }

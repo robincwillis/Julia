@@ -155,8 +155,16 @@ struct RecipeDetails: View {
   
   private var ingredientSelectionMenu: some View {
     Menu {
-      Button(action: addSelectedToGroceryList) {
-        Label("Add to Grocery List", systemImage: "cart.fill.badge.plus")
+      Button(action: {
+        addSelectedToLocation(location: .grocery)
+      }) {
+        Label("Add to Groceries", systemImage: "basket.fill")
+      }
+      Button(action: {
+        addSelectedToLocation(location: .pantry)
+      }) {
+        Label("Add to Pantry", systemImage: "cabinet.fill")
+
       }
       Button(action: selectAll) {
         Label("Select All", systemImage: "checklist.checked")
@@ -363,19 +371,19 @@ struct RecipeDetails: View {
   }
   
   // Add selected ingredients to grocery list
-  private func addSelectedToGroceryList() {
+  private func addSelectedToLocation(location: IngredientLocation) {
     for ingredient in selectedIngredients {
-      // Create a copy of the ingredient for the grocery list
-      let groceryItem = Ingredient(
+      // Create a copy of the ingredient for the list
+      let newIngredient = Ingredient(
         name: ingredient.name,
-        location: .grocery,  // Change location to grocery
+        location: location,  // Change location
         quantity: ingredient.quantity,
         unit: ingredient.unit?.rawValue,
         comment: ingredient.comment
       )
       
       // Add to context
-      context.insert(groceryItem)
+      context.insert(newIngredient)
     }
     
     // Save changes
@@ -385,7 +393,7 @@ struct RecipeDetails: View {
       // Clear selection
       clearSelection()
     } catch {
-      print("Error saving grocery items: \(error)")
+      print("Error saving items: \(error)")
     }
   }
   

@@ -19,7 +19,10 @@ class DataController {
       Ingredient.self,
       Recipe.self,
       Timing.self,
-      IngredientSection.self
+      IngredientSection.self,
+      Note.self,
+      Step.self,
+      ImageItem.self
     ], version: Schema.Version(2, 2, 2))
   }()
   

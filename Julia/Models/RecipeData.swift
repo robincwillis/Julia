@@ -10,7 +10,8 @@ import Foundation
 // Centralize all recipe data in a single struct for easier management
 
 
-struct RecipeData {
+struct RecipeData: Equatable {
+  var id: String = UUID().uuidString 
   var title: String = ""
   var summary: [String] = []
   var timings: [String] = []
@@ -33,6 +34,11 @@ struct RecipeData {
   var author: String? = nil
   var website: String? = nil
 
+  static func == (lhs: RecipeData, rhs: RecipeData) -> Bool {
+    // Compare relevant properties
+    return lhs.id == rhs.id // or whatever comparison makes sense
+  }
+  
   mutating func reset() {
     title = ""
     ingredients = []

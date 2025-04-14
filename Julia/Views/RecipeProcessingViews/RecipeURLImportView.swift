@@ -4,11 +4,8 @@ import SwiftData
 struct RecipeURLImportView: View {
   @Environment(\.dismiss) private var dismiss
   @Environment(\.modelContext) private var context
-  
-  @Binding var showRecipeProcessing: Bool
-  
+    
   @State private var urlText = ""
-  @Binding var selectedText: String?
 
   @State private var isLoading = false
   @State private var errorMessage: String?
@@ -33,6 +30,7 @@ struct RecipeURLImportView: View {
                 .keyboardType(.URL)
                 .autocapitalization(.none)
                 .autocorrectionDisabled()
+                .submitLabel(.done)
                 .focused($isUrlTextFieldFocused)
                 .onSubmit {
                   isUrlTextFieldFocused = false
@@ -60,6 +58,7 @@ struct RecipeURLImportView: View {
           Button("Import") {
             importRecipe()
           }
+          .disabled(urlText.isEmpty)
         }
         ToolbarItemGroup(placement: .keyboard) {
           HStack(spacing: 6) {
@@ -130,8 +129,6 @@ struct RecipeURLImportView: View {
           // Clean up and dismiss
           isLoading = false
           dismiss()
-          // Show recipe processing view
-          showRecipeProcessing = true
 
         }
       } catch let error as RecipeWebExtractor.ExtractionError {
@@ -165,14 +162,10 @@ struct RecipeURLImportView: View {
 
 #Preview {
   struct PreviewWrapper: View {
-    @State private var showRecipeProcessing = false
-    @State private var selectedText: String? = ""
     @State private var extractedRecipeData: RecipeData?
     
     var body: some View {
       RecipeURLImportView(
-        showRecipeProcessing: $showRecipeProcessing,
-        selectedText: $selectedText,
         extractedRecipeData: $extractedRecipeData
       )
       .modelContainer(DataController.previewContainer)

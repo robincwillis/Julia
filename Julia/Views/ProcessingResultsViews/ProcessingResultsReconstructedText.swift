@@ -7,89 +7,63 @@
 
 import SwiftUI
 
+// Create a typealias for the result structure to avoid ambiguity
+typealias ProcessingTextResult = TextReconstructorResult
+
 struct ProcessingResultsReconstructedText: View {
-    let reconstructedText: ProcessingTextResult
+  let reconstructedText: ProcessingTextResult
   
-    var body: some View {
-      VStack(spacing: 16) {
-        // Title Section
-        if !reconstructedText.title.isEmpty {
-          VStack(alignment: .leading, spacing: 8) {
-            Text("Detected Title")
-              .font(.headline)
-            
-            Text(reconstructedText.title)
-              .font(.body.bold())
-              .padding(8)
-              .frame(maxWidth: .infinity, alignment: .leading)
-              .background(Color.blue.opacity(0.1))
-              .cornerRadius(8)
-          }
-          .padding(.horizontal)
+  var body: some View {
+    Form {
+      // Title Section
+      if !reconstructedText.title.isEmpty {
+        Section("Title") {
+          Text(reconstructedText.title)
         }
-        
-        // Reconstructed Lines Section
-        VStack(alignment: .leading, spacing: 8) {
-          Text("Reconstructed Text (\(reconstructedText.reconstructedLines.count) lines)")
-            .font(.headline)
-            .padding(.horizontal)
+      }
+      
+      // Reconstructed Lines Section
+      Section("Reconstructed Text (\(reconstructedText.reconstructedLines.count) lines)") {
+        ForEach(Array(reconstructedText.reconstructedLines.enumerated()), id: \.offset) { index, line in
+          VStack(alignment: .leading) {
+            HStack(alignment: .top) {
+              Text("\(index + 1).")
+                .font(.caption)
+                .foregroundColor(.secondary)
+                .frame(width: 30, alignment: .trailing)
+                .padding(.top, 2)
+              Text(line)
+                .font(.system(size: 14, design: .monospaced))
+                .textSelection(.enabled)
+            }
+          }
           
-          List {
-            ForEach(Array(reconstructedText.reconstructedLines.enumerated()), id: \.offset) { index, line in
-              VStack(alignment: .leading) {
-                HStack(alignment: .top) {
-                  Text("\(index + 1).")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                    .frame(width: 30, alignment: .trailing)
-                    .padding(.top, 2)
-                  
-                  Text(line)
-                    .font(.system(.body, design: .monospaced))
-                    .textSelection(.enabled)
-                }
-              }
-              .listRowInsets(EdgeInsets(top: 4, leading: 8, bottom: 4, trailing: 8))
-              .listRowSeparator(.visible)
-            }
-          }
-          .frame(maxHeight: 300)
-          .listStyle(.inset)
         }
         
-        // Artifacts Section
-        if !reconstructedText.artifacts.isEmpty {
-          VStack(alignment: .leading, spacing: 8) {
-            Text("Artifacts (\(reconstructedText.artifacts.count) lines)")
-              .font(.headline)
-              .padding(.horizontal)
-            
-            List {
-              ForEach(Array(reconstructedText.artifacts.enumerated()), id: \.offset) { index, line in
-                VStack(alignment: .leading) {
-                  HStack(alignment: .top) {
-                    Text("\(index + 1).")
-                      .font(.caption)
-                      .foregroundColor(.secondary)
-                      .frame(width: 30, alignment: .trailing)
-                      .padding(.top, 2)
-                    
-                    Text(line)
-                      .font(.system(.body, design: .monospaced))
-                      .textSelection(.enabled)
-                  }
-                }
-                .listRowInsets(EdgeInsets(top: 4, leading: 8, bottom: 4, trailing: 8))
-                .listRowSeparator(.visible)
+      }
+      
+      // Artifacts Section
+      if !reconstructedText.artifacts.isEmpty {
+        Section("Artifacts (\(reconstructedText.artifacts.count) lines)") {
+          ForEach(Array(reconstructedText.artifacts.enumerated()), id: \.offset) { index, line in
+            VStack(alignment: .leading) {
+              HStack(alignment: .top) {
+                Text("\(index + 1).")
+                  .font(.caption)
+                  .foregroundColor(.secondary)
+                  .frame(width: 30, alignment: .trailing)
+                  .padding(.top, 2)
+                
+                Text(line)
+                  .font(.system(size: 14, design: .monospaced))
+                  .textSelection(.enabled)
               }
             }
-            .frame(maxHeight: 200)
-            .listStyle(.inset)
           }
         }
       }
-      .padding(.horizontal, 8)
     }
+  }
 }
 
 #Preview {
