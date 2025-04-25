@@ -39,7 +39,7 @@ struct AddIngredient: View {
             Label("Save", systemImage: "checkmark")
               .padding(.vertical, 6)
               .padding(.horizontal, 12)
-              .background(.blue)
+              .background(Color.app.primary)
               .foregroundColor(.white)
               .clipShape(Capsule())
           }
@@ -55,7 +55,7 @@ struct AddIngredient: View {
               .padding(.vertical, 6)
               .padding(.horizontal, 12)
               .background(.tertiary)
-              .foregroundColor(.blue)
+              .foregroundColor(Color.app.primary)
               .clipShape(Capsule())
             
           }

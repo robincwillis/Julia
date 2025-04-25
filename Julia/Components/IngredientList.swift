@@ -25,6 +25,8 @@ struct IngredientList: View {
           .selectable(selected: isSelected(ingredient))
         }
         .onDelete(perform: removeIngredients)
+        .listRowBackground(Color.clear)
+        .listRowSeparator(.hidden)
         
         // Add spacer at the end for tab bar
         Section {
@@ -35,6 +37,7 @@ struct IngredientList: View {
         }
       }
       .listStyle(.plain)
+      .scrollContentBackground(.hidden)
     }
   }
   

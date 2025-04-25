@@ -22,9 +22,9 @@ class RecipeProcessingState: ObservableObject {
   
   enum ProcessingStage: String {
     case notStarted = "Warming Up"
-    case processing = "Processing Recipe"
-    case completed = "Processing Complete"
-    case error = "Processing Error"
+    case processing = "Processing"
+    case completed = "Complete"
+    case error = "Error"
   }
   
   // Computed properties with getters and setters

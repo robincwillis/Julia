@@ -1,37 +1,265 @@
 [
-    {
-        "id": "da710e3d-c8a9-4c08-bf9e-82f10a44073d",
-        "name": "Flour",
-        "quantity": 2.0,
-        "location": "grocery",
-        "measurement": "cup"
-    },
-    {
-        "id": "58865140-dbc2-4b52-a34d-8e5ce0631e08",
-        "name": "Sugar",
-        "quantity": 1.0,
-        "location": "grocery",
-        "measurement": "cup"
-    },
-    {
-        "id": "7ae75a4e-ccb6-4b0f-a3cc-ece6e81b3e8e",
-        "name": "Butter",
-        "quantity": 0.5,
-        "location": "pantry",
-        "measurement": "cup"
-    },
-    {
-        "id": "e7fc36d2-7903-4d93-a26f-ad553b31d1dc",
-        "name": "Egg",
-        "quantity": 3.0,
-        "location": "pantry",
-        "comment": "large"
-    },
-    {
-        "id": "67651907-6849-433c-9b13-a112d678ed2e",
-        "name": "Milk",
-        "quantity": 1.0,
-        "location": "pantry",
-        "measurement": "cup"
-    }
+  {
+    "id": "pantry-1",
+    "name": "All-purpose flour",
+    "location": "pantry",
+    "quantity": 5,
+    "unit": "pound",
+    "position": 0
+  },
+  {
+    "id": "pantry-2",
+    "name": "Granulated sugar",
+    "location": "pantry",
+    "quantity": 4,
+    "unit": "pound",
+    "position": 1
+  },
+  {
+    "id": "pantry-3",
+    "name": "Kosher salt",
+    "location": "pantry",
+    "quantity": 1,
+    "unit": "container",
+    "position": 2
+  },
+  {
+    "id": "pantry-4",
+    "name": "Black pepper",
+    "location": "pantry",
+    "quantity": 1,
+    "unit": "container",
+    "comment": "freshly ground",
+    "position": 3
+  },
+  {
+    "id": "pantry-5",
+    "name": "Olive oil",
+    "location": "pantry",
+    "quantity": 1,
+    "unit": "bottle",
+    "comment": "extra virgin",
+    "position": 4
+  },
+  {
+    "id": "pantry-6",
+    "name": "Canola oil",
+    "location": "pantry",
+    "quantity": 1,
+    "unit": "bottle",
+    "position": 5
+  },
+  {
+    "id": "pantry-7",
+    "name": "Dijon mustard",
+    "location": "pantry",
+    "quantity": 1,
+    "unit": "jar",
+    "position": 6
+  },
+  {
+    "id": "pantry-8",
+    "name": "Balsamic vinegar",
+    "location": "pantry",
+    "quantity": 1,
+    "unit": "bottle",
+    "position": 7
+  },
+  {
+    "id": "pantry-9",
+    "name": "White wine vinegar",
+    "location": "pantry",
+    "quantity": 1,
+    "unit": "bottle",
+    "position": 8
+  },
+  {
+    "id": "pantry-10",
+    "name": "Tomato paste",
+    "location": "pantry",
+    "quantity": 1,
+    "unit": "tube",
+    "position": 9
+  },
+  {
+    "id": "pantry-11",
+    "name": "Dried thyme",
+    "location": "pantry",
+    "quantity": 1,
+    "unit": "jar",
+    "position": 10
+  },
+  {
+    "id": "pantry-12",
+    "name": "Dried rosemary",
+    "location": "pantry",
+    "quantity": 1,
+    "unit": "jar",
+    "position": 11
+  },
+  {
+    "id": "pantry-13",
+    "name": "Beef stock",
+    "location": "pantry",
+    "quantity": 32,
+    "unit": "ounce",
+    "comment": "carton or concentrate",
+    "position": 12
+  },
+  {
+    "id": "pantry-14",
+    "name": "Dry red wine",
+    "location": "pantry",
+    "quantity": 1,
+    "unit": "bottle",
+    "position": 13
+  },
+  {
+    "id": "grocery-1",
+    "name": "Eggs",
+    "location": "grocery",
+    "quantity": 12,
+    "unit": "item",
+    "comment": "large",
+    "position": 0
+  },
+  {
+    "id": "grocery-2",
+    "name": "Unsalted butter",
+    "location": "grocery",
+    "quantity": 1,
+    "unit": "pound",
+    "position": 1
+  },
+  {
+    "id": "grocery-3",
+    "name": "Sweet onion",
+    "location": "grocery",
+    "quantity": 3,
+    "unit": "item",
+    "position": 2
+  },
+  {
+    "id": "grocery-4",
+    "name": "Garlic",
+    "location": "grocery",
+    "quantity": 1,
+    "unit": "bunch",
+    "position": 3
+  },
+  {
+    "id": "grocery-5",
+    "name": "Yukon gold potatoes",
+    "location": "grocery",
+    "quantity": 2,
+    "unit": "pound",
+    "position": 4
+  },
+  {
+    "id": "grocery-6",
+    "name": "Carrots",
+    "location": "grocery",
+    "quantity": 1,
+    "unit": "bunch",
+    "position": 5
+  },
+  {
+    "id": "grocery-7",
+    "name": "Fresh thyme",
+    "location": "grocery",
+    "quantity": 1,
+    "unit": "bunch",
+    "position": 6
+  },
+  {
+    "id": "grocery-8",
+    "name": "Fresh rosemary",
+    "location": "grocery",
+    "quantity": 1,
+    "unit": "bunch",
+    "position": 7
+  },
+  {
+    "id": "grocery-9",
+    "name": "Fresh parsley",
+    "location": "grocery",
+    "quantity": 1,
+    "unit": "bunch",
+    "position": 8
+  },
+  {
+    "id": "grocery-10",
+    "name": "Cremini mushrooms",
+    "location": "grocery",
+    "quantity": 8,
+    "unit": "ounce",
+    "position": 9
+  },
+  {
+    "id": "grocery-11",
+    "name": "Heirloom tomato",
+    "location": "grocery",
+    "quantity": 2,
+    "unit": "item",
+    "position": 10
+  },
+  {
+    "id": "grocery-12",
+    "name": "Bibb lettuce",
+    "location": "grocery",
+    "quantity": 1,
+    "unit": "bunch",
+    "position": 11
+  },
+  {
+    "id": "grocery-13",
+    "name": "Haricots verts",
+    "location": "grocery",
+    "quantity": 8,
+    "unit": "ounce",
+    "comment": "French green beans",
+    "position": 12
+  },
+  {
+    "id": "grocery-14",
+    "name": "Boneless chuck roast",
+    "location": "grocery",
+    "quantity": 4,
+    "unit": "pound",
+    "position": 13
+  },
+  {
+    "id": "grocery-15",
+    "name": "Oil-packed sardines",
+    "location": "grocery",
+    "quantity": 2,
+    "unit": "can",
+    "comment": "4.5 oz each",
+    "position": 14
+  },
+  {
+    "id": "grocery-16",
+    "name": "Anchovy fillets",
+    "location": "grocery",
+    "quantity": 1,
+    "unit": "jar",
+    "comment": "oil-packed",
+    "position": 15
+  },
+  {
+    "id": "grocery-17",
+    "name": "Nicoise olives",
+    "location": "grocery",
+    "quantity": 1,
+    "unit": "cup",
+    "position": 16
+  },
+  {
+    "id": "grocery-18",
+    "name": "Gruyère cheese",
+    "location": "grocery",
+    "quantity": 8,
+    "unit": "ounce",
+    "position": 17
+  }
 ]

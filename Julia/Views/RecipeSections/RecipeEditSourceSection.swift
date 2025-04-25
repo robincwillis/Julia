@@ -19,9 +19,10 @@ struct RecipeEditSourceSection: View {
       // Source Title
       HStack {
         Text("Title")
-          .foregroundColor(.secondary)
+          .foregroundColor(Color.app.textLabel)
         Spacer()
         TextField("Optional", text: $sourceTitle)
+          .foregroundColor(Color.app.textPrimary)
           .multilineTextAlignment(.trailing)
           .submitLabel(.done)
       }
@@ -29,9 +30,10 @@ struct RecipeEditSourceSection: View {
       // author
       HStack {
         Text("Author")
-          .foregroundColor(.secondary)
+          .foregroundColor(Color.app.textLabel)
         Spacer()
         TextField("Optional", text: $author)
+          .foregroundColor(Color.app.textPrimary)
           .multilineTextAlignment(.trailing)
           .submitLabel(.done)
       }
@@ -39,9 +41,10 @@ struct RecipeEditSourceSection: View {
       // Website
       HStack {
         Text("Website")
-          .foregroundColor(.secondary)
+          .foregroundColor(Color.app.textLabel)
         Spacer()
         TextField("Optional", text: $website)
+          .foregroundColor(Color.app.textPrimary)
           .keyboardType(.URL)
           .autocapitalization(.none)
           .autocorrectionDisabled()
@@ -51,12 +54,14 @@ struct RecipeEditSourceSection: View {
 
       HStack {
         Text("Type")
-          .foregroundColor(.secondary)
+          .foregroundColor(Color.app.textLabel)
         Spacer()
         Menu {
           Picker("Type", selection: $sourceType) {
             ForEach(SourceType.allCases, id: \.self) { type in
               Text(type.displayName).tag(type)
+                .foregroundColor(Color.app.textPrimary)
+
             }
           }
         } label: {

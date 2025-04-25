@@ -108,29 +108,18 @@ struct IngredientEditor: View {
     case name, quantity, unit, comment
   }
   
-  let columns = [
-    GridItem(.flexible()),
-    GridItem(.flexible()),
-    GridItem(.flexible()),
-    GridItem(.flexible())
+  // Define rows for horizontal scrolling grid
+  let rows = [
+    GridItem(.fixed(36)),
+    GridItem(.fixed(36)),
+    GridItem(.fixed(36)),
+    GridItem(.fixed(36))
   ]
   
   var body: some View {
     VStack(spacing: 0) {
       // Header with close/save buttons
       HStack {
-        Button(action: {
-          if canSave {
-            saveIngredient()
-            hasSaved = true
-          }
-          showBottomSheet = false
-        }) {
-          Image(systemName: canSave ? "checkmark.circle.fill" : "xmark.circle.fill")
-            .font(.title2)
-            .foregroundColor(canSave ? Color(.blue) : Color(red: 0.85, green: 0.92, blue: 1.0))
-        }
-        Spacer()
         Button(action: {
           withAnimation {
             isNameFieldFocused.toggle()
@@ -140,6 +129,18 @@ struct IngredientEditor: View {
             .font(.title2)
         }
         .disabled(!canSave)
+        Spacer()
+        Button(action: {
+          if canSave {
+            saveIngredient()
+            hasSaved = true
+          }
+          showBottomSheet = false
+        }) {
+          Image(systemName: canSave ? "checkmark.circle.fill" : "xmark.circle.fill")
+            .font(.title2)
+            .foregroundColor(canSave ? Color.app.primary : Color(red: 0.976, green: 0.667, blue: 0.576))
+        }
       }
       //.transition(.opacity)
       
@@ -163,8 +164,13 @@ struct IngredientEditor: View {
         
         // Ingredient name field - either enter name or full ingredient text
         TextField("Ingredient", text: $name)
-          .font(.system(size: min(32, max(18, 700 / max(1, CGFloat(name.count)))), weight: .medium))
-          .foregroundColor(.black)
+          .font(.system(
+            //size: max(16, min(32, 700 / max(1, CGFloat(name.count)))),
+            //size: calculateTitleFontSize(for: name),
+            size: 32,
+            weight: .medium
+          ))
+          .foregroundColor(Color.app.textPrimary)
           .tint(.blue)
           .multilineTextAlignment(.center)
           .lineLimit(1)
@@ -182,27 +188,30 @@ struct IngredientEditor: View {
           .onSubmit {
             isNameFieldFocused = false
           }
+          .background(.white)
         
         
         
         // Control panel that shows/hides based on focus state
         if showControls {
           VStack {
-            // Units grid
-            LazyVGrid(columns: columns, spacing: 8) {
-              ForEach(units, id: \.self) { unitOption in
-                Button(action: {
-                  self.unit = unitOption
-                }) {
-                  Text(unitOption.displayName)
-                    .padding(6)
-                    .font(.system(size: 12))
-                    .frame(minHeight: 36)
-                    .frame(maxWidth: .infinity)
-                    .background(self.unit == unitOption ? Color.blue : Color(.systemGray5))
-                    .foregroundColor(self.unit == unitOption ? .white : .primary)
-                    .cornerRadius(12)
-                    .fontWeight(self.unit == unitOption ? .bold : .regular)
+            // Units grid with horizontal scrolling
+            ScrollView(.horizontal, showsIndicators: false) {
+              LazyHGrid(rows: rows, spacing: 8) {
+                ForEach(units, id: \.self) { unitOption in
+                  Button(action: {
+                    self.unit = unitOption
+                  }) {
+                    Text(unitOption.displayName)
+                      .padding(6)
+                      .font(.system(size: 12))
+                      .frame(height: 36)
+                      .frame(minWidth: 80)
+                      .background(self.unit == unitOption ? Color.blue : Color.app.offWhite200)
+                      .foregroundColor(self.unit == unitOption ? .white : Color.app.textPrimary)
+                      .cornerRadius(12)
+                      .fontWeight(self.unit == unitOption ? .bold : .regular)
+                  }
                 }
               }
             }
@@ -225,7 +234,7 @@ struct IngredientEditor: View {
                     .padding(6)
                     .frame(minHeight: 40)
                     .frame(maxWidth: .infinity)
-                    .background(Color(red: 0.85, green: 0.92, blue: 1.0))
+                    .background(Color.app.secondary)
                     .foregroundColor(.primary)
                     .cornerRadius(12)
                 }
@@ -321,7 +330,7 @@ struct IngredientEditor: View {
                     .padding(6)
                     .frame(minHeight: 40)
                     .frame(maxWidth: .infinity)
-                    .background(Color(.systemRed))
+                    .background(Color.app.primary)
                     .foregroundColor(.white)
                     .cornerRadius(12)
                 }
@@ -338,7 +347,8 @@ struct IngredientEditor: View {
             // Comment field that collapses when name is focused
             TextField("Comment (e.g., diced, chopped)", text: $comment)
               .padding()
-              .background(Color(.systemGray6))
+              .background(Color.app.backgroundPrimary)
+              .foregroundColor(Color.app.textPrimary)
               .cornerRadius(10)
               .focused($isCommentFieldFocused)
               .submitLabel(.done)
@@ -498,19 +508,38 @@ struct IngredientEditor: View {
 }
 
 #Preview {
-  // Reset and use the shared preview container that includes all models
-  // DataController.resetPreviewContainer()
+  // Preview container setup
   let container = DataController.previewContainer
   
-  // Insert our ingredient into the container
-  let previewIngredient = Ingredient(
-    name: "Flour",
-    location: .recipe,
-    quantity: 2,
-    unit: "cup",
-    comment: "all-purpose"
-  )
-  container.mainContext.insert(previewIngredient)
+  // Create preview data
+  let previewIngredients = [
+    Ingredient(
+      name: "Flour",
+      location: .recipe,
+      quantity: 2,
+      unit: "cup",
+      comment: "all-purpose"
+    ),
+    Ingredient(
+      name: "Garlic",
+      location: .recipe,
+      quantity: 3,
+      unit: "clove",
+      comment: "minced"
+    ),
+    Ingredient(
+      name: "Sauce",
+      location: .recipe,
+      quantity: 1,
+      unit: "jar",
+      comment: "marinara"
+    )
+  ]
+  
+  // Insert ingredients
+  for ingredient in previewIngredients {
+    container.mainContext.insert(ingredient)
+  }
   
   struct PreviewWrapper: View {
     // Use the ingredient we created in the container
@@ -549,6 +578,7 @@ struct IngredientEditor: View {
     }
   }
   
-  return PreviewWrapper(ingredient: previewIngredient)
+  // Use the first preview ingredient
+  return PreviewWrapper(ingredient: previewIngredients[0])
     .modelContainer(container)
 }

@@ -63,6 +63,8 @@ struct ProcessingResultsReconstructedText: View {
         }
       }
     }
+    .scrollContentBackground(.hidden)
+    .background(Color.app.backgroundSecondary)
   }
 }
 

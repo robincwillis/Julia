@@ -13,11 +13,23 @@ struct RecipesView: View {
   @Query private var recipes: [Recipe]
   @State var showAddSheet = false
   
+  @State private var showSuccessAlert = false
+  @State private var showErrorAlert = false
+  @State private var errorMessage = ""
+  @State private var loadedCount = 0
+  
   var body: some View {
-    NavigationSplitView {
+    NavigationStack {
       VStack {
-        RecipeList(recipes: recipes)
+        if recipes.isEmpty {
+          EmptyRecipesView {
+            loadSampleData()
+          }
+        } else {
+          RecipeList(recipes: recipes)
+        }
       }
+      .background(Color.app.backgroundPrimary)
       .navigationTitle("Recipes")
       .navigationBarTitleDisplayMode(.large)
       .toolbar {
@@ -25,9 +37,9 @@ struct RecipesView: View {
           showAddSheet.toggle()
         }) {
           Image(systemName: "plus")
-            .foregroundColor(.blue)
+            .foregroundColor(Color.app.primary)
             .frame(width: 40, height: 40)
-            .background(Color(red: 0.85, green: 0.92, blue: 1.0))
+            .background(Color.white)
             .clipShape(Circle())
         }
       }
@@ -37,9 +49,36 @@ struct RecipesView: View {
           .presentationDetents([.height(240), .large])
           .presentationDragIndicator(.hidden)
       }
-      
-    } detail: {
-      Text("Select a Recipe")
+      .alert("Recipes Added", isPresented: $showSuccessAlert) {
+        Button("OK", role: .cancel) { }
+      } message: {
+        Text("Added \(loadedCount) recipes to your collection.")
+      }
+      .alert("Error", isPresented: $showErrorAlert) {
+        Button("OK", role: .cancel) { }
+      } message: {
+        Text(errorMessage)
+      }
+    }
+  }
+  
+  private func loadSampleData() {
+    Task {
+      do {
+        let count = try await SampleDataLoader.loadSampleData(
+          type: .recipes,
+          context: context
+        )
+        
+        await MainActor.run {
+          loadedCount = count
+          showSuccessAlert = true
+        }
+      } catch {
+        errorMessage = "Error loading sample data: \(error.localizedDescription)"
+        print(errorMessage)
+        showErrorAlert = true
+      }
     }
   }
   

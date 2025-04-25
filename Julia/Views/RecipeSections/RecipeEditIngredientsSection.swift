@@ -44,7 +44,6 @@ struct RecipeEditIngredientsSection: View {
         editIngredient()
       } label: {
         Label("Add Ingredient", systemImage: "plus")
-          .foregroundColor(.blue)
       }
     }
     
@@ -83,7 +82,6 @@ struct RecipeEditIngredientsSection: View {
           editIngredient(section: sections[sectionIndex])
         } label: {
           Label("Add Ingredient", systemImage: "plus")
-            .foregroundColor(.blue)
         }
       } header: {
         HStack {
@@ -106,7 +104,6 @@ struct RecipeEditIngredientsSection: View {
     Section {
       Button(action: addNewSection) {
         Label("Add Section", systemImage: "plus")
-          .foregroundColor(.blue)
       }
     }
   }

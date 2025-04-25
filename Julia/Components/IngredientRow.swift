@@ -15,7 +15,7 @@ struct iOSCheckboxToggleStyle: ToggleStyle {
     }, label: {
       HStack {
         RoundedRectangle(cornerRadius: 6)
-          .fill(configuration.isOn ? Color.blue : Color.gray.opacity(0.25))  // Blue when checked, gray otherwise
+          .fill(configuration.isOn ? Color.blue : Color.app.offWhite400)  // Blue when checked, gray otherwise
           .frame(width: 24, height: 24)
           .overlay(
             Image(systemName: "checkmark")
@@ -36,46 +36,56 @@ struct IngredientLabel: View {
   }
   
   var body: some View {
-    VStack(alignment: .leading, spacing: 2) {
-      // Main content in HStack to flow inline
-      HStack(alignment: .firstTextBaseline, spacing: 2) {
+    HStack(alignment: .firstTextBaseline, spacing: 6) {
+      quantityView
+      ingredientDetailsView
+    }
+  }
+  
+  // MARK: - Helper Views
+  
+  private var quantityView: some View {
+    Group {
+      if let quantity = ingredient.quantity {
+        Text(quantity.toFractionString())
+          .font(.body)
+          .foregroundColor(Color.app.primary)
         
-        if let quantity = ingredient.quantity {
-          if let unit = ingredient.unit {
-            Text("\(quantity.toFractionString())") // \(unit.shortHand)
-              .font(.body)
-              .foregroundColor(.blue)
-            if unit.rawValue != "item" {
-              Text(" \(unit.displayName.pluralized(for: quantity))")
-                .font(.body)
-                .foregroundColor(.blue)
-            }
-            
-            Text(unit.rawValue != "item" ? ingredient.name : ingredient.name.pluralized(for: quantity))
-              .font(.body)
-              .foregroundColor(.black)
-          } else {
-            Text("\(quantity.toFractionString())")
-              .font(.body)
-              .foregroundColor(.blue)
-            Text(ingredient.name.pluralized(for: quantity))
-              .font(.body)
-              .foregroundColor(.black)
-            
-          }
-        } else {
-          Text(ingredient.name)
+        if let unit = ingredient.unit, unit.rawValue != "item" {
+          Text(unit.displayName.pluralized(for: quantity))
             .font(.body)
-            .foregroundColor(.black)
+            .foregroundColor(Color.app.primary)
         }
       }
-      
-      if let comment = ingredient.comment {
-        Text("\(comment)")
-          .font(.subheadline)
-          .foregroundColor(.secondary)
+    }
+  }
+  
+  private var ingredientDetailsView: some View {
+    (
+      Text(formattedIngredientName)
+        .font(.body)
+        .foregroundColor(Color.app.textSecondary)
+      +
+      (ingredient.comment != nil ?
+       Text(" " + (ingredient.comment ?? ""))
+        .font(.subheadline)
+        .foregroundColor(Color.app.grey300) :
+        Text(""))
+    )
+    .multilineTextAlignment(.leading)
+    .fixedSize(horizontal: false, vertical: true)
+  }
+  
+  // MARK: - Computed Properties
+  
+  private var formattedIngredientName: String {
+    if let quantity = ingredient.quantity {
+      if let unit = ingredient.unit, unit.rawValue == "item" {
+        // Pluralize the name if it's an "item" unit type
+        return ingredient.name.pluralized(for: quantity)
       }
     }
+    return ingredient.name
   }
 }
 
@@ -112,21 +122,25 @@ struct IngredientRow: View {
       IngredientLabel(ingredient)
       Spacer()
     }
-    .padding(.vertical, padding)
     .onTapGesture {
       onTap?(ingredient, section)  // Call the onTap closure if provided
     }
+    .padding(padding)
   }
 }
 
 struct SelectableModifier: ViewModifier {
   let selected: Binding<Bool>
   func body(content: Content) -> some View {
-    HStack {
+    HStack (alignment: .firstTextBaseline) {
       Toggle(isOn: selected){}
       .toggleStyle(iOSCheckboxToggleStyle())
-      content
+      VStack {
+        content
+      }
+      .offset(y: -6)
     }
+
   }
 }
 
@@ -135,6 +149,7 @@ extension View {
     modifier(SelectableModifier(selected: selected))
   }
 }
+
 
 #Preview("Ingredient Row") {
   Previews.previewModels(with: { context in
@@ -148,7 +163,7 @@ extension View {
     
     return ingredients
   }) { (ingredients: [Ingredient]) in
-    VStack(spacing: 16) {
+    List {
       ForEach(ingredients.prefix(5)) { ingredient in
         IngredientRow(
           ingredient: ingredient,
@@ -157,7 +172,6 @@ extension View {
         .selectable(selected: .constant(false))
       }
     }
-    .padding()
   }
 }
 

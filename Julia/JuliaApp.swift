@@ -13,12 +13,21 @@ import SwiftData
 struct JuliaApp: App {
     @State private var showDBError = false
     @State private var dbError: Error?
+    @State private var debugModeEnabled = true
     
     var body: some Scene {
         WindowGroup {
+            // Environment objects are set at the top level of the app
+            let _ = UserDefaults.standard.register(defaults: [
+                "debugMode": true
+            ])
             ContentView()
+                .environment(\.debugMode, debugModeEnabled)
                 .onAppear {
                     setupErrorObserver()
+                    setupDebugModeObserver()
+                    // Initialize from UserDefaults
+                    debugModeEnabled = UserDefaults.standard.bool(forKey: "debugMode")
                 }
                 .alert("Database Error", isPresented: $showDBError) {
                     Button("OK", role: .cancel) {}
@@ -39,6 +48,18 @@ struct JuliaApp: App {
                 dbError = error
                 showDBError = true
             }
+        }
+    }
+    
+    private func setupDebugModeObserver() {
+        // Observe changes to the debug mode UserDefault
+        NotificationCenter.default.addObserver(
+            forName: UserDefaults.didChangeNotification,
+            object: nil,
+            queue: .main
+        ) { _ in
+            // Check if debugMode specifically changed
+            debugModeEnabled = UserDefaults.standard.bool(forKey: "debugMode")
         }
     }
 }

@@ -52,16 +52,19 @@ struct RecipeEditSummarySection: View {
       //TODO Wrap if long
       TextField("Recipe Title", text: $title)
         .font(.system(
-          size: calculateTitleFontSize(for: title),
+          //size: calculateTitleFontSize(for: title),
+          size: 32,
           weight: .semibold
         ))
         .lineLimit(2)  // Allow text to wrap to two lines
         .multilineTextAlignment(.leading)
         .padding(.vertical, 2)
-        .multilineTextAlignment(.leading) // Adjust alignment as needed
+        .lineLimit(1)
+        .minimumScaleFactor(0.5)
         .focused($isTitleFieldFocused)
         .submitLabel(.done)
         .padding(.vertical, 2)
+        .background(.white)
       
       TextField("Recipe summary", text: summaryTextBinding, axis: .vertical)
         .lineLimit(3...6)
@@ -82,7 +85,7 @@ struct RecipeEditSummarySection: View {
       HStack {
         Text("Servings")
           .font(.body)
-          .foregroundColor(.primary)
+          .foregroundColor(Color.app.textLabel)
         
         Spacer()
         TextField("Optional", text: servingsTextBinding)

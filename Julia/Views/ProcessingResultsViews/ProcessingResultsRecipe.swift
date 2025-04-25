@@ -160,6 +160,8 @@ struct ProcessingResultsRecipe: View {
         }
       }
     }
+    .scrollContentBackground(.hidden)
+    .background(Color.app.backgroundSecondary)
   }
 }
 

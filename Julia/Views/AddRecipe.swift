@@ -139,7 +139,8 @@ struct AddRecipe: View {
           )
           
         }
-        .background(Color(.secondarySystemBackground))
+        .scrollContentBackground(.hidden)
+        .background(Color.app.backgroundSecondary)
         .navigationTitle(recipe == nil ? "Add Recipe" : "Edit Recipe")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -166,7 +167,7 @@ struct AddRecipe: View {
                   .foregroundColor(.white)
                   .padding(.horizontal, 12)
                   .padding(.vertical, 3)
-                  .background(.blue)
+                  .background(Color.app.primary)
                   .cornerRadius(12)
                   .padding(.vertical, 3)
                   
@@ -185,7 +186,6 @@ struct AddRecipe: View {
             Button("Cancel") {
               dismiss()
             }
-            .foregroundColor(.blue)
           }
           
           ToolbarItem(placement: .primaryAction) {
@@ -200,12 +200,13 @@ struct AddRecipe: View {
       }
       ingredientEditorSheet
     }
+    
     .onChange(of: showIngredientEditor) { oldValue, newValue in
       // Only execute when the sheet is being dismissed
       if oldValue == true && newValue == false {
         // If we have a new ingredient that was added to the recipe but not to our local array
         if let newIngredient = selectedIngredient,
-            newIngredient.recipe == recipe &&
+           newIngredient.recipe == recipe &&
             newIngredient.section == nil &&
             !ingredients.contains(where: { $0.id == newIngredient.id }) {
           // Add the ingredient to our local array

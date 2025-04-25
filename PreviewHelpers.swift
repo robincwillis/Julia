@@ -127,7 +127,7 @@ struct PreviewHelpers {
   /// Creates a customizable recipe preview
   @MainActor
   static func customRecipe<Content: View>(
-    title: String = "Custom Recipe",
+    title: String = "Custom Recipe with a really really really long title",
     summary: String? = "Custom recipe description",
     hasIngredients: Bool = true,
     hasSections: Bool = false,

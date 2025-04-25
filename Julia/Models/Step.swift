@@ -13,7 +13,7 @@ class Step: Identifiable {
   @Attribute(.unique) var id: String = UUID().uuidString
   var value: String
   var position: Int = 0  // Add position property to maintain order
-  @Relationship(originalName: "notes") var recipe: Recipe?
+  @Relationship(originalName: "instructions") var recipe: Recipe?
 
   init(
     id: String = UUID().uuidString,

@@ -13,11 +13,11 @@ struct RecipeInstructionsSection: View {
     VStack(alignment: .leading, spacing: 8) {
       Text("Instructions")
         .font(.headline)
-        .foregroundColor(.primary)
+        .foregroundColor(Color.app.textPrimary)
         .padding(.bottom, 8)
       if recipe.instructions.isEmpty {
         Text("No instructions available")
-          .foregroundColor(.gray)
+          .foregroundColor(Color.app.textLabel)
           .padding(.vertical, 8)
       } else {
         VStack(alignment: .leading, spacing: 12) {
@@ -26,11 +26,11 @@ struct RecipeInstructionsSection: View {
               // Step number - Primary button style
               ZStack {
                 Circle()
-                  .fill(Color(red: 0.85, green: 0.92, blue: 1.0))
+                  .fill(.blue)
                   .frame(width: 30, height: 30)
                 Text("\(index + 1)")
                   .font(.subheadline)
-                  .foregroundColor(.blue)
+                  .foregroundColor(.white)
               }
               Text(step.value)
                 .foregroundColor(.black)

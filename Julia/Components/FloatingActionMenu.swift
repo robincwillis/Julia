@@ -76,19 +76,6 @@ struct FloatingActionMenu: View {
               ))
               .slideInFromLeft(isVisible: isExpanded, delay: 0.4)
               
-              // FROM NOTES
-              menuItem(
-                icon: "note.text",
-                text: "Notes",
-                action: resetStateAndOpenTextImport
-              )
-              .transition(.asymmetric(
-                insertion: .opacity.combined(with: .scale(scale: 0.8, anchor: .bottom))
-                  .combined(with: .offset(y: 20)),
-                removal: .opacity.combined(with: .scale(scale: 0.8, anchor: .bottom))
-              ))
-              .slideInFromLeft(isVisible: isExpanded, delay: 0.3)
-              
               // FROM WEBSITE
               menuItem(
                 icon: "globe",
@@ -268,12 +255,12 @@ struct FloatingActionMenu: View {
       HStack {
         Image(systemName: icon)
           .font(.system(size: 16))
-          .foregroundColor(.blue)
+          .foregroundColor(Color.app.primary)
           .frame(width: 24, height: 24)
         
         Text(text)
           .font(.system(size: 16))
-          .foregroundColor(.primary)
+          .foregroundColor(Color.app.textPrimary)
         
       }
       .padding(.vertical, 12)

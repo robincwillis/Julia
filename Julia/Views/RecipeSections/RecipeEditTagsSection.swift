@@ -54,7 +54,6 @@ struct RecipeEditTagsSection: View {
           }
           Button(action: addTag) {
             Image(systemName: "plus.circle.fill")
-              .foregroundColor(.blue)
           }
           .disabled(newTag.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
         }

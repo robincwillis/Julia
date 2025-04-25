@@ -39,27 +39,33 @@ class RecipeProcessor: ObservableObject {
   func start() {
     processingState.reset()
     recipeData.reset()
-    processingState.processingStage = .processing
+    processingState.processingStage = .notStarted
     
     processingState.showProcessingSheet = true
     processingState.showResultsSheet = false
+  }
+
+  func work() {
+    processingState.processingStage = .processing
   }
   
   func complete() {
     processingState.processingStage = .completed
     
-    self.processingState.showProcessingSheet = false
-    self.processingState.showResultsSheet = true
-    self.onCompletion?(self.recipeData)
+    processingState.showProcessingSheet = false
+
+    // Shrug, lets try it
+    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+      self.processingState.showResultsSheet = true
+    }
+    
+    onCompletion?(self.recipeData)
   }
   
   func fail(error: String) {
     processingState.processingStage = .error
     processingState.errorMessage = error
     processingState.statusMessage = ""
-    
-    processingState.showProcessingSheet = true
-    processingState.showResultsSheet = false
     
     onError?(error)
   }
@@ -71,14 +77,18 @@ class RecipeProcessor: ObservableObject {
     
     Task {
       do {
+        try await Task.sleep(nanoseconds: 200_000_000)
+        await MainActor.run {
+          work()
+        }
         let recognizedText = try await extractTextFromImage(image)
-        try await Task.sleep(nanoseconds: 500_000_000)
+        try await Task.sleep(nanoseconds: 750_000_000)
         let reconstructedText = try await reconstructText(recognizedText)
-        try await Task.sleep(nanoseconds: 500_000_000)
+        try await Task.sleep(nanoseconds: 750_000_000)
         let classifiedText = try await classifyText(reconstructedText.reconstructedLines)
-        try await Task.sleep(nanoseconds: 500_000_000)
+        try await Task.sleep(nanoseconds: 750_000_000)
         await updateRecipeData(reconstructedText, classifiedText)
-        try await Task.sleep(nanoseconds: 500_000_000)
+        try await Task.sleep(nanoseconds: 750_000_000)
         await MainActor.run {
           complete()
         }
@@ -97,14 +107,18 @@ class RecipeProcessor: ObservableObject {
     
     Task {
       do {
+        try await Task.sleep(nanoseconds: 200_000_000)
+        await MainActor.run {
+          work()
+        }
         let recognizedText = try await extractTextFromText(text)
-        try await Task.sleep(nanoseconds: 500_000_000)
+        try await Task.sleep(nanoseconds: 750_000_000)
         let reconstructedText = try await reconstructText(recognizedText)
-        try await Task.sleep(nanoseconds: 500_000_000)
+        try await Task.sleep(nanoseconds: 750_000_000)
         let classifiedText = try await classifyText(reconstructedText.reconstructedLines)
-        try await Task.sleep(nanoseconds: 500_000_000)
+        try await Task.sleep(nanoseconds: 750_000_000)
         await updateRecipeData(reconstructedText, classifiedText)
-        try await Task.sleep(nanoseconds: 500_000_000)
+        try await Task.sleep(nanoseconds: 750_000_000)
         
         await MainActor.run {
           complete()
@@ -127,7 +141,7 @@ class RecipeProcessor: ObservableObject {
   // Text from image extraction task
   private func extractTextFromImage(_ image: UIImage) async throws -> [String] {
     await MainActor.run {
-      processingState.statusMessage = "AI is Extracting text from image..."
+      processingState.statusMessage = "AI is Extracting text..."
     }
     
     let recognizedText = await TextRecognitionService.shared.recognizeText(from: image)
@@ -147,7 +161,7 @@ class RecipeProcessor: ObservableObject {
   // Text from text extraction task (I know, weird)
   private func extractTextFromText(_ text: String) async throws -> [String] {
     await MainActor.run {
-      processingState.statusMessage = "AI is Extracting text..."
+      processingState.statusMessage = "AI is extracting text..."
     }
     
     let recognizedText = text.components(separatedBy: .newlines)
@@ -167,7 +181,7 @@ class RecipeProcessor: ObservableObject {
   // Text reconstruction task
   private func reconstructText(_ textLines: [String]) async throws -> ProcessingTextResult {
     await MainActor.run {
-      processingState.statusMessage = "AI is Reconstructing text..."
+      processingState.statusMessage = "AI is reconstructing text..."
     }
     
     let filteredText = textLines.filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
@@ -185,7 +199,7 @@ class RecipeProcessor: ObservableObject {
   private func classifyText(_ reconstructedLines: [String]) async throws -> ClassificationResult {
     await MainActor.run {
       processingState.isClassifying = true
-      processingState.statusMessage = "AI is classifying recipe content..."
+      processingState.statusMessage = "AI is classifying recipe..."
     }
     
     let classifier = RecipeTextClassifier(confidenceThreshold: Self.confidenceThreshold)
@@ -197,7 +211,6 @@ class RecipeProcessor: ObservableObject {
   // Update recipe data with processing results
   private func updateRecipeData(_ reconstructed: ProcessingTextResult, _ classified: ClassificationResult) async {
     await MainActor.run {
-      processingState.statusMessage = "AI is Finalizing the details..."
       
       // Store reconstructed text
       recipeData.reconstructedText = reconstructed

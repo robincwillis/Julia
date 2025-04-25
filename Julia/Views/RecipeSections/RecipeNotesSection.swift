@@ -19,7 +19,7 @@ struct RecipeNotesSection: View {
         if !notes.isEmpty {
           Text("Notes")
             .font(.headline)
-            .foregroundColor(.primary)
+            .foregroundColor(Color.app.textPrimary)
             .padding(.bottom, 8)
         }
         ForEach(sortedNotes) { note in

@@ -50,7 +50,7 @@ struct ProcessingResultsClassifiedText: View {
       }
       .padding()
       
-      List {
+      Form {
         // Filter and sort the classified lines
         let filteredLines = recipeData.classifiedLines.enumerated().filter { index, item in
           let (_, type, confidence) = item
@@ -117,8 +117,9 @@ struct ProcessingResultsClassifiedText: View {
           }
         }
       }
+      .scrollContentBackground(.hidden)
+      .background(Color.app.backgroundSecondary)
     }
-    .background(.background.secondary)
   }
   
   //  Helper Functions

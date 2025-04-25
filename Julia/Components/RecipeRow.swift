@@ -11,6 +11,7 @@ struct RecipeRow: View {
     let recipe: Recipe
     var body: some View {
         Text("\(recipe.title)")
+        .foregroundColor(Color.app.textPrimary)
     }
 }
 

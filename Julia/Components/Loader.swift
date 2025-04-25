@@ -31,7 +31,7 @@ struct Loader: View {
     ZStack {
       ForEach(0..<numberOfCircles, id: \.self) { index in
         Circle()
-          .fill(Color.red)
+          .fill(Color.app.primary)
           .frame(width: isLoading ? smallCircleSize: largeCircleSize
                  , height: isLoading ? smallCircleSize: largeCircleSize)
           .position(

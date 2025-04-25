@@ -17,7 +17,11 @@ struct ScrollFadeTitle: View {
   var body: some View {
     GeometryReader { geometry in
       Text(title)
-        .font(.largeTitle)
+        .font(
+          .system(
+            size: calculateTitleFontSize(for: title)
+          )
+        )
         .fontWeight(.bold)
         .fixedSize(horizontal: false, vertical: true) // Allow text to wrap
         .background(
@@ -47,6 +51,21 @@ struct ScrollFadeTitle: View {
     .frame(height: titleHeight)
     .frame(maxWidth: .infinity)
     .opacity(titleOpacity)
+  }
+  
+  private func calculateTitleFontSize(for text: String) -> CGFloat {
+    // Start with large font for short titles
+    let maxSize: CGFloat = 32
+    let minSize: CGFloat = 21
+    let threshold = 48  // Character count where scaling begins
+    
+    if text.count <= threshold {
+      return maxSize
+    } else {
+      // Scale down linearly, with a minimum size
+      let scaleFactor = 1.0 - min(1.0, CGFloat(text.count - threshold) / 18)
+      return max(minSize, maxSize * scaleFactor)
+    }
   }
 }
 

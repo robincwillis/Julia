@@ -62,7 +62,9 @@ struct RecipeTextImportView: View {
             }
           }
         }
+        .scrollContentBackground(.hidden)
       }
+      .background(Color.app.backgroundSecondary)
       .navigationTitle("Import Recipe")
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {

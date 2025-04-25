@@ -14,22 +14,7 @@ struct RecipeEditRawTextSection: View {
   @FocusState private var isRawTextFieldFocused: Bool
   
   var body: some View {
-    Section("Raw Text") {
-//      HStack(spacing: 6) {
-//        Spacer()
-//        Button("Copy") {
-//          UIPasteboard.general.string = rawText
-//        }
-//        .foregroundColor(.blue)
-//        .padding(.horizontal, 12)
-//        .padding(.vertical, 6)
-//        .background(Color(red: 0.85, green: 0.92, blue: 1.0))
-//        .cornerRadius(12)
-//        
-//        
-//      }
-//      .padding(.vertical, 6)
-      
+    Section("Raw Text") {      
       TextEditor(text: $rawText)
         .font(.system(size: 14, design: .monospaced))
         .padding(.vertical, 8)

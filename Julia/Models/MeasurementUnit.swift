@@ -21,7 +21,8 @@ enum MeasurementUnit: String, CaseIterable, Codable {
   case item, teaspoon, tablespoon, cup,
        ounce, pound, gram, kilogram,
        pint, quart, gallon, liter,
-       can, bunch, piece, pinch
+       can, bunch, piece, pinch,
+       clove, jar, bottle, container
   
   init?(from string: String?) {
     switch string?.lowercased() {
@@ -52,9 +53,9 @@ enum MeasurementUnit: String, CaseIterable, Codable {
       self = .gallon
     case "l", "liter", "liters":
       self = .liter
-      
-    case "cn", "can", "cans":
-      self = .can
+
+    case "clv", "clove", "cloves":
+      self = .clove
     case  "bn", "bunch", "bunches":
       self = .bunch
     case "pc", "piece", "pieces":
@@ -62,6 +63,17 @@ enum MeasurementUnit: String, CaseIterable, Codable {
     case "pn", "pinch", "pinches":
       self = .pinch
 
+    case "cn", "can", "cans":
+      self = .can
+    case "jar", "jars":
+      self = .jar
+    case "btl", "bottle", "bottles":
+      self = .bottle
+    case "ctr", "cont", "container", "containers":
+      self = .container
+      
+      
+    // Head
       
     default:
       return nil
@@ -85,10 +97,15 @@ enum MeasurementUnit: String, CaseIterable, Codable {
     case .liter: return "liter"
     case .gallon: return "gallon"
       
-    case .can: return "can"
+    case .clove: return "clove"
     case .bunch: return "bunch"
     case .piece: return "piece"
-    case .pinch:  return "pinch"
+    case .pinch: return "pinch"
+
+    case .can: return "can"
+    case .jar: return "jar"
+    case .bottle: return "bottle"
+    case .container: return "container"
     }
   }
   
@@ -109,10 +126,16 @@ enum MeasurementUnit: String, CaseIterable, Codable {
     case .liter: return "liters"
     case .gallon: return "gallons"
       
-    case .can: return "cans"
+
+    case .clove: return "cloves"
     case .bunch: return "bunches"
     case .piece: return "pieces"
-    case .pinch:  return "pinches"
+    case .pinch: return "pinches"
+    
+    case .can: return "cans"
+    case .jar: return "jars"
+    case .bottle: return "bottles"
+    case .container: return "containers"
     }
   }
   
@@ -133,10 +156,15 @@ enum MeasurementUnit: String, CaseIterable, Codable {
     case .liter: return "lt"
     case .gallon: return "gal"
       
-    case .can: return "cn"
+    case .clove: return "clv"
     case .bunch: return "bn"
     case .piece: return "pc"
-    case .pinch:  return "pn"
+    case .pinch: return "pn"
+      
+    case .can: return "cn"
+    case .jar: return "jar"
+    case .bottle: return "btl"
+    case .container: return "ctr"
     }
   }
 }

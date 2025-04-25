@@ -15,14 +15,15 @@ class Timing: Identifiable {
   var hours: Int
   var minutes: Int
   var position: Int = 0  // Add position property to maintain order
-
+  @Relationship(originalName: "timings") var recipe: Recipe?
   
-  init(id: String = UUID().uuidString, type: String, hours: Int, minutes: Int, position: Int = 0) {
+  init(id: String = UUID().uuidString, type: String, hours: Int, minutes: Int, position: Int = 0, recipe: Recipe? = nil) {
     self.id = id
     self.type = type
     self.hours = hours
     self.minutes = minutes
     self.position = position
+    self.recipe = recipe
   }
   
   var displayShort: String {

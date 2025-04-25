@@ -26,6 +26,41 @@ class DataController {
     ], version: Schema.Version(2, 2, 2))
   }()
   
+  // MARK: - Data Management
+  
+  /// Clears all data from the model context
+  static func clearAllData(in context: ModelContext) async throws {
+    // First fetch and delete all recipes (which should cascade to related objects)
+    let recipesDescriptor = FetchDescriptor<Recipe>()
+    let recipes = try context.fetch(recipesDescriptor)
+    
+    for recipe in recipes {
+      // First clear relationships to avoid issues with deletion
+      recipe.ingredients = []
+      recipe.sections = []
+      recipe.timings = []
+      recipe.instructions = []
+      recipe.notes = []
+      recipe.images = []
+      
+      // Then delete the recipe
+      context.delete(recipe)
+    }
+    
+    // Delete standalone ingredients (not associated with recipes)
+    let ingredientsDescriptor = FetchDescriptor<Ingredient>(
+      predicate: #Predicate<Ingredient> { $0.recipe == nil && $0.section == nil }
+    )
+    let ingredients = try context.fetch(ingredientsDescriptor)
+    
+    for ingredient in ingredients {
+      context.delete(ingredient)
+    }
+    
+    // Save changes
+    try context.save()
+  }
+  
   // MARK: - Containers
   
   /// Main application container for persistent storage

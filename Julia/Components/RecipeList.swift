@@ -19,6 +19,9 @@ struct RecipeList: View {
                     RecipeRow(recipe: recipe)
                 }
             }
+            .listRowBackground(Color.clear)
+            .listRowSeparatorTint(Color.app.offWhite400)
+
             
             // Add spacer at the end for tab bar
             Section {
@@ -29,6 +32,8 @@ struct RecipeList: View {
             }
         }
         .listStyle(.plain)
+        .scrollContentBackground(.hidden)
+
     }
 }
 

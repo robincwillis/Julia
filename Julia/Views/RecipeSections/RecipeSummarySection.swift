@@ -15,10 +15,10 @@ struct ServingsCard: View {
     VStack(spacing: 6) {
       Image(systemName: "person.2.fill")
         .font(.title2)
-        .foregroundColor(.blue)
+        .foregroundColor(Color.app.primary)
       Text("\(servings)")
         .font(.headline)
-        .foregroundColor(.primary)
+        .foregroundColor(Color.app.textPrimary)
     }
     .padding()
     .frame(minWidth: 80, minHeight: 80)
@@ -35,18 +35,18 @@ struct TimingsCard: View {
       // If only one timing, use a centered HStack without ScrollView
       if timings.count == 1, let timing = timings.first {
         VStack(spacing: 6) {
-          Image(systemName: "stopwatch.fill")
+          Image(systemName: "timer")
             .font(.title2)
-            .foregroundColor(.blue)
+            .foregroundColor(Color.app.primary)
           
           HStack(spacing: 4) {
             Text(timing.displayShort)
               .font(.headline)
-              .foregroundColor(.primary)
+              .foregroundColor(Color.app.textPrimary)
             
             Text(timing.type)
               .font(.headline)
-              .foregroundColor(.secondary)
+              .foregroundColor(Color.app.textLabel)
           }
         }
         .padding()
@@ -57,9 +57,9 @@ struct TimingsCard: View {
           HStack(spacing: 24) {
             ForEach(timings) { timing in
               HStack(alignment: .firstTextBaseline) {
-                Image(systemName: "stopwatch")
+                Image(systemName: "timer")
                   .font(.title2)
-                  .foregroundColor(.blue)
+                  .foregroundColor(Color.app.primary)
                   .alignmentGuide(.firstTextBaseline) { d in
                     d[.bottom] - 8 // Fine-tuned alignment
                   }
@@ -67,11 +67,11 @@ struct TimingsCard: View {
                 VStack(alignment: .leading, spacing: 4) {
                   Text(timing.displayShort)
                     .font(.headline)
-                    .foregroundColor(.primary)
+                    .foregroundColor(Color.app.textPrimary)
                   
                   Text(timing.type)
                     .font(.headline)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(Color.app.textLabel)
                 }
               }
             }
@@ -106,8 +106,8 @@ struct RecipeSummarySection: View {
                 width: hasTimings && singleTiming ?
                 geometry.size.width * 0.5 : nil
               )
-              .background(Color(.systemGray6))
-              .cornerRadius(12)
+              .background(Color.app.offWhite200)
+              .cornerRadius(24)
           }
           
           // Timings card - expands to fill available width
@@ -120,8 +120,8 @@ struct RecipeSummarySection: View {
               width: hasServings && singleTiming ?
               geometry.size.width * 0.5 : nil
             )
-            .background(Color(.systemGray6))
-            .cornerRadius(12)
+            .background(Color.app.offWhite200)
+            .cornerRadius(24)
           }
         }
         .frame(maxWidth: geometry.size.width)

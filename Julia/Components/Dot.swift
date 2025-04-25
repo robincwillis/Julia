@@ -28,7 +28,7 @@ struct Dot: View {
     ZStack {
       // Main circle (visible when not in loading state)
       Circle()
-        .fill(Color.red)
+        .fill(Color.app.primary)
         .frame(width: circleSize, height: circleSize)
         .opacity(animationState != .loading ? 1 : 0)
         .animation(.easeInOut(duration: animationDuration), value: animationState)

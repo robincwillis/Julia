@@ -1,150 +1,660 @@
 [
-    {
-        "id": "1e61e0ba-f060-4f2c-b815-3ca5fd5a8fa2",
-        "title": "Pancakes",
-        "content": "Suscipit inceptos est felis purus aenean aliquet adipiscing diam venenatis, augue nibh duis neque aliquam tellus condimentum sagittis vivamus, cras ante etiam sit conubia elit tempus accumsan libero, mattis per erat habitasse cubilia ligula penatibus curae.",
-        "rawText": ["Suscipit inceptos est felis purus aenean aliquet adipiscing diam venenatis,"," augue nibh duis neque aliquam tellus condimentum sagittis vivamus,"," cras ante etiam sit conubia elit tempus accumsan libero, mattis per erat habitasse cubilia ligula penatibus curae."],
+  {
+    "id": "imported-recipe-1",
+    "title": "French Onion Galette",
+    "summary": "A rustic tart with caramelized onions and Gruyère cheese, reminiscent of French onion soup flavors.",
+    "servings": 6,
+    "tags": ["French", "galette", "tart", "onion", "baking"],
+    "rawText": [
+      "French Onion Galette",
+      "PREP TIME",
+      "30 minutes to 40 minutes",
+      "COOK TIME",
+      "1 hour 20 minutes to 1 hour 35 minutes",
+      "SERVES",
+      "6"
+    ],
+    "source": null,
+    "sourceType": "manual",
+    "sourceTitle": null,
+    "website": null,
+    "author": null,
+    "ingredients": [],
+    "sections": [
+      {
+        "id": "section-crust-1",
+        "name": "FOR THE CRUST",
+        "position": 0,
         "ingredients": [
-            {
-                "id": "67651907-6849-433c-9b13-a112d678ed2e",
-                "name": "Flour",
-                "quantity": 2,
-                "measurement": "cup",
-                "location": "recipe"
-            },
-            {
-                "id": "da710e3d-c8a9-4c08-bf9e-82f10a44073d",
-                "name": "Sugar",
-                "quantity": 2,
-                "measurement": "tbsp",
-                "location": "recipe"
-            },
-            {
-                "id": "58865140-dbc2-4b52-a34d-8e5ce0631e08",
-                "name": "Baking Powder",
-                "quantity": 2,
-                "measurement": "tsp",
-                "location": "recipe"
-            },
-            {
-                "id": "7ae75a4e-ccb6-4b0f-a3cc-ece6e81b3e8e",
-                "name": "Salt",
-                "quantity": 0.5,
-                "measurement": "tsp",
-                "location": "recipe"
-            },
-            {
-                "id": "e7fc36d2-7903-4d93-a26f-ad553b31d1dc",
-                "name": "Milk",
-                "quantity": 1.5,
-                "measurement": "cup",
-                "location": "recipe"
-            },
-            {
-                "id": "8e982fe5-8b32-4cd7-ad4d-7a14e2ca90df",
-                "name": "Eggs",
-                "quantity": 2,
-                "measurement": "large",
-                "location": "recipe"
-            },
-            {
-                "id": "7d6dbe04-0684-41e7-8464-3f3a0f676764",
-                "name": "Butter",
-                "quantity": 0.25,
-                "measurement": "cup",
-                "comment": "(melted)",
-                "location": "recipe"
-            }
-        ],
-        "steps": [
-            "In a large bowl, whisk together the flour, sugar, baking powder, and salt.",
-            "In another bowl, beat the eggs and then whisk in the milk and melted butter.",
-            "Pour the wet ingredients into the dry ingredients and mix until just combined.",
-            "Heat a lightly oiled griddle or frying pan over medium high heat.",
-            "Pour or scoop the batter onto the griddle, using approximately 1/4 cup for each pancake.",
-            "Brown on both sides and serve hot."
+          {
+            "id": "ingredient-crust-1",
+            "name": "cold unsalted butter",
+            "location": "recipe",
+            "quantity": 8,
+            "unit": "tablespoon",
+            "comment": "(1 stick)",
+            "position": 0
+          },
+          {
+            "id": "ingredient-crust-2",
+            "name": "all-purpose flour",
+            "location": "recipe",
+            "quantity": 1.5,
+            "unit": "cup",
+            "comment": "plus more for dusting",
+            "position": 1
+          },
+          {
+            "id": "ingredient-crust-3",
+            "name": "freshly ground black pepper",
+            "location": "recipe",
+            "quantity": 1,
+            "unit": "teaspoon",
+            "position": 2
+          },
+          {
+            "id": "ingredient-crust-4",
+            "name": "kosher salt",
+            "location": "recipe",
+            "quantity": 0.5,
+            "unit": "teaspoon",
+            "position": 3
+          },
+          {
+            "id": "ingredient-crust-5",
+            "name": "ice water",
+            "location": "recipe",
+            "quantity": 0.25,
+            "unit": "cup",
+            "comment": "plus 3 tablespoons",
+            "position": 4
+          }
         ]
-    },
-    {
-        "id": "e8b1146f-8c27-4b3d-bff3-0ec87bfaf841",
-        "title": "Chocolate Chip Cookies",
-        "rawText": ["Suscipit inceptos est felis purus aenean aliquet adipiscing diam venenatis,"," augue nibh duis neque aliquam tellus condimentum sagittis vivamus,"," cras ante etiam sit conubia elit tempus accumsan libero, mattis per erat habitasse cubilia ligula penatibus curae."],
+      },
+      {
+        "id": "section-filling-1",
+        "name": "FOR THE FILLING AND ASSEMBLY",
+        "position": 1,
         "ingredients": [
-            {
-                "id": "d39dbde8-35a3-49c1-a915-2b3e385d2677",
-                "name": "Flour",
-                "quantity": 2.25,
-                "measurement": "cup",
-                "location": "recipe"
-            },
-            {
-                "id": "ecab4532-05f9-43ba-bf16-fbc632e44aa1",
-                "name": "Baking Soda",
-                "quantity": 1,
-                "measurement": "tsp",
-                "location": "recipe"
-            },
-            {
-                "id": "ce90d5d9-0376-4c2c-bb52-2382033823d8",
-                "name": "Salt",
-                "quantity": 0.5,
-                "measurement": "tsp",
-                "location": "recipe"
-            },
-            {
-                "id": "8ce58e70-a27a-44ca-a776-4a16d744bf63",
-                "name": "Butter",
-                "quantity": 1,
-                "measurement": "cup",
-                "comment": "(2 sticks)",
-                "location": "recipe"
-            },
-            {
-                "id": "f1517117-7bf9-4b59-b155-69192a2f8002",
-                "name": "Sugar",
-                "quantity": 0.75,
-                "measurement": "cup",
-                "location": "recipe"
-            },
-            {
-                "id": "0bfd76af-29e3-4e0f-8c48-f5919e4dd65b",
-                "name": "Brown Sugar",
-                "quantity": 0.75,
-                "measurement": "cup",
-                "comment": "packed",
-                "location": "recipe"
-            },
-            {
-                "id": "ebc8dcca-9465-44dc-9a9c-48c27913d62e",
-                "name": "Vanilla Extract",
-                "quantity": 1,
-                "measurement": "tsp",
-                "location": "recipe"
-            },
-            {
-                "id": "01fba6be-8a43-43a6-9c45-0f7cca4d95b2",
-                "name": "Eggs",
-                "quantity": 2,
-                "comment": "large",
-                "location": "recipe"
-            },
-            {
-                "id": "0646ff6e-4451-4c97-9c0b-d4534e21e3d9",
-                "name": "Chocolate Chips",
-                "quantity": 2,
-                "measurement": "cup",
-                "location": "recipe"
-            }
-        ],
-        "steps": [
-            "Preheat the oven to 375°F (190°C).",
-            "In a small bowl, whisk together the flour, baking soda, and salt.",
-            "In a large bowl, beat the butter, sugar, brown sugar, and vanilla extract until creamy.",
-            "Add the eggs one at a time, beating well after each addition.",
-            "Gradually beat in the flour mixture.",
-            "Stir in the chocolate chips.",
-            "Drop by rounded tablespoon onto baking sheets.",
-            "Bake for 9 to 11 minutes or until golden brown."
+          {
+            "id": "ingredient-filling-1",
+            "name": "yellow onions",
+            "location": "recipe",
+            "quantity": 3,
+            "unit": "pound",
+            "comment": "about 3 large or 6 medium",
+            "position": 0
+          },
+          {
+            "id": "ingredient-filling-2",
+            "name": "fresh thyme",
+            "location": "recipe",
+            "quantity": 10,
+            "unit": "sprig",
+            "position": 1
+          },
+          {
+            "id": "ingredient-filling-3",
+            "name": "unsalted butter",
+            "location": "recipe",
+            "quantity": 3,
+            "unit": "tablespoon",
+            "position": 2
+          },
+          {
+            "id": "ingredient-filling-4",
+            "name": "kosher salt",
+            "location": "recipe",
+            "quantity": 1,
+            "unit": "teaspoon",
+            "position": 3
+          },
+          {
+            "id": "ingredient-filling-5",
+            "name": "freshly ground black pepper",
+            "location": "recipe",
+            "quantity": 0.5,
+            "unit": "teaspoon",
+            "position": 4
+          },
+          {
+            "id": "ingredient-filling-6",
+            "name": "Gruyère cheese",
+            "location": "recipe",
+            "quantity": 6,
+            "unit": "ounce",
+            "position": 5
+          },
+          {
+            "id": "ingredient-filling-7",
+            "name": "dry white wine",
+            "location": "recipe",
+            "quantity": 0.25,
+            "unit": "cup",
+            "position": 6
+          },
+          {
+            "id": "ingredient-filling-8",
+            "name": "balsamic or sherry vinegar",
+            "location": "recipe",
+            "quantity": 2,
+            "unit": "teaspoon",
+            "position": 7
+          },
+          {
+            "id": "ingredient-filling-9",
+            "name": "Dijon mustard",
+            "location": "recipe",
+            "quantity": 2,
+            "unit": "teaspoon",
+            "position": 8
+          }
         ]
-    }
+      }
+    ],
+    "timings": [
+      {
+        "id": "timing-1",
+        "type": "Prep",
+        "hours": 0,
+        "minutes": 30
+      },
+      {
+        "id": "timing-2",
+        "type": "Cook",
+        "hours": 1,
+        "minutes": 20
+      }
+    ],
+    "instructions": [
+      {
+        "id": "instruction-crust-1",
+        "value": "Freeze 1 stick cold unsalted butter until firm, about 15 minutes. Meanwhile, whisk 1 1/2 cups all-purpose flour, 1 teaspoon black pepper, and 1/2 teaspoon kosher salt together in a large bowl.",
+        "position": 0
+      },
+      {
+        "id": "instruction-crust-2",
+        "value": "Place a box grater over a small piece of parchment paper, cutting board, or large plate. Grate the butter on the large holes of a box grater. When you get down to a small nub of butter, chop that nub into 5 to 6 small pieces. Reserve the grater (no need to clean).",
+        "position": 1
+      },
+      {
+        "id": "instruction-crust-3",
+        "value": "Transfer the butter to the dry ingredients and reserve the parchment paper. Use your fingers to toss the butter in the flour, breaking up any clumps, until evenly coated.",
+        "position": 2
+      },
+      {
+        "id": "instruction-crust-4",
+        "value": "Drizzle 1/4 cup plus 3 tablespoon ice water over the butter-flour mixture. Use a fork or your hands to combine and lightly mix until a rough dough ball forms; do not overwork the dough.",
+        "position": 3
+      },
+      {
+        "id": "instruction-crust-5",
+        "value": "Turn the dough out onto a large piece of plastic wrap. Use the palm of your hand to quickly gather and press the mound into a thick disk. Wrap in the plastic wrap and refrigerate while you prepare the filling, at least 1 hour.",
+        "position": 4
+      },
+      {
+        "id": "instruction-filling-1",
+        "value": "Halve and thinly slice 3 pounds yellow onions (about 11 cups). Strip the leaves from 10 fresh thyme sprigs.",
+        "position": 5
+      },
+      {
+        "id": "instruction-filling-2",
+        "value": "Melt 3 tablespoons unsalted butter in a 12-inch or larger, preferably high-sided, skillet over medium heat. Add the onions, half of the thyme leaves, 1 teaspoon kosher salt, and 1/2 teaspoon black pepper. Cook, stirring frequently with a wooden spoon and reducing the heat if the onions start to burn, until the onions have reduced by over half, are very soft, and deep golden brown, 45 to 60 minutes. Meanwhile, grate 6 ounces Gruyère cheese on the large holes of the box grater onto the reserved parchment paper (about 1 1/2 cups).",
+        "position": 6
+      },
+      {
+        "id": "instruction-filling-3",
+        "value": "Pour 1/4 cup dry white wine over the caramelized onions. Scrape up any browned bits on the bottom of the pan and continue to stir until the wine has evaporated, about 1 minute. Remove from the heat and stir in 2 teaspoons balsamic or sherry vinegar.",
+        "position": 7
+      },
+      {
+        "id": "instruction-assembly-1",
+        "value": "Arrange a rack in the middle of the oven and heat the oven to 400°F. Prepare a sheet of parchment paper about the size of a baking sheet. Lightly dust the parchment with all-purpose flour.",
+        "position": 8
+      },
+      {
+        "id": "instruction-assembly-2",
+        "value": "Unwrap the dough and place it on the prepared parchment paper. Sprinkle the dough with more flour and, using a rolling pin, roll it out into a round about 12 inches wide. Carefully transfer the parchment paper, with the rolled-out dough on it, onto a baking sheet.",
+        "position": 9
+      },
+      {
+        "id": "instruction-assembly-3",
+        "value": "Spread 2 teaspoons Dijon mustard evenly onto the dough with the back of a spoon or a butter knife, leaving a 1 1/2- to 2-inch border. Sprinkle half of the cheese onto the mustard. Spoon the caramelized onions onto the cheese.",
+        "position": 10
+      },
+      {
+        "id": "instruction-assembly-4",
+        "value": "Gently fold the edges of the dough over the filling, pleating it about every 2 inches. Sprinkle the remaining cheese on top. (Don't worry if some of the cheese gets on the crust — it will just result in some nice, golden-brown crispy bits like French onion soup!)",
+        "position": 11
+      },
+      {
+        "id": "instruction-assembly-5",
+        "value": "Bake until the crust is firm and golden-brown, and the cheese is melted and browned in spots, about 35 minutes. Let the galette cool for at least 5 to 10 minutes before serving. Garnish with the remaining thyme leaves and serve warm or at room temperature, cut into wedges.",
+        "position": 12
+      }
+    ],
+    "notes": [
+      {
+        "id": "note-1",
+        "text": "You can add extra flour, cornmeal or breadcrumbs to the base of the pastry to avoid it getting soggy from filling when baking.",
+        "position": 0
+      }
+    ]
+  },
+  {
+    "id": "imported-recipe-2",
+    "title": "Perfect Pot Roast",
+    "summary": "Truly the best melt-in-your-mouth pot roast, cooked low and slow and simmered until perfection. Serve with crusty bread!",
+    "servings": 8,
+    "tags": ["dinner", "beef", "slow-cooked", "comfort food", "one-pot"],
+    "rawText": [
+      "PERFECT POT ROAST",
+      "yield: 8 SERVINGS",
+      "prep: 30 MINUTES",
+      "cook: 4 HOURS",
+      "total: 4 HOURS 30 MINUTES"
+    ],
+    "source": null,
+    "sourceType": "manual",
+    "sourceTitle": null,
+    "website": null,
+    "author": null,
+    "ingredients": [
+      {
+        "id": "ingredient-1",
+        "name": "boneless chuck roast",
+        "location": "recipe",
+        "quantity": 4,
+        "unit": "pound",
+        "comment": "excess fat trimmed",
+        "position": 0
+      },
+      {
+        "id": "ingredient-2",
+        "name": "Kosher salt and freshly ground black pepper",
+        "location": "recipe",
+        "comment": "to taste",
+        "position": 1
+      },
+      {
+        "id": "ingredient-3",
+        "name": "canola oil",
+        "location": "recipe",
+        "quantity": 2,
+        "unit": "tablespoon",
+        "position": 2
+      },
+      {
+        "id": "ingredient-4",
+        "name": "sweet onion",
+        "location": "recipe",
+        "quantity": 1,
+        "unit": "item",
+        "comment": "medium, cut into 1-inch wedges",
+        "position": 3
+      },
+      {
+        "id": "ingredient-5",
+        "name": "tomato paste",
+        "location": "recipe",
+        "quantity": 2,
+        "unit": "tablespoon",
+        "position": 4
+      },
+      {
+        "id": "ingredient-6",
+        "name": "garlic",
+        "location": "recipe",
+        "quantity": 4,
+        "unit": "clove",
+        "comment": "minced",
+        "position": 5
+      },
+      {
+        "id": "ingredient-7",
+        "name": "dry red wine",
+        "location": "recipe",
+        "quantity": 1,
+        "unit": "cup",
+        "comment": "see note for substitution",
+        "position": 6
+      },
+      {
+        "id": "ingredient-8",
+        "name": "beef stock",
+        "location": "recipe",
+        "quantity": 1,
+        "unit": "cup",
+        "position": 7
+      },
+      {
+        "id": "ingredient-9",
+        "name": "carrots",
+        "location": "recipe",
+        "quantity": 3,
+        "unit": "item",
+        "comment": "large, cut into 3-inch pieces",
+        "position": 8
+      },
+      {
+        "id": "ingredient-10",
+        "name": "cremini mushrooms",
+        "location": "recipe",
+        "quantity": 8,
+        "unit": "ounce",
+        "position": 9
+      },
+      {
+        "id": "ingredient-11",
+        "name": "fresh thyme",
+        "location": "recipe",
+        "quantity": 4,
+        "unit": "sprig",
+        "position": 10
+      },
+      {
+        "id": "ingredient-12",
+        "name": "fresh rosemary",
+        "location": "recipe",
+        "quantity": 1,
+        "unit": "sprig",
+        "position": 11
+      },
+      {
+        "id": "ingredient-13",
+        "name": "small Yukon gold potatoes",
+        "location": "recipe",
+        "quantity": 1.5,
+        "unit": "pound",
+        "position": 12
+      },
+      {
+        "id": "ingredient-14",
+        "name": "fresh parsley leaves",
+        "location": "recipe",
+        "quantity": 2,
+        "unit": "tablespoon",
+        "comment": "chopped",
+        "position": 13
+      }
+    ],
+    "sections": [],
+    "timings": [
+      {
+        "id": "timing-1",
+        "type": "Prep",
+        "hours": 0,
+        "minutes": 30
+      },
+      {
+        "id": "timing-2",
+        "type": "Cook",
+        "hours": 4,
+        "minutes": 0
+      }
+    ],
+    "instructions": [
+      {
+        "id": "instruction-1",
+        "value": "Preheat oven to 325 degrees F.",
+        "position": 0
+      },
+      {
+        "id": "instruction-2",
+        "value": "Season beef with 2 teaspoons salt and 3/4 teaspoon black pepper.",
+        "position": 1
+      },
+      {
+        "id": "instruction-3",
+        "value": "Heat canola oil in a Dutch oven over medium high heat. Add beef and cook until evenly browned, about 5-6 minutes per side; set aside.",
+        "position": 2
+      },
+      {
+        "id": "instruction-4",
+        "value": "Reduce heat to medium. Add onion, and cook, stirring frequently, until tender, about 5 minutes.",
+        "position": 3
+      },
+      {
+        "id": "instruction-5",
+        "value": "Stir in tomato paste and garlic until fragrant, about 1 minute.",
+        "position": 4
+      },
+      {
+        "id": "instruction-6",
+        "value": "Stir in wine and beef stock, scraping any browned bits from the bottom of the Dutch oven.",
+        "position": 5
+      },
+      {
+        "id": "instruction-7",
+        "value": "Stir in carrots, mushrooms, thyme and rosemary; season with salt and pepper, to taste. Bring to a boil; reduce heat and simmer. Top with beef.",
+        "position": 6
+      },
+      {
+        "id": "instruction-8",
+        "value": "Place into oven, covered, and bake for 2 hours. Uncover and add potatoes; place into oven, covered, and bake until beef is fork-tender, about 1 hour to 1 hour and 30 minutes.",
+        "position": 7
+      },
+      {
+        "id": "instruction-9",
+        "value": "Let stand 15 minutes. Remove beef from the Dutch oven; shred, using two forks.",
+        "position": 8
+      },
+      {
+        "id": "instruction-10",
+        "value": "Serve beef, potatoes, carrots and mushrooms with juices immediately, garnished with parsley, if desired.",
+        "position": 9
+      }
+    ],
+    "notes": [
+      {
+        "id": "note-1",
+        "text": "Beef stock can be used for red wine as a non-alcoholic substitute.",
+        "position": 0
+      }
+    ]
+  },
+  {
+    "id": "imported-recipe-3",
+    "title": "Fancy Sardine Niçoise with Medium-Boiled Eggs and Fingerling Potatoes",
+    "summary": "A classic niçoise salad with a twist, using sardines instead of tuna. This composed salad features each element carefully arranged on the plate, making it both visually appealing and delicious.",
+    "servings": 2,
+    "tags": ["salad", "seafood", "French", "sardines", "summer", "main course"],
+    "rawText": [
+      "Serves 2",
+      "Prep Time 45 minutes",
+      "A nicoise salad is a fixture in the salad canon, but there are infinite variations on this salade compose."
+    ],
+    "source": null,
+    "sourceType": "manual",
+    "sourceTitle": null,
+    "website": null,
+    "author": null,
+    "ingredients": [],
+    "sections": [
+      {
+        "id": "section-dressing-1",
+        "name": "For the dressing",
+        "position": 0,
+        "ingredients": [
+          {
+            "id": "ingredient-dressing-1",
+            "name": "oil-packed anchovy fillets",
+            "location": "recipe",
+            "quantity": 3,
+            "unit": "item",
+            "position": 0
+          },
+          {
+            "id": "ingredient-dressing-2",
+            "name": "white wine vinegar",
+            "location": "recipe",
+            "quantity": 2,
+            "unit": "teaspoon",
+            "position": 1
+          },
+          {
+            "id": "ingredient-dressing-3",
+            "name": "Dijon mustard",
+            "location": "recipe",
+            "quantity": 0.5,
+            "unit": "teaspoon",
+            "position": 2
+          },
+          {
+            "id": "ingredient-dressing-4",
+            "name": "olive oil",
+            "location": "recipe",
+            "quantity": 3,
+            "unit": "tablespoon",
+            "position": 3
+          }
+        ]
+      },
+      {
+        "id": "section-salad-1",
+        "name": "For the salad",
+        "position": 1,
+        "ingredients": [
+          {
+            "id": "ingredient-salad-1",
+            "name": "kosher salt",
+            "location": "recipe",
+            "quantity": 1,
+            "unit": "tablespoon",
+            "position": 0
+          },
+          {
+            "id": "ingredient-salad-2",
+            "name": "Yukon Gold potatoes",
+            "location": "recipe",
+            "quantity": 3,
+            "unit": "item",
+            "comment": "small",
+            "position": 1
+          },
+          {
+            "id": "ingredient-salad-3",
+            "name": "haricots verts",
+            "location": "recipe",
+            "quantity": 4,
+            "unit": "ounce",
+            "comment": "ends trimmed (115g)",
+            "position": 2
+          },
+          {
+            "id": "ingredient-salad-4",
+            "name": "eggs",
+            "location": "recipe",
+            "quantity": 2,
+            "unit": "item",
+            "comment": "large",
+            "position": 3
+          },
+          {
+            "id": "ingredient-salad-5",
+            "name": "Bibb lettuce",
+            "location": "recipe",
+            "quantity": 4,
+            "unit": "leaf",
+            "position": 4
+          },
+          {
+            "id": "ingredient-salad-6",
+            "name": "oil-packed sardines",
+            "location": "recipe",
+            "quantity": 4.5,
+            "unit": "ounce",
+            "comment": "drained (115-140g can)",
+            "position": 5
+          },
+          {
+            "id": "ingredient-salad-7",
+            "name": "nicoise olives or Kalamata olives",
+            "location": "recipe",
+            "quantity": 0.25,
+            "unit": "cup",
+            "comment": "halved and pitted if using Kalamata (40g)",
+            "position": 6
+          },
+          {
+            "id": "ingredient-salad-8",
+            "name": "Vidalia onion",
+            "location": "recipe",
+            "quantity": 1,
+            "unit": "tablespoon",
+            "comment": "very thinly sliced",
+            "position": 7
+          },
+          {
+            "id": "ingredient-salad-9",
+            "name": "heirloom tomato",
+            "location": "recipe",
+            "quantity": 1,
+            "unit": "item",
+            "comment": "cut into wedges (optional)",
+            "position": 8
+          },
+          {
+            "id": "ingredient-salad-10",
+            "name": "Sea salt and freshly ground black pepper",
+            "location": "recipe",
+            "comment": "to taste",
+            "position": 9
+          }
+        ]
+      }
+    ],
+    "timings": [
+      {
+        "id": "timing-1",
+        "type": "Prep",
+        "hours": 0,
+        "minutes": 45
+      }
+    ],
+    "instructions": [
+      {
+        "id": "instruction-1",
+        "value": "Make the dressing: Mince the anchovies and smear them into a paste using the side of a broad chef's knife. Put the paste in a small bowl and whisk in the vinegar, mustard, and oil until emulsified.",
+        "position": 0
+      },
+      {
+        "id": "instruction-2",
+        "value": "Make the salad: Bring a 1-quart (960-ml) saucepan of water and the kosher salt to a boil. Drop the potatoes in the boiling water and boil for 20 minutes, or until they are tender. Remove the potatoes with a slotted spoon and put aside.",
+        "position": 1
+      },
+      {
+        "id": "instruction-3",
+        "value": "Add the haricots verts to the boiling water. Cook for 30 seconds, then remove them with a slotted spoon to ice water.",
+        "position": 2
+      },
+      {
+        "id": "instruction-4",
+        "value": "Add the eggs (in the shell) to the boiling water and cook for 8 minutes, until they are medium-boiled. Remove them with a slotted spoon to the ice water and let them cool completely. Peel and cut them into halves.",
+        "position": 3
+      },
+      {
+        "id": "instruction-5",
+        "value": "Cut the potatoes and each haricot vert into halves.",
+        "position": 4
+      },
+      {
+        "id": "instruction-6",
+        "value": "Arrange the lettuce leaves on a platter and compose the potatoes, haricots verts, egg, sardines, olives, onion, and tomato in groupings on top.",
+        "position": 5
+      },
+      {
+        "id": "instruction-7",
+        "value": "Spoon the dressing over the salad, season with sea salt and pepper, and serve.",
+        "position": 6
+      }
+    ],
+    "notes": [
+      {
+        "id": "note-1",
+        "text": "The tomatoes make this a summer dish but if you have a hankering for niçoise any other time of year simply omit the tomato and you still have a winning main course.",
+        "position": 0
+      }
+    ]
+  }
 ]

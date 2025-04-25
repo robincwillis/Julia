@@ -139,7 +139,7 @@ struct TimingRow: View {
           }
         } label: {
           Text("\(timing.type) Time")
-            .foregroundColor(.primary)
+            .foregroundColor(Color.app.textPrimary)
             .padding(.vertical, 4)
         }
         
@@ -156,7 +156,7 @@ struct TimingRow: View {
           //}
         }) {
           Text(timing.display)
-            .foregroundColor(.secondary)
+            .foregroundColor(Color.app.textSecondary)
             .padding(.vertical, 4)
         }
       }
@@ -206,7 +206,6 @@ struct TimingRow: View {
               editingId = nil
             }) {
               Text("Done")
-                .foregroundColor(.blue)
                 .fontWeight(.medium)
             }
             .padding(.horizontal, 4)

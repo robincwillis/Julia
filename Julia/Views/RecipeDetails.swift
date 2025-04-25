@@ -33,7 +33,6 @@ struct RecipeDetails: View {
   @State private var titleIsVisible: Bool = true  
   @State private var focusedField: RecipeFocusedField = .none
   
-  
   @ViewBuilder
   private var editModeContent: some View {
     Form {
@@ -74,7 +73,8 @@ struct RecipeDetails: View {
       )
       
     }
-    .background(Color(.secondarySystemBackground))
+    .scrollContentBackground(.hidden)
+    .background(Color.app.backgroundSecondary)
     .listStyle(.insetGrouped)
     .navigationTitle(recipe.title)
     .navigationBarTitleDisplayMode(.inline)
@@ -103,7 +103,7 @@ struct RecipeDetails: View {
   private var viewModeContent: some View {
     ZStack(alignment: .top) {
       ScrollView(.vertical, showsIndicators: true) {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 24) {
           ScrollFadeTitle(
             title: recipe.title,
             titleIsVisible: $titleIsVisible
@@ -143,7 +143,6 @@ struct RecipeDetails: View {
     .navigationTitle(!titleIsVisible ? recipe.title : "")
     .navigationBarTitleDisplayMode(.inline)
     .edgesIgnoringSafeArea(.bottom)
-    .background(Color(.systemBackground))
     .toolbar {
       if !selectedIngredients.isEmpty {
         ToolbarItem(placement: .topBarTrailing) {
@@ -160,25 +159,33 @@ struct RecipeDetails: View {
       }) {
         Label("Add to Groceries", systemImage: "basket.fill")
       }
+      .tint(Color.app.primary)
+      
       Button(action: {
         addSelectedToLocation(location: .pantry)
       }) {
         Label("Add to Pantry", systemImage: "cabinet.fill")
 
       }
+      .tint(Color.app.primary)
+      
       Button(action: selectAll) {
         Label("Select All", systemImage: "checklist.checked")
       }
+      .tint(Color.app.primary)
+      
       Button(action: clearSelection) {
         Label("Clear Selection", systemImage: "xmark.circle")
       }
+      .tint(Color.app.primary)
+      
     } label: {
       Image(systemName: "ellipsis")
         .font(.system(size: 14))
-        .foregroundColor(.blue)
+        .foregroundColor(Color.app.primary)
         .padding(12)
         .frame(width: 30, height: 30)
-        .background(Color(red: 0.85, green: 0.92, blue: 1.0))
+        .background(Color.white)
         .clipShape(Circle())
         .animation(.snappy, value: !selectedIngredients.isEmpty)
         .transition(.opacity)
@@ -208,19 +215,22 @@ struct RecipeDetails: View {
           Button("Show Raw Text", systemImage: "text.quote") {
             showRawTextSheet = true
           }
+          .tint(Color.app.primary)
           Button("Show Source", systemImage: "text.page.badge.magnifyingglass") {
             showSourceSheet = true
           }
+          .tint(Color.app.primary)
           Button("Delete Recipe", systemImage: "trash", role: .destructive) {
             showDeleteConfirmation = true
           }
+          .tint(Color.app.danger)
         } label: {
           Image(systemName: "ellipsis")
             .font(.system(size: 14))
-            .foregroundColor(.blue)
+            .foregroundColor(Color.app.primary)
             .padding(12)
             .frame(width: 30, height: 30)
-            .background(Color(red: 0.85, green: 0.92, blue: 1.0))
+            .background(Color.white)
             .clipShape(Circle())
             .animation(.snappy, value: isEditing)
             .transition(.opacity)
@@ -258,6 +268,8 @@ struct RecipeDetails: View {
         sourceType: Binding($recipe.sourceType,  default: SourceType.unknown)
       )
     }
+    .scrollContentBackground(.hidden)
+    .background(Color.app.backgroundSecondary)
     .presentationDetents([.medium, .large])
     .background(.background.secondary)
     .presentationDragIndicator(.hidden)
@@ -333,6 +345,34 @@ struct RecipeDetails: View {
   }
   
   private func deleteRecipe() {
+    // First explicitly clear relationships to prevent access to deleted objects
+    let ingredientsCopy = recipe.ingredients
+    let sectionsCopy = recipe.sections
+    
+    // Clear relationship arrays first
+    recipe.ingredients = []
+    recipe.sections = []
+    
+    // Then delete all related objects explicitly
+    for ingredient in ingredientsCopy {
+      context.delete(ingredient)
+    }
+    
+    for section in sectionsCopy {
+      // Clear section's ingredients to avoid nested access
+      let sectionIngredients = section.ingredients
+      section.ingredients = []
+      
+      // Delete section's ingredients
+      for ingredient in sectionIngredients {
+        context.delete(ingredient)
+      }
+      
+      // Delete the section
+      context.delete(section)
+    }
+    
+    // Now delete the recipe
     context.delete(recipe)
     
     // We need to handle potential errors when changes are saved

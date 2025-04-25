@@ -185,11 +185,11 @@ class RecipeWebExtractor {
       recipeData.sourceTitle = publisherName
     }
     
-    // Collect raw text for classification
+    // Collect raw text for safe keeping
     var rawText: [String] = []
     rawText.append("TITLE: \(recipeData.title)")
     for summary in recipeData.summary {
-      rawText.append("DESCRIPTION: \(summary)")
+      rawText.append("SUMMARY: \(summary)")
     }
     rawText.append("INGREDIENTS:")
     rawText.append(contentsOf: recipeData.ingredients)

@@ -35,6 +35,8 @@ struct ProcessingResultsRawText: View {
         }
       }
       .listStyle(.inset)
+      .scrollContentBackground(.hidden)
+      .background(Color.app.backgroundSecondary)
   }
 }
   
