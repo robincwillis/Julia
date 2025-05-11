@@ -138,10 +138,10 @@ class RecipeTextReconstructor {
     }
     
     // Debug print to verify the results
-    print("*** RecipeTextReconstructor Results ***")
-    print("Title: \(title)")
-    print("Reconstructed Lines (\(reconstructedLines.count)): \(reconstructedLines)")
-    print("Artifacts (\(artifacts.count)): \(artifacts)")
+    // print("*** RecipeTextReconstructor Results ***")
+    // print("Title: \(title)")
+    // print("Reconstructed Lines (\(reconstructedLines.count)): \(reconstructedLines)")
+    // print("Artifacts (\(artifacts.count)): \(artifacts)")
     
     return TextReconstructorResult(
       title: title,

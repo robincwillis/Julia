@@ -87,7 +87,7 @@ class RecipeProcessor: ObservableObject {
         try await Task.sleep(nanoseconds: 750_000_000)
         let classifiedText = try await classifyText(reconstructedText.reconstructedLines)
         try await Task.sleep(nanoseconds: 750_000_000)
-        await updateRecipeData(reconstructedText, classifiedText)
+        await updateRecipeData(recognizedText, reconstructedText, classifiedText)
         try await Task.sleep(nanoseconds: 750_000_000)
         await MainActor.run {
           complete()
@@ -117,7 +117,7 @@ class RecipeProcessor: ObservableObject {
         try await Task.sleep(nanoseconds: 750_000_000)
         let classifiedText = try await classifyText(reconstructedText.reconstructedLines)
         try await Task.sleep(nanoseconds: 750_000_000)
-        await updateRecipeData(reconstructedText, classifiedText)
+        await updateRecipeData(recognizedText, reconstructedText, classifiedText)
         try await Task.sleep(nanoseconds: 750_000_000)
         
         await MainActor.run {
@@ -209,9 +209,11 @@ class RecipeProcessor: ObservableObject {
   }
   
   // Update recipe data with processing results
-  private func updateRecipeData(_ reconstructed: ProcessingTextResult, _ classified: ClassificationResult) async {
+  private func updateRecipeData(_ raw: [String], _ reconstructed: ProcessingTextResult, _ classified: ClassificationResult) async {
     await MainActor.run {
-      
+        
+      // Store raw Text
+      recipeData.rawText = raw
       // Store reconstructed text
       recipeData.reconstructedText = reconstructed
       

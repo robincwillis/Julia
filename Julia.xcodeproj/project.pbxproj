@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 56;
+	objectVersion = 70;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -86,6 +86,10 @@
 		52E2C0902D99D99B00F9B5F9 /* RecipeEditTagsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52E2C08D2D99D99B00F9B5F9 /* RecipeEditTagsSection.swift */; };
 		52E2C0932D99D9FB00F9B5F9 /* RecipeEditRawTextSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52E2C0922D99D9FB00F9B5F9 /* RecipeEditRawTextSection.swift */; };
 		52E2C0952D99DA0600F9B5F9 /* RecipeEditNotesSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52E2C0942D99DA0500F9B5F9 /* RecipeEditNotesSection.swift */; };
+		52E7A63C2DCFCACE00AFEF2B /* RecipeLayoutAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52E7A63B2DCFCA8600AFEF2B /* RecipeLayoutAnalyzer.swift */; };
+		52E7A63E2DCFCB3600AFEF2B /* RecipeBoundaryDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52E7A63D2DCFCB3400AFEF2B /* RecipeBoundaryDetector.swift */; };
+		52E7A6402DCFCBDB00AFEF2B /* RecipePostProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52E7A63F2DCFCBD700AFEF2B /* RecipePostProcessor.swift */; };
+		52E7A6512DCFD28800AFEF2B /* SwiftSoup in Frameworks */ = {isa = PBXBuildFile; productRef = 52E7A6502DCFD28800AFEF2B /* SwiftSoup */; };
 		52EBB2D92D8F5976000E7BE3 /* Timing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52EBB2D82D8F5976000E7BE3 /* Timing.swift */; };
 		52EF0BB12CDBF8A300B8354A /* FloatingBottomSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52EF0BB02CDBF8A300B8354A /* FloatingBottomSheet.swift */; };
 		52EF0BB32CDC0C9100B8354A /* DataController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52EF0BB22CDC0C9100B8354A /* DataController.swift */; };
@@ -93,6 +97,16 @@
 		52FD14922D99E38C0094F611 /* Binding+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52FD14912D99E38C0094F611 /* Binding+Extensions.swift */; };
 		52FD14942D99EE9E0094F611 /* RecipeRawTextSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52FD14932D99EE9D0094F611 /* RecipeRawTextSection.swift */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		52E7A6492DCFD1A900AFEF2B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 5228BD452C2362E6001C845E /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 5228BD4C2C2362E7001C845E;
+			remoteInfo = Julia;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		52010E4E2D7FD362007C4889 /* RecipeTextReconstructor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeTextReconstructor.swift; sourceTree = "<group>"; };
@@ -177,6 +191,10 @@
 		52E2C08E2D99D99B00F9B5F9 /* RecipeRawTextSection.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RecipeRawTextSection.swift; sourceTree = "<group>"; };
 		52E2C0922D99D9FB00F9B5F9 /* RecipeEditRawTextSection.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RecipeEditRawTextSection.swift; sourceTree = "<group>"; };
 		52E2C0942D99DA0500F9B5F9 /* RecipeEditNotesSection.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RecipeEditNotesSection.swift; sourceTree = "<group>"; };
+		52E7A63B2DCFCA8600AFEF2B /* RecipeLayoutAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeLayoutAnalyzer.swift; sourceTree = "<group>"; };
+		52E7A63D2DCFCB3400AFEF2B /* RecipeBoundaryDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeBoundaryDetector.swift; sourceTree = "<group>"; };
+		52E7A63F2DCFCBD700AFEF2B /* RecipePostProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipePostProcessor.swift; sourceTree = "<group>"; };
+		52E7A6452DCFD1A900AFEF2B /* JuliaTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = JuliaTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		52EBB2D82D8F5976000E7BE3 /* Timing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Timing.swift; sourceTree = "<group>"; };
 		52EF0BB02CDBF8A300B8354A /* FloatingBottomSheet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FloatingBottomSheet.swift; sourceTree = "<group>"; };
 		52EF0BB22CDC0C9100B8354A /* DataController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataController.swift; sourceTree = "<group>"; };
@@ -185,12 +203,24 @@
 		52FD14932D99EE9D0094F611 /* RecipeRawTextSection.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RecipeRawTextSection.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		52E7A6462DCFD1A900AFEF2B /* JuliaTests */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = JuliaTests; sourceTree = "<group>"; };
+/* End PBXFileSystemSynchronizedRootGroup section */
+
 /* Begin PBXFrameworksBuildPhase section */
 		5228BD4A2C2362E7001C845E /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 				52010E672D80A04E007C4889 /* SwiftSoup in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		52E7A6422DCFD1A900AFEF2B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				52E7A6512DCFD28800AFEF2B /* SwiftSoup in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -249,6 +279,9 @@
 		520DE6BA2C346A4F00CAF570 /* Utilities */ = {
 			isa = PBXGroup;
 			children = (
+				52E7A63B2DCFCA8600AFEF2B /* RecipeLayoutAnalyzer.swift */,
+				52E7A63D2DCFCB3400AFEF2B /* RecipeBoundaryDetector.swift */,
+				52E7A63F2DCFCBD700AFEF2B /* RecipePostProcessor.swift */,
 				521795162DB586FC004B265B /* ImportExportManager.swift */,
 				521795122DB58254004B265B /* SampleDataLoader.swift */,
 				52A5E03B2DA6C685002D3920 /* RecipeProcessor.swift */,
@@ -274,8 +307,10 @@
 			children = (
 				52ADAFBB2D83CEE400F2E7A0 /* RecipeTextReconstructorDebug.playground */,
 				5228BD4F2C2362E7001C845E /* Julia */,
+				52E7A6462DCFD1A900AFEF2B /* JuliaTests */,
 				5228BD4E2C2362E7001C845E /* Products */,
 				52FD148E2D99E0800094F611 /* Recovered References */,
+				52E7A64F2DCFD28800AFEF2B /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -283,6 +318,7 @@
 			isa = PBXGroup;
 			children = (
 				5228BD4D2C2362E7001C845E /* Julia.app */,
+				52E7A6452DCFD1A900AFEF2B /* JuliaTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -359,6 +395,13 @@
 			path = Components;
 			sourceTree = "<group>";
 		};
+		52E7A64F2DCFD28800AFEF2B /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		52FD148E2D99E0800094F611 /* Recovered References */ = {
 			isa = PBXGroup;
 			children = (
@@ -410,6 +453,30 @@
 			productReference = 5228BD4D2C2362E7001C845E /* Julia.app */;
 			productType = "com.apple.product-type.application";
 		};
+		52E7A6442DCFD1A900AFEF2B /* JuliaTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 52E7A64B2DCFD1A900AFEF2B /* Build configuration list for PBXNativeTarget "JuliaTests" */;
+			buildPhases = (
+				52E7A6412DCFD1A900AFEF2B /* Sources */,
+				52E7A6422DCFD1A900AFEF2B /* Frameworks */,
+				52E7A6432DCFD1A900AFEF2B /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				52E7A64A2DCFD1A900AFEF2B /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				52E7A6462DCFD1A900AFEF2B /* JuliaTests */,
+			);
+			name = JuliaTests;
+			packageProductDependencies = (
+				52E7A6502DCFD28800AFEF2B /* SwiftSoup */,
+			);
+			productName = JuliaTests;
+			productReference = 52E7A6452DCFD1A900AFEF2B /* JuliaTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -417,11 +484,15 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 1430;
+				LastSwiftUpdateCheck = 1630;
 				LastUpgradeCheck = 1520;
 				TargetAttributes = {
 					5228BD4C2C2362E7001C845E = {
 						CreatedOnToolsVersion = 14.3.1;
+					};
+					52E7A6442DCFD1A900AFEF2B = {
+						CreatedOnToolsVersion = 16.3;
+						TestTargetID = 5228BD4C2C2362E7001C845E;
 					};
 				};
 			};
@@ -442,6 +513,7 @@
 			projectRoot = "";
 			targets = (
 				5228BD4C2C2362E7001C845E /* Julia */,
+				52E7A6442DCFD1A900AFEF2B /* JuliaTests */,
 			);
 		};
 /* End PBXProject section */
@@ -456,6 +528,13 @@
 				5228BD582C2362EB001C845E /* Preview Assets.xcassets in Resources */,
 				52B50C142CEBBB8600B472E0 /* Launch Screen.storyboard in Resources */,
 				5228BD552C2362EA001C845E /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		52E7A6432DCFD1A900AFEF2B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -483,6 +562,7 @@
 				520DE6A62C33210200CAF570 /* IngredientsView.swift in Sources */,
 				5217951B2DB5D0B0004B265B /* PagingView.swift in Sources */,
 				5228BD532C2362E7001C845E /* ContentView.swift in Sources */,
+				52E7A63C2DCFCACE00AFEF2B /* RecipeLayoutAnalyzer.swift in Sources */,
 				526302EE2DA4407F00FA8A66 /* RecipeData.swift in Sources */,
 				520DE6AD2C34603400CAF570 /* Ingredient.swift in Sources */,
 				52A5E03C2DA6C685002D3920 /* RecipeProcessor.swift in Sources */,
@@ -537,6 +617,7 @@
 				523DB6492D8A5829009DFA47 /* View+Extensions.swift in Sources */,
 				526302F02DA498DD00FA8A66 /* FloatingStatusSheet.swift in Sources */,
 				52A5E0382DA60A08002D3920 /* DetectClipboardView.swift in Sources */,
+				52E7A6402DCFCBDB00AFEF2B /* RecipePostProcessor.swift in Sources */,
 				523DB6472D89DB89009DFA47 /* ScrollFadeTitle.swift in Sources */,
 				526302EC2DA1FBF500FA8A66 /* ImageItem.swift in Sources */,
 				52EF0BB12CDBF8A300B8354A /* FloatingBottomSheet.swift in Sources */,
@@ -544,11 +625,27 @@
 				520DE6C62C34713700CAF570 /* RecipeList.swift in Sources */,
 				52AEA33D2D7BA1C300B514F2 /* IngredientEditor.swift in Sources */,
 				52AEA3392D7B3CDB00B514F2 /* RecipeEditInstructionsSection.swift in Sources */,
+				52E7A63E2DCFCB3600AFEF2B /* RecipeBoundaryDetector.swift in Sources */,
 				52E2C0902D99D99B00F9B5F9 /* RecipeEditTagsSection.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		52E7A6412DCFD1A900AFEF2B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		52E7A64A2DCFD1A900AFEF2B /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 5228BD4C2C2362E7001C845E /* Julia */;
+			targetProxy = 52E7A6492DCFD1A900AFEF2B /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		5228BD592C2362EB001C845E /* Debug */ = {
@@ -686,7 +783,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 17.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -723,7 +820,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 17.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -738,6 +835,49 @@
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		52E7A64C2DCFD1A900AFEF2B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = rcw.JuliaTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Julia.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Julia";
+			};
+			name = Debug;
+		};
+		52E7A64D2DCFD1A900AFEF2B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = rcw.JuliaTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Julia.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Julia";
 			};
 			name = Release;
 		};
@@ -762,6 +902,15 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
+		52E7A64B2DCFD1A900AFEF2B /* Build configuration list for PBXNativeTarget "JuliaTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				52E7A64C2DCFD1A900AFEF2B /* Debug */,
+				52E7A64D2DCFD1A900AFEF2B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
@@ -777,6 +926,11 @@
 
 /* Begin XCSwiftPackageProductDependency section */
 		52010E662D80A04E007C4889 /* SwiftSoup */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 52010E652D80A04E007C4889 /* XCRemoteSwiftPackageReference "SwiftSoup" */;
+			productName = SwiftSoup;
+		};
+		52E7A6502DCFD28800AFEF2B /* SwiftSoup */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 52010E652D80A04E007C4889 /* XCRemoteSwiftPackageReference "SwiftSoup" */;
 			productName = SwiftSoup;

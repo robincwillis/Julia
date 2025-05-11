@@ -21,6 +21,7 @@ xcuserdata/
 *.moved-aside
 *.xccheckout
 *.xcscmblueprint
+.DS_Store
 
 ## Obj-C/Swift specific
 *.hmap
@@ -39,7 +40,8 @@ playground.xcworkspace
 # Package.pins
 # Package.resolved
 .build/
-
+JuliaTests/Test Images.xcassets/*
+JuliaTests/Test Assets/*
 # CocoaPods
 #
 # We recommend against adding the Pods directory to your .gitignore. However
