@@ -1,36 +1,37 @@
 import SwiftUI
-import UIKit
 
-class RecipeProcessingState: ObservableObject {
-  
+@Observable
+@MainActor
+class RecipeProcessingState {
+
   // Input state
-  @Published var image: UIImage?
-  @Published var text: String?
-  @Published var recognizedText: [String] = []
-  
+  var image: UIImage?
+  var text: String?
+  var recognizedText: [String] = []
+
   // Processing state
-  @Published var processingStage: ProcessingStage = .notStarted
-  
-  @Published var isClassifying = false
-  
-  @Published var statusMessage = ""
-  @Published var errorMessage = ""
-  
+  var processingStage: ProcessingStage = .notStarted
+
+  var isClassifying = false
+
+  var statusMessage = ""
+  var errorMessage = ""
+
   // UI state
-  @Published var showProcessingSheet = false
-  @Published var showResultsSheet = false
-  
+  var showProcessingSheet = false
+  var showResultsSheet = false
+
   enum ProcessingStage: String {
     case notStarted = "Warming Up"
     case processing = "Processing"
     case completed = "Complete"
     case error = "Error"
   }
-  
+
   // Computed properties with getters and setters
   var isProcessing: Bool {
     get {
-      return processingStage == .processing
+      processingStage == .processing
     }
     set {
       if newValue {
@@ -38,10 +39,10 @@ class RecipeProcessingState: ObservableObject {
       }
     }
   }
-  
+
   var processingFailed: Bool {
     get {
-      return processingStage == .error
+      processingStage == .error
     }
     set {
       if newValue {
@@ -49,10 +50,10 @@ class RecipeProcessingState: ObservableObject {
       }
     }
   }
-  
+
   var processingComplete: Bool {
     get {
-      return processingStage == .completed
+      processingStage == .completed
     }
     set {
       if newValue {
@@ -60,19 +61,19 @@ class RecipeProcessingState: ObservableObject {
       }
     }
   }
-  
+
   func reset() {
     // Reset input state
     image = nil
     text = nil
     recognizedText = []
-    
+
     // Reset processing state
     processingStage = .notStarted
     isClassifying = false
     statusMessage = ""
     errorMessage = ""
-    
+
     // Reset UI state
     showProcessingSheet = false
     showResultsSheet = false

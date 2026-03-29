@@ -12,10 +12,8 @@ struct RecipeList: View {
     let recipes: [Recipe]
     var body: some View {
         List {
-            ForEach(recipes, id: \.id) { recipe in
-                NavigationLink {
-                    RecipeDetails(recipe: recipe)
-                } label: {
+            ForEach(recipes) { recipe in
+                NavigationLink(value: recipe) {
                     RecipeRow(recipe: recipe)
                 }
             }

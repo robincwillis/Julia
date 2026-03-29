@@ -70,7 +70,7 @@ struct RecipeURLImportView: View {
                 urlText = clipboardString
               }
             }
-            .foregroundColor(.white)
+            .foregroundColor(Color.app.white)
             .padding(.horizontal, 12)
             .padding(.vertical, 3)
             .background(.blue)

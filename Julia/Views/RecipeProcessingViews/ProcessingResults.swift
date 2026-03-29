@@ -5,7 +5,7 @@ struct ProcessingResults: View {
   @Environment(\.dismiss) private var dismiss
   @Environment(\.debugMode) private var debugMode
   
-  @ObservedObject var processingState: RecipeProcessingState
+  var processingState: RecipeProcessingState
   @Binding var recipeData: RecipeData
   var saveRecipe: () -> Bool
   
@@ -139,23 +139,15 @@ struct ProcessingResults: View {
 
 #Preview {
   struct PreviewWrapper: View {
-    @StateObject var mockProcessingState = RecipeProcessingState()
+    @State var mockProcessingState = RecipeProcessingState()
     @State var mockRecipeData = RecipeData()
     let saveRecipe: () -> Bool = { return true }
-    
+
     init() {
-      // Configure your mock state with sample data
-      let state = RecipeProcessingState()
-      state.recognizedText = ["Line 1", "Line 2", "Line 3"]
-      state.processingStage = .completed
-      _mockProcessingState = StateObject(wrappedValue: state)
-      
-      // Set up mock recipe data
       var data = RecipeData()
       data.title = "Sample Recipe"
-      data.ingredients = ["2 cups flour", "1 cup sugar", "3 eggs", "2 cups flour", "1 cup sugar", "3 eggs"]
-      data.instructions = ["Mix dry ingredients", "Add eggs", "Bake at 350°F for 30 minutes", "Mix dry ingredients", "Add eggs", "Bake at 350°F for 30 minutes"]
-      // Use the typealias defined in RecipeProcessing.swift to avoid ambiguity
+      data.ingredients = ["2 cups flour", "1 cup sugar", "3 eggs"]
+      data.instructions = ["Mix dry ingredients", "Add eggs", "Bake at 350°F for 30 minutes"]
       data.reconstructedText = TextReconstructorResult(
         title: "Sample Recipe",
         reconstructedLines: ["2 cups flour", "1 cup sugar", "3 eggs", "Mix dry ingredients", "Add eggs"],

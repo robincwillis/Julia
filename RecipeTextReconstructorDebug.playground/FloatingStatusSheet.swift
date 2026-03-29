@@ -57,7 +57,7 @@
             }
             .frame(width: geometry.size.width * 0.5)
             .padding(36)
-            .background(.white)
+            .background(Color.app.white)
             .cornerRadius(24)
             .shadow(color: Color.black.opacity(0.15), radius: 8, x: 0, y: 3)
             .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
@@ -174,7 +174,7 @@
             Text(isPresented ? "Hide Status" : "Show Status")
               .padding()
               .background(.blue)
-              .foregroundColor(.white)
+              .foregroundColor(Color.app.textPrimary)
               .cornerRadius(12)
           }
         }

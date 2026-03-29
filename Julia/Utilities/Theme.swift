@@ -106,6 +106,7 @@ struct AppTheme {
     // Misc Colors
     static let textOnPrimary = Color.white
     static let danger = Color("danger")
+    static let white = Color("white")
     
     // MARK: - Primary Colors
     static let primaryColor = Color("PrimaryColor") // Define in assets

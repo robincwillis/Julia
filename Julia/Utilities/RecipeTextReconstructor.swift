@@ -20,77 +20,41 @@ class RecipeTextReconstructor {
       return TextReconstructorResult(title: "", reconstructedLines: [], artifacts: [])
     }
     
-    // Step 1: Filter out artifacts (lines < 3 chars or only numbers)
-    let filteredLines = lines.filter { line in
+    // Step 1: Process and preserve ALL lines, just store very short ones or numeric-only ones as artifacts
+    var processedLines: [(String, Bool)] = []
+    
+    for line in lines {
       let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
       
-      // Skip empty lines but don't count as artifacts
+      // Skip empty lines without adding to artifacts
       if trimmed.isEmpty {
-        return false
+        continue
       }
       
-      // Check if line is too short
-      if trimmed.count < 3 {
+      // Mark as artifact if line is too short or only numbers, but keep it in the processed lines
+      let isArtifact = trimmed.count < 3 ||
+                       CharacterSet.decimalDigits.isSuperset(of: CharacterSet(charactersIn: trimmed))
+      
+      if isArtifact {
         artifacts.append(trimmed)
-        return false
       }
       
-      // Check if line is only numbers
-      if CharacterSet.decimalDigits.isSuperset(of: CharacterSet(charactersIn: trimmed)) {
-        artifacts.append(trimmed)
-        return false
-      }
-      
-      return true
+      processedLines.append((trimmed, isArtifact))
     }
     
-    // Step 2: Extract title from the first non-artifact line
-    if let firstLine = filteredLines.first {
-      title = firstLine
-      
-      // Check if title is all uppercase
-      let isAllUppercase = firstLine == firstLine.uppercased() && firstLine != firstLine.lowercased()
-      
-      if isAllUppercase {
-        // Find consecutive uppercase lines and add to title
-        //var titleEndIndex: Int
-        for (index, line) in filteredLines.enumerated() {
-          if index == 0 {
-            continue // Skip first line (already added)
-          }
-          
-          let isLineUppercase = line == line.uppercased() && line != line.lowercased()
-          if isLineUppercase {
-            title += " " + line
-            //titleEndIndex = index
-          } else {
-            break
-          }
+    // Step 2: Join lines by context rather than assuming title position
+    var currentLine = ""
+    
+    for (i, (line, isArtifact)) in processedLines.enumerated() {
+      // Always include artifact lines without joining them
+      if isArtifact {
+        // First save any current line buffer
+        if !currentLine.isEmpty {
+          reconstructedLines.append(currentLine)
+          currentLine = ""
         }
         
-        // Include the title lines in reconstructed lines as well
-        reconstructedLines.append(title)
-      } else {
-        // Include the title in reconstructed lines
-        reconstructedLines.append(title)
-      }
-    }
-    
-    // Step 3-5: Process remaining lines
-    var currentLine = ""
-    var i = 0
-    
-    // Skip the title line(s) that we've already processed
-    if !filteredLines.isEmpty {
-      i = 1
-    }
-    
-    while i < filteredLines.count {
-      let line = filteredLines[i].trimmingCharacters(in: .whitespacesAndNewlines)
-      
-      // Skip empty lines
-      if line.isEmpty {
-        i += 1
+        reconstructedLines.append(line)
         continue
       }
       
@@ -99,9 +63,12 @@ class RecipeTextReconstructor {
       let startsWithNumber = line.first?.isNumber ?? false
       let startsWithSymbol = startsWithSpecialCharacter(line)
       let startsWithIngredientChar = containsIngredientCharacter(line)
+      let isProbablyNewLine = startsWithUppercase || startsWithNumber ||
+                              startsWithSymbol || startsWithIngredientChar
       
-      if startsWithUppercase || startsWithNumber || startsWithSymbol || startsWithIngredientChar || currentLine.isEmpty {
-        // If we have content in the current line, save it before starting a new one
+      // If this seems like a new line or we have no current line
+      if isProbablyNewLine || currentLine.isEmpty {
+        // Save any previous content
         if !currentLine.isEmpty {
           reconstructedLines.append(currentLine)
           currentLine = ""
@@ -109,27 +76,25 @@ class RecipeTextReconstructor {
         
         currentLine = line
         
-        // If line ends with period, add it and reset currentLine
-        if line.hasSuffix(".") {
+        // If line ends with a sentence-ending punctuation, it's complete
+        if line.hasSuffix(".") || line.hasSuffix("!") || line.hasSuffix("?") {
           reconstructedLines.append(currentLine)
           currentLine = ""
         }
       } else {
-        // Line starts with lowercase - append to current line
+        // This line continues the previous line
         if !currentLine.isEmpty {
           currentLine += " " + line
         } else {
           currentLine = line
         }
         
-        // If line ends with period, add it and reset currentLine
-        if line.hasSuffix(".") {
+        // If line ends with a sentence-ending punctuation, it's complete
+        if line.hasSuffix(".") || line.hasSuffix("!") || line.hasSuffix("?") {
           reconstructedLines.append(currentLine)
           currentLine = ""
         }
       }
-      
-      i += 1
     }
     
     // Add final line if not empty
@@ -137,14 +102,16 @@ class RecipeTextReconstructor {
       reconstructedLines.append(currentLine)
     }
     
+    // No longer attempt to determine the title here
+    // The actual title will be determined by the classifier
+    
     // Debug print to verify the results
-    // print("*** RecipeTextReconstructor Results ***")
-    // print("Title: \(title)")
-    // print("Reconstructed Lines (\(reconstructedLines.count)): \(reconstructedLines)")
-    // print("Artifacts (\(artifacts.count)): \(artifacts)")
+    print("*** RecipeTextReconstructor Results ***")
+    print("Reconstructed Lines (\(reconstructedLines.count)): \(reconstructedLines)")
+    print("Artifacts (\(artifacts.count)): \(artifacts)")
     
     return TextReconstructorResult(
-      title: title,
+      title: title, // This will now be empty, letting the classifier determine the title
       reconstructedLines: reconstructedLines,
       artifacts: artifacts
     )

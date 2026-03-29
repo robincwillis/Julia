@@ -73,7 +73,7 @@
                   }
                   
                   // Style the Sheet
-                  .background(.white)
+                  .background(Color.app.white)
                   .cornerRadius(24)
                   .padding(.horizontal, 12)
                   .shadow(color: .black.opacity(0.1), radius: 16, x: 0, y: 4)

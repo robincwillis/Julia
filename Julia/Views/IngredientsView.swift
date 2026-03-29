@@ -89,7 +89,7 @@ struct IngredientsView: View {
               Image(systemName: "plus")
                 .foregroundColor(Color.app.primary)
                 .frame(width: 40, height: 40)
-                .background(.white)
+                .background(Color.app.white)
                 .clipShape(Circle())
                 .animation(.snappy, value: hasSelection)
                 .transition(.move(edge: .leading))

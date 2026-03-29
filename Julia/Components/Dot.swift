@@ -37,7 +37,7 @@ struct Dot: View {
       if animationState == .open {
         Image(systemName: "xmark")
           .font(.system(size: openCircleSize * 0.5, weight: .bold)) // Made bolder
-          .foregroundColor(.white)
+          .foregroundColor(Color.app.white)
           .scaleEffect(xMarkScale)
           .opacity(animationState == .open ? 1 : 0)
       }
@@ -89,60 +89,55 @@ struct Dot: View {
     if isNowLoading {
       // Reset X mark scale for next appearance
       xMarkScale = 0.5
-      
+
       // Transition to loading state
       animationState = .transitioning
-      
+
       // After pause, expand to ring and start rotation
-      DispatchQueue.main.asyncAfter(deadline: .now() + animationDuration + pauseDuration) {
+      Task { @MainActor in
+        try? await Task.sleep(for: .seconds(animationDuration + pauseDuration))
         animationState = .loading
-        
-        // Start continuous rotation when loading
         withAnimation(.linear(duration: 3).repeatForever(autoreverses: false)) {
           rotation = 360
         }
       }
     } else if !isExpanded {
       // Only transition to closed if not going to open state
-      // Stop rotation animation
       stopRotation()
-      
+
       // Collapse to small circle
       animationState = .transitioning
-      
-      // After pause, expand to main circle
-      DispatchQueue.main.asyncAfter(deadline: .now() + animationDuration + pauseDuration) {
+
+      Task { @MainActor in
+        try? await Task.sleep(for: .seconds(animationDuration + pauseDuration))
         animationState = .closed
       }
     }
   }
-  
+
   private func handleExpandedChange(isNowExpanded: Bool) {
     if isNowExpanded {
       // Reset X mark scale for animation
       xMarkScale = 0.1
-      
+
       // Transition to open state with X mark
       stopRotation()
       animationState = .transitioning
-      
-      DispatchQueue.main.asyncAfter(deadline: .now() + animationDuration + pauseDuration) {
+
+      Task { @MainActor in
+        try? await Task.sleep(for: .seconds(animationDuration + pauseDuration))
         animationState = .open
-        
-        // After a short delay, animate X mark scale up
-        DispatchQueue.main.asyncAfter(deadline: .now() + xMarkDelay) {
-          withAnimation(.spring(response: 0.4, dampingFraction: 0.6)) {
-            xMarkScale = 1.0
-          }
+        try? await Task.sleep(for: .seconds(xMarkDelay))
+        withAnimation(.spring(response: 0.4, dampingFraction: 0.6)) {
+          xMarkScale = 1.0
         }
       }
     } else {
       // Only transition to closed if not going to loading state
-      // Collapse to small circle
       animationState = .transitioning
-      
-      // After pause, expand to main circle
-      DispatchQueue.main.asyncAfter(deadline: .now() + animationDuration + pauseDuration) {
+
+      Task { @MainActor in
+        try? await Task.sleep(for: .seconds(animationDuration + pauseDuration))
         animationState = .closed
       }
     }

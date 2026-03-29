@@ -10,7 +10,7 @@ import SwiftUI
 struct ProcessingError: View {
   @Environment(\.dismiss) private var dismiss
   var message: String
-  @ObservedObject var processingState: RecipeProcessingState
+  var processingState: RecipeProcessingState
   var retry: (() -> Void)?
 
   private var displayMessage: String {
@@ -68,7 +68,7 @@ struct ProcessingError: View {
 
 #Preview {
   struct PreviewWrapper: View {
-    @StateObject private var processingState = RecipeProcessingState()
+    @State private var processingState = RecipeProcessingState()
    private var message: String =  "We couldn't find any text in this image. Try another image with clear, visible text."
     var body: some View {
       ProcessingError(

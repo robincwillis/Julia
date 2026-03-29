@@ -60,7 +60,7 @@ struct PlaygroundView: View {
         
         .frame(maxWidth: .infinity)
         .padding(24)
-        .background(.white)
+        .background(Color.app.white)
         .cornerRadius(24)
         .padding(.horizontal, 64)
         .offset(y: isVisible ?  -100 : 100)

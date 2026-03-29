@@ -7,14 +7,13 @@
 
 import SwiftUI
 import PhotosUI
-import UIKit
 
 struct FloatingActionMenu: View {
   @Binding var selectedImage: UIImage?
   @Binding var selectedText: String?
   @Binding var extractedRecipeData: RecipeData?
   
-  @ObservedObject var processingState: RecipeProcessingState
+  var processingState: RecipeProcessingState
 
   // @Binding var showRecipeProcessing: Bool
   // showRecipeProcessing: $recipeProcessor.processingState.showProcessingSheet
@@ -265,7 +264,7 @@ struct FloatingActionMenu: View {
       }
       .padding(.vertical, 12)
       .padding(.horizontal, 16)
-      .background(Color.white)
+      .background(Color.app.white)
       .cornerRadius(16)
       .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: 2)
     }
@@ -336,7 +335,7 @@ extension View {
     struct PreviewWrapper: View {
       @State var image: UIImage? = nil
       @State var text: String? = nil
-      let processingState = RecipeProcessingState()
+      @State var processingState = RecipeProcessingState()
       @State var extractedRecipeData: RecipeData? = nil
         
       var body: some View {

@@ -5,7 +5,7 @@ import Foundation
 
 
 struct RecipeProcessing: View {
-  @ObservedObject var processingState: RecipeProcessingState
+  @Bindable var processingState: RecipeProcessingState
   
   // Animation namespace for coordinating animations
   @Namespace private var animation
@@ -82,7 +82,7 @@ struct RecipeProcessing: View {
   #Preview {
     struct PreviewWrapper: View {
       let image = UIImage(named: "preview_image") ?? UIImage()
-      let processingState = RecipeProcessingState()
+      @State var processingState = RecipeProcessingState()
       
       var body: some View {
         VStack {

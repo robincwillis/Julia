@@ -83,7 +83,7 @@ struct DetectClipboardView: View {
 //      
 //      .padding(24)
 //      //.offset(y: offsetY)
-//      .background(.white)
+//      .background(Color.app.white)
 //      .cornerRadius(24)
 //      .animation(.spring(response: 0.4, dampingFraction: 0.7), value: offsetY)
 //      //.animation(.easeInOut, value: isVisible)

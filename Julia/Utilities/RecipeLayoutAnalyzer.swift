@@ -18,7 +18,6 @@ enum RecipeProcessingError: Error {
     case boundaryDetectionFailed
 }
 
-
 class RecipeLayoutAnalyzer {
     
     struct TextBlock {
@@ -27,31 +26,33 @@ class RecipeLayoutAnalyzer {
         let confidence: Float
     }
     
-    struct Column {
-        let blocks: [TextBlock]
-        let boundingBox: CGRect
+    struct TextGroup {
+        var blocks: [TextBlock]
+        var boundingBox: CGRect
+        
+        // Update the bounding box when blocks are added
+        mutating func addBlock(_ block: TextBlock) {
+            blocks.append(block)
+            boundingBox = boundingBox.union(block.boundingBox)
+        }
     }
     
-        
-    /// Analyze OCR results and reorder text based on spatial layout
-    func analyzeAndReorderText(from image: UIImage) async throws -> [String] {
+    /// Analyze OCR results and identify logical text groups
+    func analyzeTextGroups(from image: UIImage) async throws -> [[String]] {
         // First, get OCR results with layout information
         let blocks = try await extractTextBlocksWithLayout(from: image)
         
-        // Group blocks into columns
-        let columns = groupBlocksIntoColumns(blocks)
+        // Identify logical groups based on spatial relationships
+        let groups = identifyTextGroups(blocks)
         
-        // Sort columns left-to-right
-        let sortedColumns = columns.sorted { $0.boundingBox.minX < $1.boundingBox.minX }
-        
-        // For each column, sort blocks top-to-bottom
-        var orderedText: [String] = []
-        for column in sortedColumns {
-            let sortedBlocks = column.blocks.sorted { $0.boundingBox.minY < $1.boundingBox.minY }
-            orderedText.append(contentsOf: sortedBlocks.map { $0.text })
+        // Convert each group to a string array
+        let textGroups: [[String]] = groups.map { group in
+            // Sort blocks top-to-bottom within each group
+            return group.blocks.sorted { $0.boundingBox.minY < $1.boundingBox.minY }
+                .map { $0.text }
         }
         
-        return orderedText
+        return textGroups
     }
     
     /// Extract text blocks with layout information using Vision
@@ -103,34 +104,75 @@ class RecipeLayoutAnalyzer {
         }
     }
     
-    /// Group text blocks into columns based on horizontal overlap
-    private func groupBlocksIntoColumns(_ blocks: [TextBlock]) -> [Column] {
-        var columns: [Column] = []
-        var remainingBlocks = blocks
+    /// Identify logical groups of text based on spatial proximity and visual formatting
+    private func identifyTextGroups(_ blocks: [TextBlock]) -> [TextGroup] {
+        var groups: [TextGroup] = []
+        
+        // Sort blocks by Y position first for better grouping
+        let sortedBlocks = blocks.sorted { $0.boundingBox.minY < $1.boundingBox.minY }
+        var remainingBlocks = sortedBlocks
+        
+        // Constants for grouping heuristics
+        let verticalGapThreshold: CGFloat = 0.003  // Relative to image height
+        let horizontalOverlapThreshold: CGFloat = 0.3  // Minimum horizontal overlap ratio
         
         while !remainingBlocks.isEmpty {
+            // Start a new group with the topmost remaining block
             let firstBlock = remainingBlocks.removeFirst()
-            var columnBlocks = [firstBlock]
-            var columnBox = firstBlock.boundingBox
+            var currentGroup = TextGroup(
+                blocks: [firstBlock],
+                boundingBox: firstBlock.boundingBox
+            )
             
-            // Find all blocks that horizontally overlap with this column
-            remainingBlocks = remainingBlocks.filter { block in
-                let horizontalOverlap = columnBox.intersection(
-                    CGRect(x: block.boundingBox.minX, y: 0,
-                           width: block.boundingBox.width, height: 1)
-                ).width > 0
+            var changed = true
+            // Keep adding blocks to the group until no more can be added
+            while changed {
+                changed = false
                 
-                if horizontalOverlap {
-                    columnBlocks.append(block)
-                    columnBox = columnBox.union(block.boundingBox)
-                    return false
+                // Try to find blocks that belong to this group
+                remainingBlocks = remainingBlocks.filter { block in
+                    // Check if this block is close enough vertically to the current group
+                    let verticalGap = block.boundingBox.minY - currentGroup.boundingBox.maxY
+                    let closeVertically = verticalGap <= verticalGapThreshold
+                    
+                    // Check horizontal overlap
+                    let overlapWidth = min(block.boundingBox.maxX, currentGroup.boundingBox.maxX) -
+                                      max(block.boundingBox.minX, currentGroup.boundingBox.minX)
+                    let minWidth = min(block.boundingBox.width, currentGroup.boundingBox.width)
+                    let hasHorizontalOverlap = overlapWidth > 0 && (overlapWidth / minWidth) >= horizontalOverlapThreshold
+                    
+                    // Evaluate formatting characteristics (similar font size, styles, etc.)
+                    // This could be extended with more sophisticated checks
+                    
+                    // Add to group if criteria are met
+                    if closeVertically && hasHorizontalOverlap {
+                        currentGroup.addBlock(block)
+                        changed = true
+                        return false
+                    }
+                    
+                    return true
                 }
-                return true
             }
             
-            columns.append(Column(blocks: columnBlocks, boundingBox: columnBox))
+            groups.append(currentGroup)
         }
         
-        return columns
+        // Sort groups top-to-bottom
+        groups.sort { $0.boundingBox.minY < $1.boundingBox.minY }
+        
+        return groups
+    }
+    
+    /// Analyze text features to identify section boundaries
+    /// For future enhancement: detect headings, ingredient lists, instruction steps, etc.
+    private func analyzeTextFeatures(_ text: String) -> [String: Any] {
+        // This could use NLTagger to identify language features
+        // For now, return a simple analysis
+        return [
+            "length": text.count,
+            "hasNumbers": text.contains(where: { $0.isNumber }),
+            "isUppercase": text.uppercased() == text
+        ]
     }
 }

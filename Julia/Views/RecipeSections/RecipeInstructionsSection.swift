@@ -30,7 +30,7 @@ struct RecipeInstructionsSection: View {
                   .frame(width: 30, height: 30)
                 Text("\(index + 1)")
                   .font(.subheadline)
-                  .foregroundColor(.white)
+                  .foregroundColor(Color.app.textPrimary)
               }
               Text(step.value)
                 .foregroundColor(.black)

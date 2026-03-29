@@ -40,7 +40,7 @@ struct EmptyRecipesView: View {
         }
         .padding(.horizontal, 24)
         .padding(.vertical, 12)
-        .background(.white)
+        .background(Color.app.white)
         .foregroundColor(Color.app.primary)
         .cornerRadius(12)
       }

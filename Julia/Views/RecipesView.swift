@@ -29,6 +29,9 @@ struct RecipesView: View {
           RecipeList(recipes: recipes)
         }
       }
+      .navigationDestination(for: Recipe.self) { recipe in
+        RecipeDetails(recipe: recipe)
+      }
       .background(Color.app.backgroundPrimary)
       .navigationTitle("Recipes")
       .navigationBarTitleDisplayMode(.large)

@@ -7,8 +7,6 @@
 
 import SwiftUI
 import SwiftData
-import Combine
-import UIKit
 import PhotosUI
 
 
@@ -66,8 +64,7 @@ struct NavigationView: View {
   
   // Tab bar state
   @State private var isTabBarVisible: Bool = true
-  @State private var selectedTab: String = "grocery"
-  @State private var selectedLocation: IngredientLocation = .grocery
+  @State private var selectedTab: Tabs = .grocery
   
   @State private var isSettingsDrawerVisible = false
   @State private var dragOffset: CGFloat = 0
@@ -76,7 +73,7 @@ struct NavigationView: View {
   @State private var selectedImage: UIImage?
   @State private var selectedText: String?
   @State private var extractedRecipeData: RecipeData?
-  @StateObject private var recipeProcessor = RecipeProcessor()
+  @State private var recipeProcessor = RecipeProcessor()
   
   var body: some View {
     
@@ -159,18 +156,18 @@ struct NavigationView: View {
 
 private var tabView: some View {
   TabView(selection: $selectedTab) {
-    IngredientsView(location: IngredientLocation.grocery)
-      .tag("grocery")
+    IngredientsView(location: .grocery)
+      .tag(Tabs.grocery)
       .toolbar(.hidden, for: .tabBar)
       .frame(maxHeight: .infinity)
-    
-    IngredientsView(location: IngredientLocation.pantry)
-      .tag("pantry")
+
+    IngredientsView(location: .pantry)
+      .tag(Tabs.pantry)
       .toolbar(.hidden, for: .tabBar)
       .frame(maxHeight: .infinity)
-    
+
     RecipesView()
-      .tag("recipe")
+      .tag(Tabs.recipe)
       .toolbar(.hidden, for: .tabBar)
       .frame(maxHeight: .infinity)
     
@@ -223,14 +220,13 @@ private var tabButtons: some View {
     ForEach(Tabs.allCases, id: \.self) { item in
       Button {
         withAnimation(.spring(duration: 0.3)) {
-          selectedTab = item.rawValue
-          selectedLocation = item.location
+          selectedTab = item
         }
       } label: {
         TabItem(
           imageName: item.iconName,
           title: item.title,
-          isActive: (selectedTab == item.rawValue)
+          isActive: (selectedTab == item)
         )
         .animation(.spring(duration: 0.3), value: selectedTab)
       }
@@ -240,7 +236,7 @@ private var tabButtons: some View {
   .frame(height: 70)
   .background(Color.white)
   .coordinateSpace(name: "TabStack")
-  .cornerRadius(35)
+  .clipShape(.rect(cornerRadius: 35))
 }
 
 private var floatingActionMenu: some View {
@@ -254,7 +250,7 @@ private var floatingActionMenu: some View {
 
 private var settingsDrawer: some View {
   SettingsDrawer(isOpen: $isSettingsDrawerVisible)
-    .edgesIgnoringSafeArea(.vertical)
+    .ignoresSafeArea(.container, edges: .vertical)
     .zIndex(1)
     .offset(x: isSettingsDrawerVisible ? 0 : -280)
     .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isSettingsDrawerVisible)
@@ -319,7 +315,7 @@ private func setupNotificationObservers() {
     queue: .main
   ) { _ in
     withAnimation {
-      isSettingsDrawerVisible = true
+      isSettingsDrawerVisible = false
     }
   }
 }
@@ -333,24 +329,24 @@ private func removeNotificationObservers() {
 }
 
 extension NavigationView{
-  func TabItem(imageName: String, title: String, isActive: Bool) -> some View{
-    HStack(spacing: 10){
+  func TabItem(imageName: String, title: String, isActive: Bool) -> some View {
+    HStack(spacing: 10) {
       Spacer()
       Image(systemName: imageName)
         .resizable()
         .renderingMode(.template)
-        .foregroundColor(isActive ? .white : .blue)
+        .foregroundStyle(isActive ? .white : .blue)
         .frame(width: 20, height: 20)
-      if isActive{
+      if isActive {
         Text(title)
           .font(.system(size: 14, weight: .medium))
-          .foregroundColor(isActive ? .white : .blue)
+          .foregroundStyle(isActive ? .white : .blue)
       }
       Spacer()
     }
     .frame(width: isActive ? nil : 60, height: 60)
     .background(isActive ? .blue : .clear)
-    .cornerRadius(30)
+    .clipShape(.rect(cornerRadius: 30))
   }
 }
 

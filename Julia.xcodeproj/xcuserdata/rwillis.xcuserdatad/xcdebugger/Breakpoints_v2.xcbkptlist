@@ -46,10 +46,10 @@
             filePath = "JuliaTests/RecipeProcessingTests.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "266"
-            endingLineNumber = "266"
-            landmarkName = "RecipeProcessingTests"
-            landmarkType = "14">
+            startingLineNumber = "259"
+            endingLineNumber = "259"
+            landmarkName = "testAllImages()"
+            landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
    </Breakpoints>

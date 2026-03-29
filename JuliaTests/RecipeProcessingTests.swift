@@ -11,9 +11,10 @@ import SwiftData
 import Vision
 @testable import Julia
 
-let imageNames = ["onion_soup", "sardine_nicoise", "sauteed_chanterelles", "steamed_haddock"]
+// let imageNames = ["onion_soup", "sardine_nicoise", "sauteed_chanterelles", "steamed_haddock"]
+let imageNames =  ["trout_with_haricots_verts_capers_and_lemons"] // ["kalbi_butter_noodles"]
 //TODO Add more:
-// let imageNames = ["single_recipe", "multiple_recipes", "complex_layout","handwritten", "poor_quality", "newspaper_clipping"]
+// let imageNames = ["baked_alaska", "butter_cookies", "carpaccio_tuna_fin", "cheese_dough_torte", "chesnut_almond_torte", "clear_pork_noodle_soup", "coconut_tapioca_soup", "coconut_tapioca", "coffee_cake", "crepes_suzette", "fish_stew", "fried_zucchini_blossoms", "green_salad_with_zatar", "grilled_hearts_of_palm", "grilled_rainbow_escabeche", "gunard_baked_banana_leaf", "herbs_de_provence", "how_southern_are_you", "leg_of_lamb", "linguini_and_clams", "little_gem_salad", "lobster_consumee_in_jelee", "mon_poulet_roti", "nicoise_toast", "onion_flan", "onion_pizza", "onion_soup", "party_posole_rojo", "pastry_fritters", "poached_salmon_with_coarse_salt", "potato_galette", "red_pepper_tapenade", "rice_noodles_multiple", "roast_chicken_with_bell_peppers", "rock_lobster_salad", "salade_nicoise", "sardine_nicoise", "scrambled_eggs_with_mushrooms", "seafood_gumbo", "slow_cooked_chicken_with_kale", "soft_shell_crab_with_sweet_black_pepper_sauce", "staff_lasagna", "tomato_melon_gazpacho", "unami_salami", "veal_scallops", "watermelon_radish_salad"]
 let textFiles = ["recipe"]
 //TODO Add more:
 // let textFiles = [ "recipe", "clean_recipe", "messy_recipe", "multiple_recipes_text", "recipe_with_ads", "incomplete_recipe"]
@@ -151,11 +152,11 @@ struct RecipeProcessingTests {
                     typeStyle = ConsoleStyle.white
                 }
                 
-                if confidence < 0.25 {
+                if confidence < 0.5 {
                     confidenceStyle = ConsoleStyle.brightRed
-                } else if confidence < 0.5 {
+                } else if confidence < 0.65 {
                     confidenceStyle = ConsoleStyle.brightOrange
-                } else if confidence < 0.75 {
+                } else if confidence < 0.85 {
                     confidenceStyle = ConsoleStyle.brightYellow
                 } else {
                     confidenceStyle = ConsoleStyle.brightGreen
@@ -208,26 +209,18 @@ struct RecipeProcessingTests {
                 logMessage("\n")
                                     
                 logMessage("Recipe Title: \(data.title)")
-                logMessage("Ingredients: \(data.ingredients.count)")
-                logMessage("Instructions: \(data.instructions.count)")
                 // Log first 3 ingredients and instructions as sample
                 if !data.ingredients.isEmpty {
-                    logMessage("Sample Ingredients:")
-                    for (index, ingredient) in data.ingredients.prefix(3).enumerated() {
+                    logMessage("Ingredients: \(data.ingredients.count)")
+                    for (index, ingredient) in data.ingredients.enumerated() {
                         logMessage("  \(index + 1). \(ingredient)")
-                    }
-                    if data.ingredients.count > 3 {
-                        logMessage("  ... and \(data.ingredients.count - 3) more")
                     }
                 }
                 
                 if !data.instructions.isEmpty {
-                    logMessage("Sample Instructions:")
-                    for (index, instruction) in data.instructions.prefix(3).enumerated() {
+                    logMessage("Instructions: \(data.instructions.count)")
+                    for (index, instruction) in data.instructions.enumerated() {
                         logMessage("  \(index + 1). \(instruction)")
-                    }
-                    if data.instructions.count > 3 {
-                        logMessage("  ... and \(data.instructions.count - 3) more")
                     }
                 }
             }

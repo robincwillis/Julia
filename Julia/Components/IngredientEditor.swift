@@ -5,8 +5,8 @@
 //  Created by Robin Willis on 3/7/25.
 //
 
-import SwiftUI
 import SwiftData
+import SwiftUI
 
 struct IngredientEditor: View {
   var ingredientLocation: IngredientLocation
@@ -14,67 +14,66 @@ struct IngredientEditor: View {
   var recipe: Recipe? = nil
   var section: IngredientSection? = nil
   @Binding var showBottomSheet: Bool
-  
+
   @State private var showControls = false
   @State private var showNotes = false
   @State private var hasSaved = false
-  
+
   @FocusState private var isNameFieldFocused: Bool
   @FocusState private var isCommentFieldFocused: Bool
-  
+
   // Helper computed property to determine if any field is focused
   private var isAnyFieldFocused: Bool {
     // return withAnimation {
-      isNameFieldFocused || isCommentFieldFocused
+    isNameFieldFocused || isCommentFieldFocused
     // }
   }
-  
+
   private var canSave: Bool {
     return !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !hasSaved
   }
-  
-  
+
   @Environment(\.modelContext) private var context
-  
+
   // Basic ingredient properties
   @State private var name: String = ""
   @State private var quantity: Double?
   @State private var unit: MeasurementUnit?
   @State private var comment: String = ""
-  
+
   // For parsing from text input
   @State private var ingredientInput: String = ""
-  
+
   let units = MeasurementUnit.allCases
   let numbers = MeasurementValue.numbers
   let fractions = MeasurementValue.fractions
-  
+
   // Formatted measurement for display
   var displayMeasurement: String? {
     // If no quantity, no measurement to display
     if quantity == nil {
       return nil
     }
-    
+
     var display = ""
-    
+
     // Format quantity with fractions instead of decimals
     if let qty = quantity {
       // Get the integer and fractional parts
       let intPart = Int(floor(qty))
       let fracPart = qty - floor(qty)
-      
+
       // Format the integer part if it's not zero
       if intPart > 0 {
         display += "\(intPart)"
       }
-      
+
       // Format the fractional part using MeasurementValue fractions
       if fracPart > 0 {
         // Find the closest fraction from our enum
         let closestFraction = MeasurementValue.fractions
           .min(by: { abs($0.rawValue - fracPart) < abs($1.rawValue - fracPart) })
-        
+
         // Only use the fraction if it's reasonably close to the actual value
         if let fraction = closestFraction, abs(fraction.rawValue - fracPart) < 0.1 {
           // Add space between whole number and fraction if needed
@@ -85,13 +84,13 @@ struct IngredientEditor: View {
         }
       }
     }
-    
+
     // Add unit if it exists and isn't "item"
     if let unitValue = unit, unitValue.rawValue != "item" {
       if !display.isEmpty {
         display += " "
       }
-      
+
       // Pluralize unit if quantity > 1
       if let qty = quantity, qty > 1 {
         display += unitValue.pluralName
@@ -99,23 +98,22 @@ struct IngredientEditor: View {
         display += unitValue.displayName
       }
     }
-    
+
     return display.isEmpty ? nil : display
   }
-  
-  
+
   enum Field: Hashable {
     case name, quantity, unit, comment
   }
-  
+
   // Define rows for horizontal scrolling grid
   let rows = [
     GridItem(.fixed(36)),
     GridItem(.fixed(36)),
     GridItem(.fixed(36)),
-    GridItem(.fixed(36))
+    GridItem(.fixed(36)),
   ]
-  
+
   var body: some View {
     VStack(spacing: 0) {
       // Header with close/save buttons
@@ -125,7 +123,7 @@ struct IngredientEditor: View {
             isNameFieldFocused.toggle()
           }
         }) {
-          Image(systemName:  isNameFieldFocused ? "arrow.down"  :"arrow.up")
+          Image(systemName: isNameFieldFocused ? "arrow.down" : "arrow.up")
             .font(.title2)
         }
         .disabled(!canSave)
@@ -143,9 +141,9 @@ struct IngredientEditor: View {
         }
       }
       //.transition(.opacity)
-      
+
       VStack(alignment: .center, spacing: 12) {
-        
+
         // Display Ingredient Measurement and Unit
         if let measurementLabel = displayMeasurement {
           Button(action: {
@@ -161,15 +159,17 @@ struct IngredientEditor: View {
           }
           .disabled(!canSave)
         }
-        
+
         // Ingredient name field - either enter name or full ingredient text
         TextField("Ingredient", text: $name)
-          .font(.system(
-            //size: max(16, min(32, 700 / max(1, CGFloat(name.count)))),
-            //size: calculateTitleFontSize(for: name),
-            size: 32,
-            weight: .medium
-          ))
+          .font(
+            .system(
+              //size: max(16, min(32, 700 / max(1, CGFloat(name.count)))),
+              //size: calculateTitleFontSize(for: name),
+              size: 32,
+              weight: .medium
+            )
+          )
           .foregroundColor(Color.app.textPrimary)
           .tint(.blue)
           .multilineTextAlignment(.center)
@@ -188,10 +188,8 @@ struct IngredientEditor: View {
           .onSubmit {
             isNameFieldFocused = false
           }
-          .background(.white)
-        
-        
-        
+          .background(Color.app.white)
+
         // Control panel that shows/hides based on focus state
         if showControls {
           VStack {
@@ -215,7 +213,7 @@ struct IngredientEditor: View {
                 }
               }
             }
-            
+
             // Fractions row
             HStack(spacing: 8) {
               ForEach(fractions, id: \.self) { fraction in
@@ -240,10 +238,10 @@ struct IngredientEditor: View {
                 }
               }
             }
-            
+
             // Numbers grid
             VStack(spacing: 8) {
-              
+
               // 3x3 grid for numbers 1-9
               ForEach(0..<3) { row in
                 HStack(spacing: 8) {
@@ -274,7 +272,7 @@ struct IngredientEditor: View {
                   }
                 }
               }
-              
+
               // Bottom row with 0 and Delete buttons
               HStack(spacing: 8) {
                 // Zero button
@@ -296,7 +294,7 @@ struct IngredientEditor: View {
                     .foregroundColor(.white)
                     .cornerRadius(12)
                 }
-                
+
                 // Delete button - removes last digit or fraction
                 Button(action: {
                   if quantity != nil {
@@ -307,7 +305,7 @@ struct IngredientEditor: View {
                       // Get integer and fractional parts
                       let intPart = floor(quantity!)
                       let fracPart = quantity! - intPart
-                      
+
                       if fracPart > 0 {
                         // Remove fraction part first
                         quantity = intPart
@@ -320,7 +318,7 @@ struct IngredientEditor: View {
                       }
                     }
                   }
-                  
+
                   // If quantity is nil/deleted and unit is set, also clear unit
                   if quantity == nil {
                     unit = nil
@@ -336,12 +334,11 @@ struct IngredientEditor: View {
                 }
               }
             }
-            
-            
+
           }
-          
+
         }
-        
+
         if showNotes {
           VStack {
             // Comment field that collapses when name is focused
@@ -366,31 +363,31 @@ struct IngredientEditor: View {
     }
     .onChange(of: isAnyFieldFocused) { _, _ in
       withAnimation {
-        showControls = !isAnyFieldFocused && showBottomSheet;
+        showControls = !isAnyFieldFocused && showBottomSheet
       }
     }
     // Add this at the root view level
     .onChange(of: isNameFieldFocused) { oldValue, newValue in
       withAnimation {
-        showNotes = !isNameFieldFocused && showBottomSheet;
+        showNotes = !isNameFieldFocused && showBottomSheet
       }
       // If losing focus and input looks like an ingredient with quantity
       if oldValue && !newValue && name.contains(" ") {
         // Parse the input
         if let parsedIngredient = IngredientParser.fromString(input: name, location: ingredientLocation) {
           name = parsedIngredient.name
-          
+
           // Only update quantity and unit if they weren't already set
           if quantity == nil {
             quantity = parsedIngredient.quantity
           }
-          
+
           if unit == nil {
             unit = parsedIngredient.unit
           } else {
             // Keep existing unit
           }
-          
+
           // Always update comment if provided in parsing
           if let parsedComment = parsedIngredient.comment, !parsedComment.isEmpty {
             comment = parsedComment
@@ -404,12 +401,12 @@ struct IngredientEditor: View {
       }
     }
   }
-  
+
   private func loadIngredient() {
     guard let existingIngredient = ingredient else {
       // No existing ingredient, set default values
-      unit = MeasurementUnit(from: "item") // Default to "item" unit
-      
+      unit = MeasurementUnit(from: "item")  // Default to "item" unit
+
       // Focus on name field for new ingredient
       //DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
       Task { @MainActor in
@@ -419,19 +416,19 @@ struct IngredientEditor: View {
       //}
       return
     }
-    
+
     // Populate fields with existing ingredient data
     name = existingIngredient.name
     quantity = existingIngredient.quantity
-    unit = existingIngredient.unit ?? MeasurementUnit(from: "item") // Default to item if nil
+    unit = existingIngredient.unit ?? MeasurementUnit(from: "item")  // Default to item if nil
     comment = existingIngredient.comment ?? ""
-    
+
   }
-  
+
   private func saveIngredient() {
     let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
     guard !trimmedName.isEmpty else { return }
-    
+
     // If there's input text and no ingredient details, try to parse it
     if ingredientInput.isEmpty == false && quantity == nil && unit == nil {
       if let parsedIngredient = IngredientParser.fromString(input: ingredientInput, location: ingredientLocation) {
@@ -439,17 +436,17 @@ struct IngredientEditor: View {
         if parsedIngredient.quantity != nil {
           quantity = parsedIngredient.quantity
         }
-        
+
         if parsedIngredient.unit != nil {
           unit = parsedIngredient.unit
         }
-        
+
         if let parsedComment = parsedIngredient.comment, !parsedComment.isEmpty {
           comment = parsedComment
         }
       }
     }
-    
+
     if let existingIngredient = ingredient {
       // Update existing ingredient
       existingIngredient.name = trimmedName
@@ -465,12 +462,12 @@ struct IngredientEditor: View {
         unit: unit?.rawValue,
         comment: comment.isEmpty ? nil : comment
       )
-      
+
       // Insert into context
       context.insert(newIngredient)
       ingredient = newIngredient
     }
-    
+
     // Connect to section or recipe if needed
     if let currentIngredient = ingredient {
       if let currentSection = section {
@@ -493,11 +490,11 @@ struct IngredientEditor: View {
         }
       }
     }
-    
+
     defer {
       hasSaved = false
     }
-    
+
     do {
       try context.save()
     } catch {
@@ -510,7 +507,7 @@ struct IngredientEditor: View {
 #Preview {
   // Preview container setup
   let container = DataController.previewContainer
-  
+
   // Create preview data
   let previewIngredients = [
     Ingredient(
@@ -533,24 +530,24 @@ struct IngredientEditor: View {
       quantity: 1,
       unit: "jar",
       comment: "marinara"
-    )
+    ),
   ]
-  
+
   // Insert ingredients
   for ingredient in previewIngredients {
     container.mainContext.insert(ingredient)
   }
-  
+
   struct PreviewWrapper: View {
     // Use the ingredient we created in the container
     @State private var ingredient: Ingredient?
     @State private var showSheet = true
     private var location: IngredientLocation = .recipe
-    
+
     init(ingredient: Ingredient) {
       self._ingredient = State(initialValue: ingredient)
     }
-    
+
     var body: some View {
       ZStack {
         Spacer()
@@ -562,9 +559,9 @@ struct IngredientEditor: View {
             showSheet = true
           }
         }
-        
+
         Spacer()
-        
+
         FloatingBottomSheet(
           isPresented: $showSheet
         ) {
@@ -577,7 +574,7 @@ struct IngredientEditor: View {
       }
     }
   }
-  
+
   // Use the first preview ingredient
   return PreviewWrapper(ingredient: previewIngredients[0])
     .modelContainer(container)

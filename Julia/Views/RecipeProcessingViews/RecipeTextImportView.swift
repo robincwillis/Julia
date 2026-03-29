@@ -20,7 +20,7 @@ struct RecipeTextImportView: View {
               .frame(minHeight: 200)
               .frame(maxWidth: .infinity)
               .foregroundColor(.secondary)
-              .background(.white)
+              .background(Color.app.white)
               .cornerRadius(12)
               .focused($isRecipeTextFieldFocused)
               .onSubmit {

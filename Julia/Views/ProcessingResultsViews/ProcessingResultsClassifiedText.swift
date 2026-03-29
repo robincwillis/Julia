@@ -21,7 +21,7 @@ struct ProcessingResultsClassifiedText: View {
       HStack {
         Toggle("Skipped Only", isOn: $showSkippedOnly)
           .toggleStyle(.button)
-          .background(.white)
+          .background(Color.app.white)
           .cornerRadius(6)
           .font(.caption)
         
@@ -126,11 +126,14 @@ struct ProcessingResultsClassifiedText: View {
   private func typeIcon(for type: RecipeLineType) -> String {
     switch type {
     case .title: return "textformat.characters"
+    case .section_title: return "textformat.headings"
     case .ingredient: return "carrot"
     case .instruction: return "frying.pan"
     case .summary: return "text.quote"
     case .serving: return "fork.knife"
     case .time: return "stopwatch"
+    case .source: return "link"
+    case .note: return "exclamationmark.triangle"
     case .unknown: return "questionmark.circle"
     }
   }
@@ -138,11 +141,14 @@ struct ProcessingResultsClassifiedText: View {
   private func typeColor(for type: RecipeLineType) -> Color {
     switch type {
     case .title: return .blue
+    case .section_title: return .cyan
     case .ingredient: return .green
     case .instruction: return .indigo
     case .summary: return .red
     case .serving: return .pink
     case .time: return .purple
+    case .note: return .orange
+    case .source: return .yellow
     case .unknown: return .gray
     }
   }
