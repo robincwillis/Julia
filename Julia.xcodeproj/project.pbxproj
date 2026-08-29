@@ -168,7 +168,7 @@
 		52664EB72D87B840008E7673 /* ProcessingResultsRawText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessingResultsRawText.swift; sourceTree = "<group>"; };
 		52664EB92D87B864008E7673 /* ProcessingResultsReconstructedText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessingResultsReconstructedText.swift; sourceTree = "<group>"; };
 		52664EBB2D87B875008E7673 /* ProcessingResultsClassifiedText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessingResultsClassifiedText.swift; sourceTree = "<group>"; };
-		527AF2562D8F684000FE6E38 /* PreviewHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewHelpers.swift; sourceTree = SOURCE_ROOT; };
+		527AF2562D8F684000FE6E38 /* PreviewHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Julia/Utilities/PreviewHelpers.swift; sourceTree = SOURCE_ROOT; };
 		52A5E0372DA60A08002D3920 /* DetectClipboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetectClipboardView.swift; sourceTree = "<group>"; };
 		52A5E0392DA60E4A002D3920 /* Dot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Dot.swift; sourceTree = "<group>"; };
 		52A5E03B2DA6C685002D3920 /* RecipeProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeProcessor.swift; sourceTree = "<group>"; };
@@ -703,7 +703,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -758,7 +758,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
