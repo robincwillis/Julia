@@ -258,12 +258,12 @@ class RecipeProcessor {
 // Type alias for classification result
 typealias ClassificationResult = (
   title: String,
-  sectionTitles: [String],
   ingredients: [String],
   instructions: [String],
   summary: [String],
   servings: [String],
   timings: [String],
+  sectionTitles: [String],
   notes: [String],
   source: [String],
   skipped: [(String, RecipeLineType, Double)],
@@ -282,7 +282,7 @@ extension RecipeTextReconstructor {
 extension RecipeTextClassifier {
   func processRecipeTextAsync(_ text: [String]) async -> ClassificationResult {
     let classifier = self
-    return await Task.detached(priority: .userInitiated) {
+    return await Task.detached(priority: .userInitiated) { () -> ClassificationResult in
       classifier.processRecipeText(text)
     }.value
   }
