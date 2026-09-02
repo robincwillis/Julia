@@ -24,6 +24,9 @@ class RecipeProcessor {
   // Reference to model context for saving
   private var modelContext: ModelContext?
 
+  // Recipe auto-saved on import; replaced if the user saves an edited version
+  private var autoSavedRecipe: Recipe?
+
   // Completion handler
   var onCompletion: ((RecipeData) -> Void)?
   var onError: ((String) -> Void)?
@@ -41,6 +44,7 @@ class RecipeProcessor {
   func start() {
     processingState.reset()
     recipeData.reset()
+    autoSavedRecipe = nil
     processingState.processingStage = .notStarted
 
     processingState.showProcessingSheet = true
@@ -119,11 +123,62 @@ class RecipeProcessor {
     }
   }
 
+  // Process recipe URL input
+  func processURL(_ urlString: String) {
+    start()
+
+    Task {
+      do {
+        try await Task.sleep(for: .milliseconds(200))
+        work()
+        let extractedData = try await extractRecipeFromURL(urlString)
+        try await Task.sleep(for: .milliseconds(750))
+        recipeData = extractedData
+        processingState.recognizedText = extractedData.rawText
+        autoSave()
+        try await Task.sleep(for: .milliseconds(750))
+        complete()
+      } catch let error as RecipeWebExtractor.ExtractionError {
+        switch error {
+        case .invalidURL:
+          handleError("The URL provided is invalid")
+        case .networkError(let underlyingError):
+          handleError("Network error: \(underlyingError.localizedDescription)")
+        case .parsingFailed(let reason):
+          handleError("Parsing failed: \(reason)")
+        case .noRecipeFound:
+          handleError("No recipe could be found on this page")
+        }
+      } catch {
+        handleError(error.localizedDescription)
+      }
+    }
+  }
+
+  // Recipe extraction from website task
+  private func extractRecipeFromURL(_ urlString: String) async throws -> RecipeData {
+    processingState.statusMessage = "AI is extracting recipe from website..."
+
+    let extractor = RecipeWebExtractor()
+    return try await extractor.extractRecipe(from: urlString)
+  }
+
   // Process existing recipe data
   func processData(_ data: RecipeData) {
     start()
     recipeData = data
+    autoSave()
     complete()
+  }
+
+  // Persist the imported recipe immediately so it's kept even if the
+  // review sheet is dismissed without an explicit save
+  private func autoSave() {
+    guard let context = modelContext else { return }
+
+    let recipe = recipeData.convertToSwiftDataModel()
+    context.insert(recipe)
+    autoSavedRecipe = recipe
   }
 
   // Text from image extraction task
@@ -221,6 +276,12 @@ class RecipeProcessor {
     guard let context = modelContext else {
       processingState.errorMessage = "Cannot save recipe: database context unavailable"
       return false
+    }
+
+    // Replace the auto-saved copy with the reviewed version to avoid duplicates
+    if let autoSaved = autoSavedRecipe {
+      context.delete(autoSaved)
+      autoSavedRecipe = nil
     }
 
     // Create recipe from data

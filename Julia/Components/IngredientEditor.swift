@@ -137,7 +137,7 @@ struct IngredientEditor: View {
         }) {
           Image(systemName: canSave ? "checkmark.circle.fill" : "xmark.circle.fill")
             .font(.title2)
-            .foregroundColor(canSave ? Color.app.primary : Color(red: 0.976, green: 0.667, blue: 0.576))
+            .foregroundColor(canSave ? Color.app.primary : Color.app.primaryDisabled)
         }
       }
       //.transition(.opacity)

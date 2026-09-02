@@ -36,20 +36,24 @@ struct RecipesView: View {
       .navigationTitle("Recipes")
       .navigationBarTitleDisplayMode(.large)
       .toolbar {
-        Button(action: {
-          showAddSheet.toggle()
-        }) {
-          Image(systemName: "plus")
-            .foregroundColor(Color.app.primary)
-            .frame(width: 40, height: 40)
-            .background(Color.white)
-            .clipShape(Circle())
+        ToolbarItem(placement: .topBarTrailing) {
+          Button(action: {
+            showAddSheet.toggle()
+          }) {
+            Image(systemName: "plus")
+              .foregroundColor(Color.app.primary)
+              .frame(width: 40, height: 40)
+              .background(Color.app.white)
+              .clipShape(Circle())
+          }
         }
+        .hidesSharedGlassBackground()
       }
       .sheet(isPresented: $showAddSheet) {
         AddRecipe()
           .interactiveDismissDisabled()
           .presentationDetents([.height(240), .large])
+          .presentationBackground(Color.app.backgroundSecondary)
           .presentationDragIndicator(.hidden)
       }
       .alert("Recipes Added", isPresented: $showSuccessAlert) {

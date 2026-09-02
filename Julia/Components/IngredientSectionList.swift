@@ -22,7 +22,7 @@ struct IngredientSectionList: View {
               
               if section.ingredients.isEmpty {
                   Text("No ingredients in this section")
-                      .foregroundColor(.gray)
+                      .foregroundColor(Color.app.textSecondary)
                       .padding(.vertical, 8)
               } else {
                   ForEach(section.ingredients) { ingredient in

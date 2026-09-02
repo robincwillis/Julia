@@ -72,7 +72,7 @@ struct NavigationView: View {
   // Recipe processing state
   @State private var selectedImage: UIImage?
   @State private var selectedText: String?
-  @State private var extractedRecipeData: RecipeData?
+  @State private var selectedURL: String?
   @State private var recipeProcessor = RecipeProcessor()
   
   var body: some View {
@@ -145,9 +145,9 @@ struct NavigationView: View {
         recipeProcessor.processText(text)
       }
     }
-    .onChange(of: extractedRecipeData) { oldValue, newValue in
-      if let recipeData = newValue {
-        recipeProcessor.processData(recipeData)
+    .onChange(of: selectedURL) { oldValue, newValue in
+      if let url = newValue {
+        recipeProcessor.processURL(url)
       }
     }
 }
@@ -187,7 +187,7 @@ private var bottomNavigationAndActions: some View {
   .sheet(
     isPresented: $recipeProcessor.processingState.showResultsSheet,
     onDismiss: {
-      extractedRecipeData = nil
+      selectedURL = nil
       selectedImage = nil
       selectedText = nil
     }
@@ -209,7 +209,7 @@ private var bottomNavigation: some View {
       tabButtons
       Circle()
         .fill(Color.clear)
-        .frame(width: 60, height: 60)
+        .frame(width: 70, height: 70)
     }
     .padding(.horizontal, 24)
   }
@@ -234,7 +234,7 @@ private var tabButtons: some View {
   }
   .padding(5)
   .frame(height: 70)
-  .background(Color.white)
+  .background(Color.app.white)
   .coordinateSpace(name: "TabStack")
   .clipShape(.rect(cornerRadius: 35))
 }
@@ -243,7 +243,7 @@ private var floatingActionMenu: some View {
   FloatingActionMenu(
     selectedImage: $selectedImage,
     selectedText: $selectedText,
-    extractedRecipeData: $extractedRecipeData,
+    selectedURL: $selectedURL,
     processingState: recipeProcessor.processingState
   )
 }
@@ -270,6 +270,7 @@ private var processingStatusSheet: some View {
     onDismiss: {
       selectedImage = nil
       selectedText = nil
+      selectedURL = nil
     }
   ) {
     RecipeProcessing(

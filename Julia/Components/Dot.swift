@@ -16,7 +16,8 @@ struct Dot: View {
   }
   
   let numberOfCircles = 10
-  let mainCircleSize: CGFloat = 60
+  // Matches the bottom tab menu height (see NavigationView.tabButtons)
+  let mainCircleSize: CGFloat = 70
   let smallCircleSize: CGFloat = 10
   let expandedRadius: CGFloat = 25
   let animationDuration: Double = 0.2
@@ -37,7 +38,7 @@ struct Dot: View {
       if animationState == .open {
         Image(systemName: "xmark")
           .font(.system(size: openCircleSize * 0.5, weight: .bold)) // Made bolder
-          .foregroundColor(Color.app.white)
+          .foregroundColor(Color.app.textOnPrimary)
           .scaleEffect(xMarkScale)
           .opacity(animationState == .open ? 1 : 0)
       }

@@ -11,7 +11,7 @@ import PhotosUI
 struct FloatingActionMenu: View {
   @Binding var selectedImage: UIImage?
   @Binding var selectedText: String?
-  @Binding var extractedRecipeData: RecipeData?
+  @Binding var selectedURL: String?
   
   var processingState: RecipeProcessingState
 
@@ -132,7 +132,6 @@ struct FloatingActionMenu: View {
                   animationTriggered = true
                 }
               }
-              .padding(.vertical, 5)
           }
         }
         .padding(.trailing, 24)
@@ -142,10 +141,10 @@ struct FloatingActionMenu: View {
     // URL Import Sheet
     .sheet(isPresented: $showRecipeURLImport) {
       RecipeURLImportView(
-        extractedRecipeData: $extractedRecipeData
+        selectedURL: $selectedURL
       )
       .presentationDetents([.height(250), .medium])
-      .background(.background.secondary)
+      .presentationBackground(Color.app.backgroundSecondary)
       .presentationDragIndicator(.hidden)
       .onDisappear {
         isExpanded = false
@@ -154,10 +153,10 @@ struct FloatingActionMenu: View {
     // Text Import Sheet
     .sheet(isPresented: $showRecipeTextImport) {
       RecipeTextImportView(
-        recipeText: $selectedText      
+        recipeText: $selectedText
       )
       .presentationDetents([.medium])
-      .background(.background.secondary)
+      .presentationBackground(Color.app.backgroundSecondary)
       .presentationDragIndicator(.hidden)
       .onDisappear {
         isExpanded = false
@@ -336,14 +335,14 @@ extension View {
       @State var image: UIImage? = nil
       @State var text: String? = nil
       @State var processingState = RecipeProcessingState()
-      @State var extractedRecipeData: RecipeData? = nil
+      @State var selectedURL: String? = nil
         
       var body: some View {
         ZStack {
           FloatingActionMenu(
             selectedImage: $image,
             selectedText: $text,
-            extractedRecipeData: $extractedRecipeData,
+            selectedURL: $selectedURL,
             processingState: processingState
           )
         }

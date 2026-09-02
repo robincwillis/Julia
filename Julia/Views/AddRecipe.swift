@@ -146,39 +146,36 @@ struct AddRecipe: View {
         .toolbar {
           if focusedField.needsDoneButton {
             ToolbarItemGroup(placement: .keyboard) {
-              HStack (spacing: 6) {
+              HStack(spacing: 12) {
                 if focusedField == .servings {
                   Button("Clear") {
                     servings = nil
                     if let existingRecipe = recipe {
                       existingRecipe.servings = nil
                     }
-                  }.foregroundColor(.red)
+                  }
+                  .foregroundColor(.red)
                 }
-                
+
                 Spacer()
-                
+
                 if focusedField == .rawText {
                   Button("Paste") {
                     if let clipboardString = UIPasteboard.general.string {
                       rawText += clipboardString
                     }
                   }
-                  .foregroundColor(.white)
-                  .padding(.horizontal, 12)
-                  .padding(.vertical, 3)
-                  .background(Color.app.primary)
-                  .cornerRadius(12)
-                  .padding(.vertical, 3)
-                  
+                  .prominentKeyboardAccessoryStyle(fill: Color.app.primary)
                 }
-                
+
                 Button("Done") {
                   hideKeyboard()
                 }
-                .padding(.horizontal)
               }
+              .keyboardAccessoryBarStyle()
+              .padding(.bottom, 24)
             }
+            .hidesSharedGlassBackground()
           }
         }
         .toolbar {

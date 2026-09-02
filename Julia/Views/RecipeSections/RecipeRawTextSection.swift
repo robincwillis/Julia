@@ -37,7 +37,7 @@ struct RecipeRawTextSection: View {
         .foregroundColor(.blue)
         .padding(.horizontal, 12)
         .padding(.vertical, 6)
-        .background(Color(red: 0.85, green: 0.92, blue: 1.0))
+        .background(Color.app.secondary)
         .cornerRadius(12)
       }
       

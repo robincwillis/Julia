@@ -122,7 +122,7 @@ struct IngredientsView: View {
                   .font(.system(size: 14))
                   .foregroundColor(Color.app.primary)
                   .frame(width: 40, height: 40)
-                  .background(Color.white)
+                  .background(Color.app.white)
                   .clipShape(Circle())
                   .animation(.snappy, value: hasSelection)
                   .transition(.opacity)
@@ -130,6 +130,7 @@ struct IngredientsView: View {
             }
           }
         }
+        .hidesSharedGlassBackground()
       }
     }
     .onChange(of: selectedIngredients) {

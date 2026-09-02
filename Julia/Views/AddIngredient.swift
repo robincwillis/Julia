@@ -67,7 +67,7 @@ struct AddIngredient: View {
       // Main Input
       TextField("Ingredient", text: $ingredientInput)
         .font(.system(size: 32, weight: .medium))
-        .foregroundColor(.black)
+        .foregroundColor(Color.app.textPrimary)
         .tint(.blue)
         .multilineTextAlignment(.center)
         .disableAutocorrection(true)

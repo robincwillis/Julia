@@ -28,29 +28,26 @@ struct RecipeTextImportView: View {
               }
               .toolbar {
                 ToolbarItemGroup(placement: .keyboard) {
-                  HStack (spacing: 6) {
-                    
-                    if isRecipeTextFieldFocused {
+                  if isRecipeTextFieldFocused {
+                    HStack(spacing: 12) {
                       Spacer()
-                      
+
                       Button("Paste") {
                         if let clipboardString = UIPasteboard.general.string {
                           inputText = inputText + clipboardString
                         }
                       }
-                      .foregroundColor(.white)
-                      .padding(.horizontal, 12)
-                      .padding(.vertical, 3)
-                      .background(.blue)
-                      .cornerRadius(12)
-                      .padding(.vertical, 3)
-                      
+                      .prominentKeyboardAccessoryStyle()
+
                       Button("Done") {
                         isRecipeTextFieldFocused = false
                       }
                     }
+                    .keyboardAccessoryBarStyle()
+                    .padding(.bottom, 24)
                   }
                 }
+                .hidesSharedGlassBackground()
               }
             
             
