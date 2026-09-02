@@ -1,0 +1,210 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="720" viewBox="0 0 960 720">
+  <defs>
+    <!-- Clips the right half of a 110×80 swatch for dark mode color -->
+    <clipPath id="dark-half">
+      <rect x="55" y="0" width="55" height="80"/>
+    </clipPath>
+  </defs>
+
+  <!-- Canvas background -->
+  <rect width="960" height="720" fill="#F7F7F5"/>
+
+  <!-- ── Title ── -->
+  <text x="48" y="50" font-family="system-ui, -apple-system, Helvetica Neue, sans-serif" font-size="26" font-weight="700" fill="#1C1C1C">Julia — Brand Colors</text>
+  <text x="48" y="72" font-family="system-ui, -apple-system, Helvetica Neue, sans-serif" font-size="11" fill="#AAAAAA">Each swatch shows light mode (left) and dark mode (right)</text>
+
+  <!-- ══════════════════════════════════
+       SECTION 1 — Brand
+  ══════════════════════════════════ -->
+  <text x="48" y="104" font-family="system-ui, -apple-system, Helvetica Neue, sans-serif" font-size="11" font-weight="600" letter-spacing="1.2" fill="#AAAAAA">BRAND</text>
+
+  <!-- primary -->
+  <g transform="translate(48, 116)">
+    <rect width="110" height="80" rx="8" fill="#FF3900"/>
+    <rect width="110" height="80" rx="8" fill="#FF7445" clip-path="url(#dark-half)"/>
+    <line x1="55" y1="0" x2="55" y2="80" stroke="white" stroke-width="1" opacity="0.25"/>
+    <text x="55" y="97" text-anchor="middle" font-family="system-ui, -apple-system, Helvetica Neue, sans-serif" font-size="10" font-weight="500" fill="#333333">primary</text>
+    <text x="55" y="111" text-anchor="middle" font-family="system-ui, -apple-system, Helvetica Neue, sans-serif" font-size="8" fill="#999999">#FF3900 · #FF7445</text>
+  </g>
+
+  <!-- primary.disabled -->
+  <g transform="translate(182, 116)">
+    <rect width="110" height="80" rx="8" fill="#F9AA93"/>
+    <rect width="110" height="80" rx="8" fill="#9C6454" clip-path="url(#dark-half)"/>
+    <line x1="55" y1="0" x2="55" y2="80" stroke="white" stroke-width="1" opacity="0.25"/>
+    <text x="55" y="97" text-anchor="middle" font-family="system-ui, -apple-system, Helvetica Neue, sans-serif" font-size="10" font-weight="500" fill="#333333">primary.disabled</text>
+    <text x="55" y="111" text-anchor="middle" font-family="system-ui, -apple-system, Helvetica Neue, sans-serif" font-size="8" fill="#999999">#F9AA93 · #9C6454</text>
+  </g>
+
+  <!-- secondary -->
+  <g transform="translate(316, 116)">
+    <rect width="110" height="80" rx="8" fill="#B3DAD7"/>
+    <rect width="110" height="80" rx="8" fill="#718F8D" clip-path="url(#dark-half)"/>
+    <line x1="55" y1="0" x2="55" y2="80" stroke="white" stroke-width="1" opacity="0.25"/>
+    <text x="55" y="97" text-anchor="middle" font-family="system-ui, -apple-system, Helvetica Neue, sans-serif" font-size="10" font-weight="500" fill="#333333">secondary</text>
+    <text x="55" y="111" text-anchor="middle" font-family="system-ui, -apple-system, Helvetica Neue, sans-serif" font-size="8" fill="#999999">#B3DAD7 · #718F8D</text>
+  </g>
+
+  <!-- secondary.disabled -->
+  <g transform="translate(450, 116)">
+    <rect width="110" height="80" rx="8" fill="#D8E2E4"/>
+    <rect width="110" height="80" rx="8" fill="#5D6D70" clip-path="url(#dark-half)"/>
+    <line x1="55" y1="0" x2="55" y2="80" stroke="white" stroke-width="1" opacity="0.25"/>
+    <text x="55" y="97" text-anchor="middle" font-family="system-ui, -apple-system, Helvetica Neue, sans-serif" font-size="10" font-weight="500" fill="#333333">secondary.disabled</text>
+    <text x="55" y="111" text-anchor="middle" font-family="system-ui, -apple-system, Helvetica Neue, sans-serif" font-size="8" fill="#999999">#D8E2E4 · #5D6D70</text>
+  </g>
+
+  <!-- danger -->
+  <g transform="translate(584, 116)">
+    <rect width="110" height="80" rx="8" fill="#800020"/>
+    <rect width="110" height="80" rx="8" fill="#DC143C" clip-path="url(#dark-half)"/>
+    <line x1="55" y1="0" x2="55" y2="80" stroke="white" stroke-width="1" opacity="0.25"/>
+    <text x="55" y="97" text-anchor="middle" font-family="system-ui, -apple-system, Helvetica Neue, sans-serif" font-size="10" font-weight="500" fill="#333333">danger</text>
+    <text x="55" y="111" text-anchor="middle" font-family="system-ui, -apple-system, Helvetica Neue, sans-serif" font-size="8" fill="#999999">#800020 · #DC143C</text>
+  </g>
+
+  <!-- ══════════════════════════════════
+       SECTION 2 — Backgrounds & Text
+  ══════════════════════════════════ -->
+  <text x="48" y="254" font-family="system-ui, -apple-system, Helvetica Neue, sans-serif" font-size="11" font-weight="600" letter-spacing="1.2" fill="#AAAAAA">BACKGROUNDS &amp; TEXT</text>
+
+  <!-- background.primary -->
+  <g transform="translate(48, 266)">
+    <rect width="110" height="80" rx="8" fill="#F0F0F0" stroke="#DDDDDD" stroke-width="1"/>
+    <rect width="110" height="80" rx="8" fill="#242424" clip-path="url(#dark-half)"/>
+    <line x1="55" y1="0" x2="55" y2="80" stroke="#BBBBBB" stroke-width="1" opacity="0.6"/>
+    <text x="55" y="97" text-anchor="middle" font-family="system-ui, -apple-system, Helvetica Neue, sans-serif" font-size="10" font-weight="500" fill="#333333">background.primary</text>
+    <text x="55" y="111" text-anchor="middle" font-family="system-ui, -apple-system, Helvetica Neue, sans-serif" font-size="8" fill="#999999">#F0F0F0 · #242424</text>
+  </g>
+
+  <!-- background.secondary -->
+  <g transform="translate(182, 266)">
+    <rect width="110" height="80" rx="8" fill="#DDE2E1"/>
+    <rect width="110" height="80" rx="8" fill="#374750" clip-path="url(#dark-half)"/>
+    <line x1="55" y1="0" x2="55" y2="80" stroke="white" stroke-width="1" opacity="0.25"/>
+    <text x="55" y="97" text-anchor="middle" font-family="system-ui, -apple-system, Helvetica Neue, sans-serif" font-size="10" font-weight="500" fill="#333333">background.secondary</text>
+    <text x="55" y="111" text-anchor="middle" font-family="system-ui, -apple-system, Helvetica Neue, sans-serif" font-size="8" fill="#999999">#DDE2E1 · #374750</text>
+  </g>
+
+  <!-- white -->
+  <g transform="translate(316, 266)">
+    <rect width="110" height="80" rx="8" fill="#FFFFFF" stroke="#DDDDDD" stroke-width="1"/>
+    <rect width="110" height="80" rx="8" fill="#1C1C1C" clip-path="url(#dark-half)"/>
+    <line x1="55" y1="0" x2="55" y2="80" stroke="#BBBBBB" stroke-width="1" opacity="0.6"/>
+    <text x="55" y="97" text-anchor="middle" font-family="system-ui, -apple-system, Helvetica Neue, sans-serif" font-size="10" font-weight="500" fill="#333333">white</text>
+    <text x="55" y="111" text-anchor="middle" font-family="system-ui, -apple-system, Helvetica Neue, sans-serif" font-size="8" fill="#999999">#FFFFFF · #1C1C1C</text>
+  </g>
+
+  <!-- text.primary -->
+  <g transform="translate(450, 266)">
+    <rect width="110" height="80" rx="8" fill="#1C1C1C"/>
+    <rect width="110" height="80" rx="8" fill="#FFFFFF" clip-path="url(#dark-half)"/>
+    <line x1="55" y1="0" x2="55" y2="80" stroke="#888888" stroke-width="1" opacity="0.4"/>
+    <text x="55" y="97" text-anchor="middle" font-family="system-ui, -apple-system, Helvetica Neue, sans-serif" font-size="10" font-weight="500" fill="#333333">text.primary</text>
+    <text x="55" y="111" text-anchor="middle" font-family="system-ui, -apple-system, Helvetica Neue, sans-serif" font-size="8" fill="#999999">#1C1C1C · #FFFFFF</text>
+  </g>
+
+  <!-- ══════════════════════════════════
+       SECTION 3 — Greyscale
+  ══════════════════════════════════ -->
+  <text x="48" y="404" font-family="system-ui, -apple-system, Helvetica Neue, sans-serif" font-size="11" font-weight="600" letter-spacing="1.2" fill="#AAAAAA">GREYSCALE</text>
+
+  <!-- grey.100 -->
+  <g transform="translate(48, 416)">
+    <rect width="110" height="80" rx="8" fill="#EBE6E1"/>
+    <rect width="110" height="80" rx="8" fill="#64625F" clip-path="url(#dark-half)"/>
+    <line x1="55" y1="0" x2="55" y2="80" stroke="white" stroke-width="1" opacity="0.25"/>
+    <text x="55" y="97" text-anchor="middle" font-family="system-ui, -apple-system, Helvetica Neue, sans-serif" font-size="10" font-weight="500" fill="#333333">grey.100</text>
+    <text x="55" y="111" text-anchor="middle" font-family="system-ui, -apple-system, Helvetica Neue, sans-serif" font-size="8" fill="#999999">#EBE6E1 · #64625F</text>
+  </g>
+
+  <!-- grey.200 -->
+  <g transform="translate(182, 416)">
+    <rect width="110" height="80" rx="8" fill="#C8BFB4"/>
+    <rect width="110" height="80" rx="8" fill="#7A7671" clip-path="url(#dark-half)"/>
+    <line x1="55" y1="0" x2="55" y2="80" stroke="white" stroke-width="1" opacity="0.25"/>
+    <text x="55" y="97" text-anchor="middle" font-family="system-ui, -apple-system, Helvetica Neue, sans-serif" font-size="10" font-weight="500" fill="#333333">grey.200</text>
+    <text x="55" y="111" text-anchor="middle" font-family="system-ui, -apple-system, Helvetica Neue, sans-serif" font-size="8" fill="#999999">#C8BFB4 · #7A7671</text>
+  </g>
+
+  <!-- grey.300 -->
+  <g transform="translate(316, 416)">
+    <rect width="110" height="80" rx="8" fill="#8D8C8B"/>
+    <rect width="110" height="80" rx="8" fill="#A7A6A5" clip-path="url(#dark-half)"/>
+    <line x1="55" y1="0" x2="55" y2="80" stroke="white" stroke-width="1" opacity="0.25"/>
+    <text x="55" y="97" text-anchor="middle" font-family="system-ui, -apple-system, Helvetica Neue, sans-serif" font-size="10" font-weight="500" fill="#333333">grey.300</text>
+    <text x="55" y="111" text-anchor="middle" font-family="system-ui, -apple-system, Helvetica Neue, sans-serif" font-size="8" fill="#999999">#8D8C8B · #A7A6A5</text>
+  </g>
+
+  <!-- grey.400 -->
+  <g transform="translate(450, 416)">
+    <rect width="110" height="80" rx="8" fill="#494949"/>
+    <rect width="110" height="80" rx="8" fill="#C4C4C4" clip-path="url(#dark-half)"/>
+    <line x1="55" y1="0" x2="55" y2="80" stroke="white" stroke-width="1" opacity="0.25"/>
+    <text x="55" y="97" text-anchor="middle" font-family="system-ui, -apple-system, Helvetica Neue, sans-serif" font-size="10" font-weight="500" fill="#333333">grey.400</text>
+    <text x="55" y="111" text-anchor="middle" font-family="system-ui, -apple-system, Helvetica Neue, sans-serif" font-size="8" fill="#999999">#494949 · #C4C4C4</text>
+  </g>
+
+  <!-- grey.500 -->
+  <g transform="translate(584, 416)">
+    <rect width="110" height="80" rx="8" fill="#1C1C1C"/>
+    <rect width="110" height="80" rx="8" fill="#E5E5E5" clip-path="url(#dark-half)"/>
+    <line x1="55" y1="0" x2="55" y2="80" stroke="white" stroke-width="1" opacity="0.25"/>
+    <text x="55" y="97" text-anchor="middle" font-family="system-ui, -apple-system, Helvetica Neue, sans-serif" font-size="10" font-weight="500" fill="#333333">grey.500</text>
+    <text x="55" y="111" text-anchor="middle" font-family="system-ui, -apple-system, Helvetica Neue, sans-serif" font-size="8" fill="#999999">#1C1C1C · #E5E5E5</text>
+  </g>
+
+  <!-- ══════════════════════════════════
+       SECTION 4 — Off-White
+  ══════════════════════════════════ -->
+  <text x="48" y="554" font-family="system-ui, -apple-system, Helvetica Neue, sans-serif" font-size="11" font-weight="600" letter-spacing="1.2" fill="#AAAAAA">OFF-WHITE</text>
+
+  <!-- offwhite.100 -->
+  <g transform="translate(48, 566)">
+    <rect width="110" height="80" rx="8" fill="#FEFEFE" stroke="#DDDDDD" stroke-width="1"/>
+    <rect width="110" height="80" rx="8" fill="#323232" clip-path="url(#dark-half)"/>
+    <line x1="55" y1="0" x2="55" y2="80" stroke="#BBBBBB" stroke-width="1" opacity="0.6"/>
+    <text x="55" y="97" text-anchor="middle" font-family="system-ui, -apple-system, Helvetica Neue, sans-serif" font-size="10" font-weight="500" fill="#333333">offwhite.100</text>
+    <text x="55" y="111" text-anchor="middle" font-family="system-ui, -apple-system, Helvetica Neue, sans-serif" font-size="8" fill="#999999">#FEFEFE · #323232</text>
+  </g>
+
+  <!-- offwhite.200 -->
+  <g transform="translate(182, 566)">
+    <rect width="110" height="80" rx="8" fill="#EDEDED"/>
+    <rect width="110" height="80" rx="8" fill="#3C3C3C" clip-path="url(#dark-half)"/>
+    <line x1="55" y1="0" x2="55" y2="80" stroke="white" stroke-width="1" opacity="0.25"/>
+    <text x="55" y="97" text-anchor="middle" font-family="system-ui, -apple-system, Helvetica Neue, sans-serif" font-size="10" font-weight="500" fill="#333333">offwhite.200</text>
+    <text x="55" y="111" text-anchor="middle" font-family="system-ui, -apple-system, Helvetica Neue, sans-serif" font-size="8" fill="#999999">#EDEDED · #3C3C3C</text>
+  </g>
+
+  <!-- offwhite.300 -->
+  <g transform="translate(316, 566)">
+    <rect width="110" height="80" rx="8" fill="#E9E9E5"/>
+    <rect width="110" height="80" rx="8" fill="#464645" clip-path="url(#dark-half)"/>
+    <line x1="55" y1="0" x2="55" y2="80" stroke="white" stroke-width="1" opacity="0.25"/>
+    <text x="55" y="97" text-anchor="middle" font-family="system-ui, -apple-system, Helvetica Neue, sans-serif" font-size="10" font-weight="500" fill="#333333">offwhite.300</text>
+    <text x="55" y="111" text-anchor="middle" font-family="system-ui, -apple-system, Helvetica Neue, sans-serif" font-size="8" fill="#999999">#E9E9E5 · #464645</text>
+  </g>
+
+  <!-- offwhite.400 -->
+  <g transform="translate(450, 566)">
+    <rect width="110" height="80" rx="8" fill="#DDDAD1"/>
+    <rect width="110" height="80" rx="8" fill="#504F4B" clip-path="url(#dark-half)"/>
+    <line x1="55" y1="0" x2="55" y2="80" stroke="white" stroke-width="1" opacity="0.25"/>
+    <text x="55" y="97" text-anchor="middle" font-family="system-ui, -apple-system, Helvetica Neue, sans-serif" font-size="10" font-weight="500" fill="#333333">offwhite.400</text>
+    <text x="55" y="111" text-anchor="middle" font-family="system-ui, -apple-system, Helvetica Neue, sans-serif" font-size="8" fill="#999999">#DDDAD1 · #504F4B</text>
+  </g>
+
+  <!-- offwhite.500 -->
+  <g transform="translate(584, 566)">
+    <rect width="110" height="80" rx="8" fill="#CFCEC5"/>
+    <rect width="110" height="80" rx="8" fill="#5A5955" clip-path="url(#dark-half)"/>
+    <line x1="55" y1="0" x2="55" y2="80" stroke="white" stroke-width="1" opacity="0.25"/>
+    <text x="55" y="97" text-anchor="middle" font-family="system-ui, -apple-system, Helvetica Neue, sans-serif" font-size="10" font-weight="500" fill="#333333">offwhite.500</text>
+    <text x="55" y="111" text-anchor="middle" font-family="system-ui, -apple-system, Helvetica Neue, sans-serif" font-size="8" fill="#999999">#CFCEC5 · #5A5955</text>
+  </g>
+
+  <!-- Footer -->
+  <text x="48" y="704" font-family="system-ui, -apple-system, Helvetica Neue, sans-serif" font-size="10" fill="#CCCCCC">Generated from Julia/Assets.xcassets — token names match Color.app.* in Theme.swift</text>
+
+</svg>

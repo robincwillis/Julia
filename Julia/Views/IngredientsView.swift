@@ -88,12 +88,11 @@ struct IngredientsView: View {
             } label: {
               Image(systemName: "plus")
                 .foregroundColor(Color.app.primary)
-                .frame(width: 40, height: 40)
-                .background(Color.app.white)
-                .clipShape(Circle())
-                .animation(.snappy, value: hasSelection)
-                .transition(.move(edge: .leading))
             }
+            .frame(width: 30, height: 30)
+            .background(Color.app.white)
+            .clipShape(Circle())
+            .buttonStyle(.plain)
             
             if hasSelection {
               Menu {
@@ -121,12 +120,11 @@ struct IngredientsView: View {
                 Image(systemName: "ellipsis")
                   .font(.system(size: 14))
                   .foregroundColor(Color.app.primary)
-                  .frame(width: 40, height: 40)
-                  .background(Color.white)
-                  .clipShape(Circle())
-                  .animation(.snappy, value: hasSelection)
-                  .transition(.opacity)
               }
+              .frame(width: 30, height: 30)
+              .background(.regularMaterial)
+              .clipShape(Circle())
+              .buttonStyle(.plain)
             }
           }
         }
@@ -196,7 +194,10 @@ struct IngredientsView: View {
   
   private func clearAllIngredients() {
     do {
-      try context.delete(model: Ingredient.self)
+      for ingredient in ingredients {
+        context.delete(ingredient)
+      }
+      try context.save()
       selectedIngredients.removeAll()
     } catch {
       handleDataError(error)
@@ -233,8 +234,8 @@ struct IngredientsView: View {
 }
 
 #Preview {
-  @State var currentIngredient: Ingredient? = nil
-  @State var showBottomSheet = false
+  @Previewable @State var currentIngredient: Ingredient? = nil
+  @Previewable @State var showBottomSheet = false
   return IngredientsView(
     location: IngredientLocation.grocery
   )

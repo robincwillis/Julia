@@ -407,13 +407,10 @@ struct IngredientEditor: View {
       // No existing ingredient, set default values
       unit = MeasurementUnit(from: "item")  // Default to "item" unit
 
-      // Focus on name field for new ingredient
-      //DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
       Task { @MainActor in
-        try? await Task.sleep(for: .milliseconds(5000))
+        try? await Task.sleep(for: .milliseconds(350))
         isNameFieldFocused = true
       }
-      //}
       return
     }
 

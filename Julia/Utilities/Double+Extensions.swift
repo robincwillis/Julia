@@ -35,10 +35,6 @@ extension Double {
     }
     
     // If it's not one of our supported fractions, just return a decimal
-    if wholePart > 0 {
-      return String(format: "%.1f", self)
-    } else {
-      return String(format: "%.1f", self)
-    }
+    return String(format: "%.1f", self)
   }
 }

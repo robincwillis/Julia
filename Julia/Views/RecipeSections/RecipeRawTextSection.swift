@@ -68,9 +68,7 @@ struct RecipeRawTextPreview: View {
     .task {
       // Safely call the MainActor-isolated method
       if recipe == nil {
-        self.recipe = await MainActor.run {
-          MockData.createSampleRecipe()
-        }
+        self.recipe = MockData.createSampleRecipe()
       }
     }
     .sheet(isPresented: $showRawTextSheet) {

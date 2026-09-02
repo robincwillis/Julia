@@ -11,6 +11,7 @@ struct ProcessingResults: View {
   
   @State var showDismissAlert: Bool = false
   @State var selectedTab = 0
+  @State private var isSaved = false
   
   
   var body: some View {
@@ -69,40 +70,44 @@ struct ProcessingResults: View {
       .navigationTitle(!recipeData.title.isEmpty ? recipeData.title : "Process Recipe")
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {
-        // Cancel with confirmation if needed
         ToolbarItem(placement: .cancellationAction) {
-          Button("Cancel") {
-            if !recipeData.title.isEmpty || !recipeData.ingredients.isEmpty || !recipeData.instructions.isEmpty {
+          Button(isSaved ? "Done" : "Cancel") {
+            if isSaved {
+              dismiss()
+            } else if !recipeData.title.isEmpty || !recipeData.ingredients.isEmpty || !recipeData.instructions.isEmpty {
               showDismissAlert = true
             } else {
               dismiss()
             }
           }
+          .foregroundStyle(isSaved ? Color.app.primary : .secondary)
         }
-        
-        // Primary - Save
+
         ToolbarItem(placement: .primaryAction) {
           if !recipeData.title.isEmpty || !recipeData.ingredients.isEmpty || !recipeData.instructions.isEmpty {
-            Button("Save") {
-              saveRecipe()
+            Button(isSaved ? "Saved ✓" : "Save") {
+              if saveRecipe() {
+                isSaved = true
+              }
             }
+            .foregroundStyle(isSaved ? .secondary : Color.app.primary)
+            .disabled(isSaved)
           }
         }
       }
     }
     .alert("Unsaved Recipe", isPresented: $showDismissAlert) {
-      Button("Discard Changes", role: .destructive) {
+      Button("Discard", role: .destructive) {
         dismiss()
       }
-      Button("Save", role: .none) {
-        saveRecipe()
+      Button("Save & Continue") {
+        if saveRecipe() { isSaved = true }
       }
-      .tint(Color.app.danger)
       Button("Cancel", role: .cancel) {
         showDismissAlert = false
       }
     } message: {
-      Text("You have an unsaved recipe. What would you like to do?")
+      Text("Save this recipe before closing?")
     }
     .onAppear() {
       // Auto-save processing results to UserDefaults for recovery
@@ -165,7 +170,6 @@ struct ProcessingResults: View {
         saveRecipe: saveRecipe
       )
       .environment(\.debugMode, true)
-      .previewDisplayName("Debug Mode On")
       
       // Debug Mode Off Preview
       //        ProcessingResults(

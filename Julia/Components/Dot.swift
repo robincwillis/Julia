@@ -3,53 +3,58 @@ import SwiftUI
 struct Dot: View {
   @Binding var isLoading: Bool
   @Binding var isExpanded: Bool
-  
+
   @State private var rotation: Double = 0
   @State private var animationState: AnimationState = .closed
   @State private var xMarkScale: CGFloat = 0.25
-  
+
   enum AnimationState {
-    case closed        // Main circle
-    case transitioning // intermediate circle
-    case loading       // Ring of circles
-    case open          // Circle with X mark
+    case closed
+    case transitioning
+    case loading
+    case open
   }
-  
+
   let numberOfCircles = 10
   let mainCircleSize: CGFloat = 60
   let smallCircleSize: CGFloat = 10
   let expandedRadius: CGFloat = 25
   let animationDuration: Double = 0.2
   let pauseDuration: Double = 0.05
-  let xMarkDelay: Double = 0.05 // Delay for X mark appearance
-  let openCircleSize: CGFloat = 50 // Slightly smaller than main circle
-  
+  let xMarkDelay: Double = 0.05
+  let openCircleSize: CGFloat = 60
+
+  private let buttonColor = Color(red: 1.0, green: 0.30, blue: 0.15)
+
   var body: some View {
     ZStack {
-      // Main circle (visible when not in loading state)
+      // Main circle
       Circle()
-        .fill(Color.app.primary)
+        .fill(buttonColor)
         .frame(width: circleSize, height: circleSize)
+        .shadow(color: buttonColor.opacity(0.5), radius: 8, x: 0, y: 3)
+        .shadow(color: buttonColor.opacity(0.2), radius: 16, x: 0, y: 5)
         .opacity(animationState != .loading ? 1 : 0)
         .animation(.easeInOut(duration: animationDuration), value: animationState)
-      
-      // X Mark (visible in open state)
+
+      // X Mark
       if animationState == .open {
         Image(systemName: "xmark")
-          .font(.system(size: openCircleSize * 0.5, weight: .bold)) // Made bolder
-          .foregroundColor(Color.app.white)
+          .font(.system(size: openCircleSize * 0.5, weight: .bold))
+          .foregroundStyle(.white)
           .scaleEffect(xMarkScale)
           .opacity(animationState == .open ? 1 : 0)
       }
-      
-      // Small circles (visible when in loading state)
+
+      // Loading ring of small dots
       ForEach(0..<numberOfCircles, id: \.self) { index in
         Circle()
-          .fill(Color.red)
+          .fill(buttonColor)
           .frame(width: smallCircleSize, height: smallCircleSize)
+          .shadow(color: buttonColor.opacity(0.4), radius: 3)
           .position(
-            x: frameSize/2 + (animationState == .loading ? expandedRadius * cos(angle(for: index)) : 0),
-            y: frameSize/2 + (animationState == .loading ? expandedRadius * sin(angle(for: index)) : 0)
+            x: frameSize / 2 + (animationState == .loading ? expandedRadius * cos(angle(for: index)) : 0),
+            y: frameSize / 2 + (animationState == .loading ? expandedRadius * sin(angle(for: index)) : 0)
           )
           .opacity(animationState == .loading ? 1 : 0)
           .animation(.easeInOut(duration: animationDuration), value: animationState)
@@ -57,43 +62,37 @@ struct Dot: View {
     }
     .rotationEffect(Angle(degrees: rotation))
     .frame(width: frameSize, height: frameSize)
-    .onChange(of: isLoading) { _, newValue in
-      handleLoadingChange(isNowLoading: newValue)
-    }
-    .onChange(of: isExpanded) { _, newValue in
-      handleExpandedChange(isNowExpanded: newValue)
-    }
+    .onChange(of: isLoading) { _, newValue in handleLoadingChange(isNowLoading: newValue) }
+    .onChange(of: isExpanded) { _, newValue in handleExpandedChange(isNowExpanded: newValue) }
   }
-  
-  // Compute the size of the circle based on current state
+
+  // MARK: - Helpers
+
   private var circleSize: CGFloat {
     switch animationState {
-    case .closed:
-      return mainCircleSize
-    case .transitioning:
-      return smallCircleSize
-    case .loading:
-      return 0 // Hidden when loading
-    case .open:
-      return openCircleSize
+    case .closed:       return mainCircleSize
+    case .transitioning: return smallCircleSize
+    case .loading:      return 0
+    case .open:         return openCircleSize
     }
   }
-  
+
+  private var frameSize: CGFloat {
+    max(mainCircleSize, (expandedRadius + smallCircleSize / 2) * 2)
+  }
+
+  private func angle(for index: Int) -> Double {
+    (2 * .pi / Double(numberOfCircles)) * Double(index)
+  }
+
   private func stopRotation() {
-    withAnimation(.easeInOut(duration: 0.1)) {
-      rotation = 0
-    }
+    withAnimation(.easeInOut(duration: 0.1)) { rotation = 0 }
   }
-  
+
   private func handleLoadingChange(isNowLoading: Bool) {
     if isNowLoading {
-      // Reset X mark scale for next appearance
       xMarkScale = 0.5
-
-      // Transition to loading state
       animationState = .transitioning
-
-      // After pause, expand to ring and start rotation
       Task { @MainActor in
         try? await Task.sleep(for: .seconds(animationDuration + pauseDuration))
         animationState = .loading
@@ -102,12 +101,8 @@ struct Dot: View {
         }
       }
     } else if !isExpanded {
-      // Only transition to closed if not going to open state
       stopRotation()
-
-      // Collapse to small circle
       animationState = .transitioning
-
       Task { @MainActor in
         try? await Task.sleep(for: .seconds(animationDuration + pauseDuration))
         animationState = .closed
@@ -117,13 +112,9 @@ struct Dot: View {
 
   private func handleExpandedChange(isNowExpanded: Bool) {
     if isNowExpanded {
-      // Reset X mark scale for animation
       xMarkScale = 0.1
-
-      // Transition to open state with X mark
       stopRotation()
       animationState = .transitioning
-
       Task { @MainActor in
         try? await Task.sleep(for: .seconds(animationDuration + pauseDuration))
         animationState = .open
@@ -133,23 +124,12 @@ struct Dot: View {
         }
       }
     } else {
-      // Only transition to closed if not going to loading state
       animationState = .transitioning
-
       Task { @MainActor in
         try? await Task.sleep(for: .seconds(animationDuration + pauseDuration))
         animationState = .closed
       }
     }
-  }
-  
-  // Calculate the frame size to ensure it can contain all states
-  private var frameSize: CGFloat {
-    return max(mainCircleSize, (expandedRadius + smallCircleSize/2) * 2)
-  }
-  
-  private func angle(for index: Int) -> Double {
-    return (2 * .pi / Double(numberOfCircles)) * Double(index)
   }
 }
 
@@ -157,34 +137,29 @@ struct Dot: View {
   struct PreviewWrapper: View {
     @State var isLoading = false
     @State var isExpanded = false
-    
+
     var body: some View {
-      VStack {
-        HStack(spacing: 20) {
-          Button("Toggle Loading") {
-            isLoading.toggle()
-            if isLoading { isExpanded = false }
+      ZStack {
+        Color.black.ignoresSafeArea()
+        VStack(spacing: 32) {
+          HStack(spacing: 20) {
+            Button("Toggle Loading") {
+              isLoading.toggle()
+              if isLoading { isExpanded = false }
+            }
+            .foregroundStyle(.white)
+
+            Button("Toggle Open") {
+              isExpanded.toggle()
+              if isExpanded { isLoading = false }
+            }
+            .foregroundStyle(.white)
           }
-          .padding()
-          
-          Button("Toggle Open") {
-            isExpanded.toggle()
-            if isExpanded { isLoading = false }
-          }
-          .padding()
+
+          Dot(isLoading: $isLoading, isExpanded: $isExpanded)
         }
-        
-        Dot(
-          isLoading: $isLoading,
-          isExpanded: $isExpanded
-        )
-        .padding()
-        
-        Text("Tap the dot to cycle through states")
-          .padding()
       }
     }
   }
-  
   return PreviewWrapper()
 }

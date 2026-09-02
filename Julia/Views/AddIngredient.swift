@@ -67,7 +67,7 @@ struct AddIngredient: View {
       // Main Input
       TextField("Ingredient", text: $ingredientInput)
         .font(.system(size: 32, weight: .medium))
-        .foregroundColor(.black)
+        .foregroundColor(.primary)
         .tint(.blue)
         .multilineTextAlignment(.center)
         .disableAutocorrection(true)
@@ -127,8 +127,8 @@ struct AddIngredient: View {
 }
 
 #Preview {
-  @State var location = IngredientLocation.pantry
-  @State var showBottomSheet = true
+  @Previewable @State var location = IngredientLocation.pantry
+  @Previewable @State var showBottomSheet = true
   return FloatingBottomSheet(isPresented: $showBottomSheet) {
     AddIngredient(
       ingredientLocation: $location,

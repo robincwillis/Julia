@@ -48,7 +48,7 @@ enum MeasurementUnit: String, CaseIterable, Codable {
     case "pt", "pint", "pints":
       self = .pint
     case "qt", "quart", "quarts":
-      self = .liter
+      self = .quart
     case "gal", "gallon", "gallons":
       self = .gallon
     case "l", "liter", "liters":

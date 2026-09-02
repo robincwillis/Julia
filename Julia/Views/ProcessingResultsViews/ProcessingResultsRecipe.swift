@@ -12,6 +12,21 @@ struct ProcessingResultsRecipe: View {
   let saveProcessingResults: () -> Void
   @State private var hasUnsavedChanges = false
 
+  private var nonEmptySummary: [String] {
+    recipeData.summary.filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+  }
+
+  private var summaryBinding: Binding<String> {
+    Binding(
+      get: { nonEmptySummary.joined(separator: "\n\n") },
+      set: { newValue in
+        recipeData.summary = newValue.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? [] : [newValue]
+        hasUnsavedChanges = true
+        saveProcessingResults()
+      }
+    )
+  }
+
   var body: some View {
     Form {
       Section("Recipe Title") {
@@ -27,20 +42,10 @@ struct ProcessingResultsRecipe: View {
         .submitLabel(.done)
       }
       
-      if !recipeData.summary.isEmpty {
+      if !nonEmptySummary.isEmpty {
         Section("Summary") {
-          ForEach(0..<recipeData.summary.count, id: \.self) { index in
-            TextEditor(text: Binding(
-              get: { recipeData.summary[index] },
-              set: {
-                recipeData.summary[index] = $0
-                hasUnsavedChanges = true
-                saveProcessingResults()
-              }
-            ))
+          TextEditor(text: summaryBinding)
             .frame(height: 150)
-            .submitLabel(.done)
-          }
         }
       }
       

@@ -28,6 +28,8 @@ struct JuliaApp: App {
                     setupDebugModeObserver()
                     // Initialize from UserDefaults
                     debugModeEnabled = UserDefaults.standard.bool(forKey: "debugMode")
+                    // Warm the Foundation Models on-device model for faster first request
+                    Task { await FoundationModelsService.shared.prewarm() }
                 }
                 .alert("Database Error", isPresented: $showDBError) {
                     Button("OK", role: .cancel) {}

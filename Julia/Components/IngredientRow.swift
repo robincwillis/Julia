@@ -30,59 +30,60 @@ struct iOSCheckboxToggleStyle: ToggleStyle {
 
 struct IngredientLabel: View {
   var ingredient: Ingredient
-  
-  init(_ ingredient: Ingredient) {
+  var multiplier: Double = 1.0
+
+  init(_ ingredient: Ingredient, multiplier: Double = 1.0) {
     self.ingredient = ingredient
+    self.multiplier = multiplier
   }
-  
+
   var body: some View {
     HStack(alignment: .firstTextBaseline, spacing: 6) {
       quantityView
       ingredientDetailsView
     }
   }
-  
+
   // MARK: - Helper Views
-  
+
   private var quantityView: some View {
     Group {
       if let quantity = ingredient.quantity {
-        Text(quantity.toFractionString())
+        let scaled = quantity * multiplier
+        Text(scaled.toFractionString())
           .font(.body)
           .foregroundColor(Color.app.primary)
-        
+
         if let unit = ingredient.unit, unit.rawValue != "item" {
-          Text(unit.displayName.pluralized(for: quantity))
+          Text(unit.displayName.pluralized(for: scaled))
             .font(.body)
             .foregroundColor(Color.app.primary)
         }
       }
     }
   }
-  
+
   private var ingredientDetailsView: some View {
-    (
-      Text(formattedIngredientName)
-        .font(.body)
-        .foregroundColor(Color.app.textSecondary)
-      +
-      (ingredient.comment != nil ?
-       Text(" " + (ingredient.comment ?? ""))
-        .font(.subheadline)
-        .foregroundColor(Color.app.grey300) :
-        Text(""))
-    )
+    Group {
+      if let comment = ingredient.comment {
+        Text("\(Text(formattedIngredientName).font(.body).foregroundColor(Color.app.textSecondary))\(Text(" \(comment)").font(.subheadline).foregroundColor(Color.app.grey300))")
+      } else {
+        Text(formattedIngredientName)
+          .font(.body)
+          .foregroundColor(Color.app.textSecondary)
+      }
+    }
     .multilineTextAlignment(.leading)
     .fixedSize(horizontal: false, vertical: true)
   }
-  
+
   // MARK: - Computed Properties
-  
+
   private var formattedIngredientName: String {
     if let quantity = ingredient.quantity {
+      let scaled = quantity * multiplier
       if let unit = ingredient.unit, unit.rawValue == "item" {
-        // Pluralize the name if it's an "item" unit type
-        return ingredient.name.pluralized(for: quantity)
+        return ingredient.name.pluralized(for: scaled)
       }
     }
     return ingredient.name
@@ -91,23 +92,26 @@ struct IngredientLabel: View {
 
 struct IngredientRow: View {
   var ingredient: Ingredient
+  var multiplier: Double = 1.0
   var onTap: ((Ingredient?, IngredientSection?) -> Void)?
   var section: IngredientSection? = nil
   var padding: CGFloat = 6
-  
-  init(ingredient: Ingredient, onTap: ((Ingredient?, IngredientSection?) -> Void)? = nil, section: IngredientSection? = nil, padding: CGFloat = 6) {
+
+  init(ingredient: Ingredient, multiplier: Double = 1.0, onTap: ((Ingredient?, IngredientSection?) -> Void)? = nil, section: IngredientSection? = nil, padding: CGFloat = 6) {
     self.ingredient = ingredient
+    self.multiplier = multiplier
     self.onTap = onTap
     self.section = section
     self.padding = padding
   }
-  
+
   // onTap (Ingredient?) -> Void initializer
-  init(ingredient: Ingredient, onTap: ((Ingredient?) -> Void)?, padding: CGFloat = 6) {
+  init(ingredient: Ingredient, multiplier: Double = 1.0, onTap: ((Ingredient?) -> Void)?, padding: CGFloat = 6) {
     self.ingredient = ingredient
+    self.multiplier = multiplier
     self.padding = padding
     self.section = nil
-    
+
     if let onTap = onTap {
       self.onTap = { ingredient, _ in
         onTap(ingredient)
@@ -116,14 +120,14 @@ struct IngredientRow: View {
       self.onTap = nil
     }
   }
-  
+
   var body: some View {
     HStack {
-      IngredientLabel(ingredient)
+      IngredientLabel(ingredient, multiplier: multiplier)
       Spacer()
     }
     .onTapGesture {
-      onTap?(ingredient, section)  // Call the onTap closure if provided
+      onTap?(ingredient, section)
     }
     .padding(padding)
   }

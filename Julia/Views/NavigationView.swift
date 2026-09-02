@@ -8,13 +8,14 @@
 import SwiftUI
 import SwiftData
 import PhotosUI
+import VisionKit
 
 
 // Define notification names for tab bar visibility
 extension Notification.Name {
   static let hideTabBar = Notification.Name("hideTabBar")
   static let showTabBar = Notification.Name("showTabBar")
-  
+
   static let hideSettingsDrawer = Notification.Name("hideSettingsDrawer")
   static let showSettingsDrawer = Notification.Name("showSettingsDrawer")
 }
@@ -23,7 +24,7 @@ enum Tabs: String, CaseIterable{
   case grocery
   case pantry
   case recipe
-  
+
   var title: String{
     switch self {
     case .grocery:
@@ -32,7 +33,6 @@ enum Tabs: String, CaseIterable{
       return "Pantry"
     case .recipe:
       return "Recipes"
-      
     }
   }
   var iconName: String{
@@ -40,12 +40,12 @@ enum Tabs: String, CaseIterable{
     case .grocery:
       return "basket"
     case .pantry:
-      return "cabinet" // "refrigerator" // "sink" // "house"
+      return "cabinet"
     case .recipe:
       return "book"
     }
   }
-  
+
   var location: IngredientLocation {
     switch self {
     case.grocery:
@@ -61,22 +61,29 @@ enum Tabs: String, CaseIterable{
 
 struct NavigationView: View {
   @Environment(\.modelContext) private var context
-  
+
   // Tab bar state
   @State private var isTabBarVisible: Bool = true
   @State private var selectedTab: Tabs = .grocery
-  
+
   @State private var isSettingsDrawerVisible = false
   @State private var dragOffset: CGFloat = 0
-  
+
   // Recipe processing state
   @State private var selectedImage: UIImage?
   @State private var selectedText: String?
   @State private var extractedRecipeData: RecipeData?
   @State private var recipeProcessor = RecipeProcessor()
-  
+
+  // Receipt processing state
+  @State private var receiptProcessor = ReceiptProcessor()
+
+  // Julia chat
+  @State private var showJulia = false
+  @State private var screenSize: CGSize = .zero
+
   var body: some View {
-    
+
     ZStack(alignment: .leading) {
       settingsDrawer
       ZStack(alignment: .bottom) {
@@ -88,36 +95,25 @@ struct NavigationView: View {
 
     }
     .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isSettingsDrawerVisible)
-    //.background(.pink)
     .gesture(
-      // Use a DragGesture with gesture detection logic
       DragGesture(minimumDistance: 20, coordinateSpace: .global)
         .onChanged { gesture in
-          // Only process edge swipes for the drawer
-          let edgeWidth: CGFloat = 100 // Area on edge that activates drawer
+          let edgeWidth: CGFloat = 100
           let startLocation = gesture.startLocation.x
-          // let screenWidth = UIScreen.main.bounds.width
-          
-          // Only handle gestures that start near the left edge (for opening drawer)
-          // or that start when drawer is open (for closing)
+
           if (startLocation < edgeWidth && !isSettingsDrawerVisible) || isSettingsDrawerVisible {
             if gesture.translation.width > 0 && !isSettingsDrawerVisible {
-              // Swiping right to open drawer
               dragOffset = min(280, gesture.translation.width)
             } else if gesture.translation.width < 0 && isSettingsDrawerVisible {
-              // Swiping left to close drawer
               dragOffset = max(-280, gesture.translation.width)
             }
           }
         }
         .onEnded { gesture in
-          // Same edge detection logic
           let edgeWidth: CGFloat = 100
           let startLocation = gesture.startLocation.x
-          // let screenWidth = UIScreen.main.bounds.width
-          
+
           if (startLocation < edgeWidth && !isSettingsDrawerVisible) || isSettingsDrawerVisible {
-            // If swiped more than 50 points, toggle drawer state
             if gesture.translation.width > 50 && !isSettingsDrawerVisible {
               isSettingsDrawerVisible = true
             } else if gesture.translation.width < -50 && isSettingsDrawerVisible {
@@ -127,25 +123,40 @@ struct NavigationView: View {
           dragOffset = 0
         }
     )
+    .onGeometryChange(for: CGSize.self) { $0.size } action: { screenSize = $0 }
+    .simultaneousGesture(
+      DragGesture(minimumDistance: 60, coordinateSpace: .global)
+        .onEnded { gesture in
+          let screenWidth = screenSize.width
+          let screenHeight = screenSize.height
+          guard gesture.translation.height < -60,
+                abs(gesture.translation.width) < 60,
+                gesture.startLocation.x > screenWidth * 0.65,
+                gesture.startLocation.y > screenHeight * 0.88
+          else { return }
+          showJulia = true
+        }
+    )
     .ignoresSafeArea(.keyboard, edges: .bottom)
     .onAppear {
       setupNotificationObservers()
       recipeProcessor.setModelContext(context)
+      receiptProcessor.setModelContext(context)
     }
     .onDisappear {
       removeNotificationObservers()
     }
-    .onChange(of: selectedImage) { oldValue, newValue in
-      if let image = selectedImage {
-        recipeProcessor.processImage(image)
+    .onChange(of: selectedImage) { _, newValue in
+      if let image = newValue {
+        Task { await classifyAndProcess(image) }
       }
     }
-    .onChange(of: selectedText) { oldValue, newValue in
-      if let text = selectedText {
+    .onChange(of: selectedText) { _, newValue in
+      if let text = newValue {
         recipeProcessor.processText(text)
       }
     }
-    .onChange(of: extractedRecipeData) { oldValue, newValue in
+    .onChange(of: extractedRecipeData) { _, newValue in
       if let recipeData = newValue {
         recipeProcessor.processData(recipeData)
       }
@@ -170,10 +181,7 @@ private var tabView: some View {
       .tag(Tabs.recipe)
       .toolbar(.hidden, for: .tabBar)
       .frame(maxHeight: .infinity)
-    
   }
-
-  
 }
 
 private var bottomNavigationAndActions: some View {
@@ -199,6 +207,21 @@ private var bottomNavigationAndActions: some View {
     )
     .presentationDragIndicator(.hidden)
     .interactiveDismissDisabled()
+  }
+  .sheet(isPresented: $receiptProcessor.processingState.showResultsSheet) {
+    ProcessingResultsReceipt(
+      receiptData: $receiptProcessor.receiptData,
+      saveItems: receiptProcessor.saveSelectedItems
+    )
+    .presentationDragIndicator(.hidden)
+    .interactiveDismissDisabled()
+  }
+  .fullScreenCover(isPresented: $showJulia) {
+    ChefChatView(
+      selectedImage: $selectedImage,
+      selectedText: $selectedText,
+      extractedRecipeData: $extractedRecipeData
+    )
   }
 }
 
@@ -234,18 +257,27 @@ private var tabButtons: some View {
   }
   .padding(5)
   .frame(height: 70)
-  .background(Color.white)
+  .background(.regularMaterial)
   .coordinateSpace(name: "TabStack")
   .clipShape(.rect(cornerRadius: 35))
 }
 
 private var floatingActionMenu: some View {
   FloatingActionMenu(
-    selectedImage: $selectedImage,
-    selectedText: $selectedText,
-    extractedRecipeData: $extractedRecipeData,
-    processingState: recipeProcessor.processingState
+    processingState: recipeProcessor.processingState,
+    onOpen: { showJulia = true }
   )
+}
+
+private func classifyAndProcess(_ image: UIImage) async {
+  let lines = await TextRecognitionService.shared.recognizeText(from: image)
+  let type = await DocumentClassifier.classify(lines: lines)
+  switch type {
+  case .recipe:
+    recipeProcessor.processImage(image)
+  case .receipt:
+    receiptProcessor.processLines(lines)
+  }
 }
 
 private var settingsDrawer: some View {
@@ -255,18 +287,12 @@ private var settingsDrawer: some View {
     .offset(x: isSettingsDrawerVisible ? 0 : -280)
     .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isSettingsDrawerVisible)
     .shadow(color: isSettingsDrawerVisible ? Color.black.opacity(0.1) : Color.clear, radius: 10, x: -5, y: 0)
-  
 }
 
-//  private var clipboardDetectView: some View {
-//
-//  }
 
 private var processingStatusSheet: some View {
   FloatingStatusSheet(
     isPresented: $recipeProcessor.processingState.showProcessingSheet,
-    dismissAfter: 5,
-    // minimumDuration: 3,
     onDismiss: {
       selectedImage = nil
       selectedText = nil
@@ -288,7 +314,7 @@ private func setupNotificationObservers() {
       isTabBarVisible = false
     }
   }
-  
+
   NotificationCenter.default.addObserver(
     forName: .showTabBar,
     object: nil,
@@ -298,7 +324,7 @@ private func setupNotificationObservers() {
       isTabBarVisible = true
     }
   }
-  
+
   NotificationCenter.default.addObserver(
     forName: .showSettingsDrawer,
     object: nil,
@@ -308,7 +334,7 @@ private func setupNotificationObservers() {
       isSettingsDrawerVisible = true
     }
   }
-  
+
   NotificationCenter.default.addObserver(
     forName: .hideSettingsDrawer,
     object: nil,

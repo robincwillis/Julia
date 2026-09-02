@@ -146,38 +146,43 @@ struct AddRecipe: View {
         .toolbar {
           if focusedField.needsDoneButton {
             ToolbarItemGroup(placement: .keyboard) {
-              HStack (spacing: 6) {
+              HStack(spacing: 8) {
                 if focusedField == .servings {
                   Button("Clear") {
                     servings = nil
                     if let existingRecipe = recipe {
                       existingRecipe.servings = nil
                     }
-                  }.foregroundColor(.red)
+                  }
+                  .foregroundStyle(.red)
                 }
-                
+
                 Spacer()
-                
+
                 if focusedField == .rawText {
                   Button("Paste") {
                     if let clipboardString = UIPasteboard.general.string {
                       rawText += clipboardString
                     }
                   }
-                  .foregroundColor(.white)
-                  .padding(.horizontal, 12)
-                  .padding(.vertical, 3)
-                  .background(Color.app.primary)
-                  .cornerRadius(12)
-                  .padding(.vertical, 3)
-                  
+                  .foregroundStyle(.white)
+                  .padding(.horizontal, 14)
+                  .padding(.vertical, 6)
+                  .background(.blue)
+                  .clipShape(Capsule())
                 }
-                
+
                 Button("Done") {
                   hideKeyboard()
                 }
-                .padding(.horizontal)
+                .foregroundStyle(.primary)
+                .fontWeight(.medium)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 6)
+                .background(.fill.secondary)
+                .clipShape(Capsule())
               }
+              .padding(.bottom, 8)
             }
           }
         }
@@ -186,13 +191,15 @@ struct AddRecipe: View {
             Button("Cancel") {
               dismiss()
             }
+            .foregroundStyle(.secondary)
           }
-          
+
           ToolbarItem(placement: .primaryAction) {
             Button(recipe == nil ? "Save" : "Update") {
               saveRecipe()
               dismiss()
             }
+            .foregroundStyle(title.isEmpty ? Color.app.primary.opacity(0.4) : Color.app.primary)
             .disabled(title.isEmpty)
           }
           

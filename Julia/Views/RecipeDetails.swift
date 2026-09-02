@@ -29,9 +29,29 @@ struct RecipeDetails: View {
   @State private var selectedIngredients: Set<Ingredient> = []
   @State private var showRawTextSheet = false
   @State private var showSourceSheet = false
-  
-  @State private var titleIsVisible: Bool = true  
+  @State private var showChefChat = false
+
+  @State private var adjustedServings: Int? = nil
+  @State private var showServingAdjuster = false
+  @State private var showCookMode = false
+
+  // Recipe actions
+  @State private var showCompleteRecipeConfirmation = false
+  @State private var showAddedToGroceryAlert = false
+  @State private var showCompleteRecipeResult = false
+  @State private var addedToGroceryCount = 0
+  @State private var usedFromPantryCount = 0
+  @State private var skippedFromPantryCount = 0
+
+  @State private var titleIsVisible: Bool = true
   @State private var focusedField: RecipeFocusedField = .none
+
+  private var servingMultiplier: Double {
+    guard let adjusted = adjustedServings, let original = recipe.servings, original > 0 else {
+      return 1.0
+    }
+    return Double(adjusted) / Double(original)
+  }
   
   @ViewBuilder
   private var editModeContent: some View {
@@ -81,18 +101,25 @@ struct RecipeDetails: View {
     .toolbar {
       if focusedField.needsDoneButton {
         ToolbarItemGroup(placement: .keyboard) {
-          HStack {
+          HStack(spacing: 8) {
             if focusedField == .servings {
               Button("Clear") {
                 recipe.servings = nil
-              }.foregroundColor(.red)
+              }
+              .foregroundStyle(.red)
             }
             Spacer()
-            
             Button("Done") {
               hideKeyboard()
             }
+            .foregroundStyle(.primary)
+            .fontWeight(.medium)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 6)
+            .background(.fill.secondary)
+            .clipShape(Capsule())
           }
+          .padding(.bottom, 8)
         }
       }
     }
@@ -110,19 +137,25 @@ struct RecipeDetails: View {
           )
           
           // Title and Summary Section
-          RecipeSummarySection(recipe: recipe)
-          
+          RecipeSummarySection(
+            recipe: recipe,
+            adjustedServings: adjustedServings,
+            onTapServings: recipe.servings != nil ? { showServingAdjuster = true } : nil
+          )
+
           // Ingredients Section with selectable ingredients
           RecipeIngredientsSection(
             recipe: recipe,
+            multiplier: servingMultiplier,
             selectableBinding: selectableBinding(for:),
             toggleSelection: toggleSelection(for:)
           )
-          
+
           // Additional Ingredient Sections
           if !recipe.sections.isEmpty {
             IngredientSectionList(
               sections: recipe.sections,
+              multiplier: servingMultiplier,
               selectableBinding: selectableBinding(for:),
               toggleSelection: toggleSelection(for:)
             )
@@ -136,7 +169,7 @@ struct RecipeDetails: View {
           )
         }
         .padding(.horizontal, 16)
-        .padding(.bottom, 16)
+        .padding(.bottom, 48)
       }
     }
     .coordinateSpace(name: "scrollContainer")
@@ -185,7 +218,7 @@ struct RecipeDetails: View {
         .foregroundColor(Color.app.primary)
         .padding(12)
         .frame(width: 30, height: 30)
-        .background(Color.white)
+        .background(.regularMaterial)
         .clipShape(Circle())
         .animation(.snappy, value: !selectedIngredients.isEmpty)
         .transition(.opacity)
@@ -209,43 +242,73 @@ struct RecipeDetails: View {
   
   @ToolbarContentBuilder
   private var mainToolbarItems: some ToolbarContent {
+    ToolbarItem(placement: .primaryAction) {
+      if isEditing {
+        Button("Done") {
+          editMode?.wrappedValue = .inactive
+        }
+        .foregroundStyle(Color.app.primary)
+      } else if !recipe.instructions.isEmpty {
+        Button {
+          showCookMode = true
+        } label: {
+          Image(systemName: "play.fill")
+            .foregroundStyle(Color.app.primary)
+        }
+        .frame(width: 30, height: 30)
+        .background(.regularMaterial)
+        .clipShape(Circle())
+        .buttonStyle(.plain)
+        .accessibilityLabel("Start cooking")
+      }
+    }
+
     ToolbarItem(placement: .navigationBarTrailing) {
       if isEditing {
         Menu {
           Button("Show Raw Text", systemImage: "text.quote") {
             showRawTextSheet = true
           }
-          .tint(Color.app.primary)
           Button("Show Source", systemImage: "text.page.badge.magnifyingglass") {
             showSourceSheet = true
           }
-          .tint(Color.app.primary)
           Button("Delete Recipe", systemImage: "trash", role: .destructive) {
             showDeleteConfirmation = true
           }
-          .tint(Color.app.danger)
         } label: {
           Image(systemName: "ellipsis")
             .font(.system(size: 14))
             .foregroundColor(Color.app.primary)
             .padding(12)
             .frame(width: 30, height: 30)
-            .background(Color.white)
+            .background(.regularMaterial)
             .clipShape(Circle())
-            .animation(.snappy, value: isEditing)
-            .transition(.opacity)
-        }
-      }
-    }
-    
-    ToolbarItem(placement: .primaryAction) {
-      if isEditing {
-        Button("Done") {
-          editMode?.wrappedValue = .inactive
         }
       } else {
-        Button("Edit") {
-          editMode?.wrappedValue = .active
+        Menu {
+          Button("Edit Recipe", systemImage: "pencil") {
+            editMode?.wrappedValue = .active
+          }
+          Button("Ask Julia", systemImage: "fork.knife.circle") {
+            showChefChat = true
+          }
+          if !recipe.ingredients.isEmpty || !recipe.sections.isEmpty {
+            Divider()
+            Button("Add to Grocery List", systemImage: "basket") {
+              addAllToGroceryList()
+            }
+            Button("Complete Recipe", systemImage: "checkmark.seal", role: .destructive) {
+              showCompleteRecipeConfirmation = true
+            }
+          }
+        } label: {
+          Image(systemName: "ellipsis")
+            .font(.system(size: 14))
+            .foregroundColor(Color.app.primary)
+            .padding(12)
+            .frame(width: 30, height: 30)
+            .background(.regularMaterial)
+            .clipShape(Circle())
         }
       }
     }
@@ -298,6 +361,31 @@ struct RecipeDetails: View {
         deleteRecipe()
       }
     }
+    .confirmationDialog(
+      "Complete Recipe",
+      isPresented: $showCompleteRecipeConfirmation,
+      titleVisibility: .visible
+    ) {
+      Button("Remove from Pantry", role: .destructive) {
+        completeRecipe()
+      }
+    } message: {
+      Text("Matching ingredients will be removed from your pantry. This cannot be undone.")
+    }
+    .alert("Added to Grocery List", isPresented: $showAddedToGroceryAlert) {
+      Button("OK", role: .cancel) { }
+    } message: {
+      Text("Added \(addedToGroceryCount) ingredient\(addedToGroceryCount == 1 ? "" : "s") to your grocery list.")
+    }
+    .alert("Recipe Complete", isPresented: $showCompleteRecipeResult) {
+      Button("OK", role: .cancel) { }
+    } message: {
+      if skippedFromPantryCount > 0 {
+        Text("Removed \(usedFromPantryCount) item\(usedFromPantryCount == 1 ? "" : "s") from your pantry. \(skippedFromPantryCount) ingredient\(skippedFromPantryCount == 1 ? "" : "s") weren't in your pantry.")
+      } else {
+        Text("Removed \(usedFromPantryCount) item\(usedFromPantryCount == 1 ? "" : "s") from your pantry.")
+      }
+    }
     .onChange(of: showIngredientEditor) { oldValue, newValue in
       // Only execute when the sheet is being dismissed
       if oldValue == true && newValue == false {
@@ -314,12 +402,29 @@ struct RecipeDetails: View {
       if editMode?.wrappedValue.isEditing == true {
         editMode?.wrappedValue = .inactive
       }
+      adjustedServings = nil
+    }
+    .fullScreenCover(isPresented: $showCookMode) {
+      CookModeView(recipe: recipe, servingMultiplier: servingMultiplier)
+    }
+    .sheet(isPresented: $showServingAdjuster, onDismiss: { }) {
+      ServingAdjusterSheet(
+        originalServings: recipe.servings ?? 1,
+        adjustedServings: $adjustedServings
+      )
+      .presentationDetents([.height(240)])
+      .presentationDragIndicator(.visible)
     }
     .sheet(isPresented: $showRawTextSheet) {
       rawTextSheet
     }
     .sheet(isPresented: $showSourceSheet) {
       sourceSheet
+    }
+    .sheet(isPresented: $showChefChat) {
+      ChefChatView(recipe: recipe)
+        .presentationDetents([.medium, .large])
+        .presentationDragIndicator(.visible)
     }
   }
   
@@ -443,19 +548,97 @@ struct RecipeDetails: View {
   }
   
   private func selectAll() {
-    // Get all unsectioned ingredients
     let unsectionedIngredients = recipe.ingredients.filter { $0.section == nil }
-    
-    // Add all unsectioned ingredients to selection
     for ingredient in unsectionedIngredients {
       selectedIngredients.insert(ingredient)
     }
-    
-    // Add all sectioned ingredients to selection
     for section in recipe.sections {
       for ingredient in section.ingredients {
         selectedIngredients.insert(ingredient)
       }
+    }
+  }
+
+  // MARK: - Recipe Actions
+
+  private func allRecipeIngredients() -> [Ingredient] {
+    var all = recipe.ingredients.filter { $0.section == nil }
+    for section in recipe.sections {
+      all += section.ingredients
+    }
+    return all
+  }
+
+  private func addAllToGroceryList() {
+    let ingredients = allRecipeIngredients()
+    for ingredient in ingredients {
+      let scaledQty: Double? = ingredient.quantity.map { $0 * servingMultiplier }
+      let copy = Ingredient(
+        name: ingredient.name,
+        location: .grocery,
+        quantity: scaledQty,
+        unit: ingredient.unit?.rawValue,
+        comment: ingredient.comment
+      )
+      context.insert(copy)
+    }
+    do {
+      try context.save()
+      addedToGroceryCount = ingredients.count
+      showAddedToGroceryAlert = true
+    } catch {
+      print("Error adding ingredients to grocery list: \(error)")
+    }
+  }
+
+  private func completeRecipe() {
+    let ingredients = allRecipeIngredients()
+
+    // Fetch all pantry items — filter in Swift to avoid enum predicate complexity
+    let descriptor = FetchDescriptor<Ingredient>()
+    guard let allStored = try? context.fetch(descriptor) else { return }
+    let pantryItems = allStored.filter { $0.location == .pantry }
+
+    var used = 0
+    var skipped = 0
+
+    for recipeIngredient in ingredients {
+      let scaledQty: Double? = recipeIngredient.quantity.map { $0 * servingMultiplier }
+      let matches = pantryItems.filter {
+        $0.name.lowercased() == recipeIngredient.name.lowercased()
+      }
+
+      if matches.isEmpty {
+        skipped += 1
+        continue
+      }
+
+      for pantryItem in matches {
+        if let pantryQty = pantryItem.quantity, let needed = scaledQty,
+           pantryItem.unit == recipeIngredient.unit {
+          // Same unit — subtract quantity
+          let remaining = pantryQty - needed
+          if remaining <= 0 {
+            context.delete(pantryItem)
+          } else {
+            pantryItem.quantity = remaining
+          }
+        } else if pantryItem.quantity == nil {
+          // No quantity tracking — remove entirely
+          context.delete(pantryItem)
+        }
+        // Units differ — leave the pantry item untouched (can't convert)
+      }
+      used += 1
+    }
+
+    do {
+      try context.save()
+      usedFromPantryCount = used
+      skippedFromPantryCount = skipped
+      showCompleteRecipeResult = true
+    } catch {
+      print("Error completing recipe: \(error)")
     }
   }
 }

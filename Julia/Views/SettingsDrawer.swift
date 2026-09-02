@@ -48,7 +48,7 @@ struct SettingsDrawer: View {
         // Actual drawer content
         ZStack {
           // Background
-          Color.white
+          Color(UIColor.systemBackground)
           
           VStack(alignment: .leading, spacing: 24) {
             // Logo
@@ -199,7 +199,7 @@ struct SettingsDrawer: View {
                   .foregroundColor(.primary)
               }
               .padding(16)
-              .background(Color.white)
+              .background(Color(UIColor.secondarySystemBackground))
               .cornerRadius(12)
               .shadow(radius: 5)
             }
