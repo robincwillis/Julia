@@ -108,6 +108,13 @@ Effort is rough: **S** under an hour, **M** a session, **L** a day or more.
 
 ## P3 — Design consistency
 
+- [ ] **Review designs in Figma and come back with changes** — M *(Robin)*
+  Screenshots taken 2026-09-03. **This gates the two items below** — both are
+  open questions about which visual direction wins, and a design review answers
+  them rather than guessing. Worth deciding the colour rule as part of it.
+  The Figma MCP is connected, so design context can be pulled into a session
+  once there is a file to work from.
+
 - [ ] **Settle one colour rule and apply it everywhere** — M
   The merge resolved every conflict to `Color.app.*`, but `main` introduced
   hardcoded colours outside the conflict regions that were left untouched:
@@ -122,17 +129,51 @@ Effort is rough: **S** under an hour, **M** a session, **L** a day or more.
 
 ## P4 — Test coverage
 
-- [ ] **Add image fixtures** — S
-  `JuliaTests/Fixtures/Images/` is empty, so the OCR and image-pipeline suites
-  no-op. Drop in photos of real recipes — printed cookbook pages and phone
-  screenshots both. → [TESTING.md](TESTING.md)
+- [ ] **Bring the existing test assets over from the other machine** — M
+  There is a library of recipe images and some text files on another computer,
+  in `JuliaTests/Test Images.xcassets/` and `JuliaTests/Test Assets/`. Both are
+  excluded by `.gitignore:43-44`, which is why they exist on one machine only.
 
-- [ ] **Add adversarial text and web fixtures** — S
-  Currently one clean text fixture and two hand-written HTML pages. The
-  reconstructor exists to handle mess, so it should be tested with mess: messy
-  OCR dumps, blog preamble before the recipe, multiple recipes in one page,
-  ad-interleaved text, incomplete recipes. For `Web/`, save real pages with
-  `curl`.
+  **Gotcha worth knowing before you copy anything:** `TestAssets.images()`
+  enumerates *loose files* in the test bundle. Asset-catalog images compile
+  into `Assets.car` and cannot be enumerated at runtime — they are only
+  reachable by name via `UIImage(named:in:)`, which is exactly why the old
+  harness needed the hardcoded `imageNames` array. **Copying the `.xcassets`
+  over as-is will discover zero images.**
+
+  Two ways out:
+  - *Preferred* — export the catalog contents as loose files into
+    `Fixtures/Images/`. Keeps the file-drop workflow and needs no code change.
+  - Add a catalog path to `TestAssets` alongside discovery, accepting that
+    catalog fixtures need their names listed somewhere.
+
+  Then decide the `.gitignore` question: **committing fixtures is what makes
+  the suite reproducible across machines and CI** — the current pain is exactly
+  the cost of not doing it. Weigh against repo size; JPEGs of recipe pages are
+  usually a few hundred KB each. A middle path is committing a small curated
+  set and leaving the bulk library ignored.
+  → [TESTING.md](TESTING.md)
+
+- [ ] **Add a URL test set** — S
+  Recipe URLs are currently covered by two hand-written HTML fixtures. Keep the
+  suite offline and deterministic (the reason fixtures were chosen over live
+  requests), but make refreshing easy: keep `Fixtures/Web/urls.txt` as the list
+  of source pages plus a small script that curls each into a `.html` fixture.
+  One command to re-capture when a site changes its markup, and the list
+  doubles as documentation of which sites are covered.
+
+  Aim for variety in JSON-LD shape, since that is what the parser branches on:
+  direct `@type: Recipe`, `@graph`-nested, `recipeInstructions` as strings vs
+  `HowToStep` objects, all three `author` shapes, `recipeYield` as string vs
+  array. Sites that render recipes client-side have no JSON-LD and belong in a
+  separate group — they exercise the AI fallback, not this path.
+
+- [ ] **Add adversarial text fixtures** — S
+  One clean fixture today. The reconstructor exists to handle mess, so it
+  should be tested with mess: messy OCR dumps, blog preamble before the recipe,
+  multiple recipes on one page, ad-interleaved text, incomplete recipes,
+  ingredient lists with `1 1/2` space-separated mixed numbers (see the
+  `legacyParse` item in P1).
 
 - [ ] **Cover the share extension** — M
   `SharedImportInbox` has no unit tests. `enqueue`/`dequeue` ordering, corrupt
@@ -144,6 +185,99 @@ Effort is rough: **S** under an hour, **M** a session, **L** a day or more.
   Needs the App Groups capability first (below). Only the simulator hand-off
   has been exercised end to end; the actual Notes and Safari share sheets have
   not. → [SHARE-EXTENSION.md](SHARE-EXTENSION.md)
+
+## Features — not yet scoped
+
+New capability rather than fixes. Unranked between themselves.
+
+- [ ] **Edit or update a recipe with Foundation Models** — L
+  Let the model modify an existing recipe, not just import a new one: "make
+  this vegetarian", "double it", "convert to metric", "swap the cream for
+  something lighter".
+
+  Concrete hooks that already exist:
+  - `JuliaTools.swift` has `CreateRecipeTool` and `AddToGroceryListTool`
+    registered with `LanguageModelSession(tools:)` in `ChefChatView:490`. An
+    `UpdateRecipeTool` is the natural third and would make this work
+    conversationally with no new UI.
+  - The distinction that matters: import operates on `RecipeData` (a struct of
+    string arrays), but editing operates on a persisted `Recipe` (`@Model`,
+    with relationships to `Ingredient`, `Step`, `Timing`, `Note`,
+    `IngredientSection`). A tool that rewrites a `Recipe` has to reconcile
+    relationships rather than replace arrays — deleting and recreating
+    `Ingredient` rows loses their `position` ordering and any grocery-list
+    membership.
+
+  Open questions: does the edit apply directly or land in a review sheet like
+  imports do (`ProcessingResults`)? Is it undoable? A scaling change is
+  arithmetic and does not need a model at all — worth deciding which
+  operations are AI and which are deterministic, since "double it" done by an
+  LLM will occasionally get arithmetic wrong.
+
+- [ ] **Timer in live cooking mode** — M
+  `CookModeView` currently has no timer of any kind — this is greenfield, not
+  an addition to something existing.
+
+  **On deep-linking the native Clock app: there is no supported way to do
+  this.** Apple publishes no URL scheme for creating a timer in Clock.
+  Undocumented schemes (`clock-alarm://` and similar) have circulated, but they
+  are private API in practice — they break between iOS versions and are an App
+  Review risk. Worth a check before committing either way, but do not plan
+  around it.
+
+  What actually delivers the goal — a timer that keeps running and alerts you
+  while you are not looking at the app:
+  - **`ActivityKit` Live Activity** — timer on the Lock Screen and in the
+    Dynamic Island, which is the behaviour people want from a cooking timer.
+    Requires `NSSupportsLiveActivities` in `Info.plist` and a widget extension
+    (a second extension target, so the `JuliaShareExtension` work is a template
+    for the project-file side).
+  - **`UNUserNotificationCenter` with a time-interval trigger** — the reliable
+    alert, and it fires even if the app is killed. Needed regardless; the Live
+    Activity is presentation, the notification is the guarantee.
+  - Multiple concurrent timers are the interesting design problem, since
+    recipes have several overlapping steps. `Step` has no duration field today,
+    so parsing "simmer 20 minutes" out of instruction text — or adding a
+    duration to `Step` during import — is a prerequisite for offering a timer
+    per step rather than a generic one.
+
+- [ ] **Two app icons, and shipping with debug on or off** — M, approach undecided
+  Captured as-is; not resolved. Two icon designs exist and need preparing and
+  testing. Separately, the app should be archivable in two modes: debug
+  features on by default, or off.
+
+  The thought was that the two icons might *correspond* to those two modes, so
+  a debug build is identifiable on the Home Screen — but it could equally be a
+  user preference with no relation to debug at all. **Not decided.**
+
+  Current state, which shapes the options:
+  - `debugMode` is a `UserDefaults` bool, registered **`true`** by default in
+    `JuliaApp.swift:22`, surfaced as `\.debugMode` in the environment and
+    toggled by a switch in `SettingsDrawer.swift:151`. So today every build
+    ships with debug on and it is user-switchable at runtime.
+  - One `AppIcon.appiconset`, wired via
+    `ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon`. Alternate icons need
+    `ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES` plus
+    `UIApplication.shared.setAlternateIconName(_:)` at runtime;
+    `setAlternateIconName` is not used anywhere yet.
+
+  The axes to pick from, roughly independent:
+  1. *Debug default per build* — flip the registered default from the build
+     configuration (`#if DEBUG`, or a custom `SWIFT_ACTIVE_COMPILATION_CONDITIONS`
+     flag so a Release archive can still be built with debug on).
+  2. *Icon follows debug mode* — call `setAlternateIconName` when the flag
+     changes. Cheap, and makes a debug build obvious at a glance. Note iOS
+     shows a system alert when an app changes its icon, which is intrusive if
+     it fires on a settings toggle.
+  3. *Icon as user preference* — a picker in `SettingsDrawer`, unrelated to
+     debug. No alert problem if the user initiated it.
+  4. *Two schemes / configurations* — a separate "Julia Debug" archive with its
+     own bundle id, so both can be installed side by side. Most work, but the
+     only option that lets you keep a debug build and a normal one on the same
+     device.
+
+  Worth settling 1 before 2/3, since whether the icon is tied to a build flag
+  or a user setting decides where the code lives.
 
 ## Setup, not code
 
