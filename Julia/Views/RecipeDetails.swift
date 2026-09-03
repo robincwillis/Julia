@@ -101,14 +101,16 @@ struct RecipeDetails: View {
     .toolbar {
       if focusedField.needsDoneButton {
         ToolbarItemGroup(placement: .keyboard) {
-          HStack(spacing: 8) {
+          HStack(spacing: 12) {
             if focusedField == .servings {
               Button("Clear") {
                 recipe.servings = nil
               }
-              .foregroundStyle(.red)
+              .foregroundColor(.red)
             }
+
             Spacer()
+
             Button("Done") {
               hideKeyboard()
             }
@@ -119,8 +121,10 @@ struct RecipeDetails: View {
             .background(.fill.secondary)
             .clipShape(Capsule())
           }
-          .padding(.bottom, 8)
+          .keyboardAccessoryBarStyle()
+          .padding(.bottom, 24)
         }
+        .hidesSharedGlassBackground()
       }
     }
   }
@@ -181,6 +185,7 @@ struct RecipeDetails: View {
         ToolbarItem(placement: .topBarTrailing) {
           ingredientSelectionMenu
         }
+        .hidesSharedGlassBackground()
       }
     }
   }
@@ -216,9 +221,8 @@ struct RecipeDetails: View {
       Image(systemName: "ellipsis")
         .font(.system(size: 14))
         .foregroundColor(Color.app.primary)
-        .padding(12)
-        .frame(width: 30, height: 30)
-        .background(.regularMaterial)
+        .frame(width: 40, height: 40)
+        .background(Color.app.white)
         .clipShape(Circle())
         .animation(.snappy, value: !selectedIngredients.isEmpty)
         .transition(.opacity)
@@ -265,25 +269,7 @@ struct RecipeDetails: View {
 
     ToolbarItem(placement: .navigationBarTrailing) {
       if isEditing {
-        Menu {
-          Button("Show Raw Text", systemImage: "text.quote") {
-            showRawTextSheet = true
-          }
-          Button("Show Source", systemImage: "text.page.badge.magnifyingglass") {
-            showSourceSheet = true
-          }
-          Button("Delete Recipe", systemImage: "trash", role: .destructive) {
-            showDeleteConfirmation = true
-          }
-        } label: {
-          Image(systemName: "ellipsis")
-            .font(.system(size: 14))
-            .foregroundColor(Color.app.primary)
-            .padding(12)
-            .frame(width: 30, height: 30)
-            .background(.regularMaterial)
-            .clipShape(Circle())
-        }
+        editingMenu
       } else {
         Menu {
           Button("Edit Recipe", systemImage: "pencil") {
@@ -312,8 +298,35 @@ struct RecipeDetails: View {
         }
       }
     }
+    .hidesSharedGlassBackground()
   }
-  
+
+  private var editingMenu: some View {
+    Menu {
+          Button("Show Raw Text", systemImage: "text.quote") {
+            showRawTextSheet = true
+          }
+          .tint(Color.app.primary)
+          Button("Show Source", systemImage: "text.page.badge.magnifyingglass") {
+            showSourceSheet = true
+          }
+          .tint(Color.app.primary)
+          Button("Delete Recipe", systemImage: "trash", role: .destructive) {
+            showDeleteConfirmation = true
+          }
+          .tint(Color.app.danger)
+    } label: {
+      Image(systemName: "ellipsis")
+        .font(.system(size: 14))
+        .foregroundColor(Color.app.primary)
+        .frame(width: 40, height: 40)
+        .background(Color.app.white)
+        .clipShape(Circle())
+        .animation(.snappy, value: isEditing)
+        .transition(.opacity)
+    }
+  }
+
   private var rawTextSheet: some View {
     RecipeRawTextSection(recipe: recipe)
       .presentationDetents([.medium, .large])

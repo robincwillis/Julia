@@ -24,6 +24,9 @@ class RecipeProcessor {
   // Reference to model context for saving
   private var modelContext: ModelContext?
 
+  // Recipe auto-saved on import; replaced if the user saves an edited version
+  private var autoSavedRecipe: Recipe?
+
   // Completion handler
   var onCompletion: ((RecipeData) -> Void)?
   var onError: ((String) -> Void)?
@@ -41,6 +44,7 @@ class RecipeProcessor {
   func start() {
     processingState.reset()
     recipeData.reset()
+    autoSavedRecipe = nil
     processingState.processingStage = .notStarted
 
     processingState.showProcessingSheet = true
@@ -118,6 +122,7 @@ class RecipeProcessor {
   func processData(_ data: RecipeData, immediatePresentation: Bool = false) {
     processingState.reset()
     recipeData = data
+    autoSave()
     processingState.processingStage = .completed
     if immediatePresentation {
       processingState.showResultsSheet = true
@@ -127,6 +132,47 @@ class RecipeProcessor {
         processingState.showResultsSheet = true
       }
     }
+  }
+
+  /// Imports a URL with no view attached — used by the share extension, where
+  /// there is no `RecipeURLImportView` to host the scraper and show its phase
+  /// labels. Progress is reported through `processingState` so the floating
+  /// status sheet covers it, the same as an image or text import.
+  func importSharedURL(_ urlString: String) {
+    start()
+
+    Task {
+      work()
+      processingState.statusMessage = "Fetching recipe from the web..."
+
+      let scraper = RecipeWebScraper()
+      do {
+        let data = try await scraper.scrape(urlString: urlString)
+        recipeData = data
+        processingState.recognizedText = data.rawText
+        autoSave()
+        complete()
+      } catch {
+        handleError(error.localizedDescription)
+      }
+    }
+  }
+
+  /// Text arriving from the share extension. Thin wrapper for symmetry with
+  /// `importSharedURL`, so callers do not need to know which entry point the
+  /// pipeline uses for each payload kind.
+  func importSharedText(_ text: String) {
+    processText(text)
+  }
+
+  // Persist the imported recipe immediately so it's kept even if the
+  // review sheet is dismissed without an explicit save
+  private func autoSave() {
+    guard let context = modelContext else { return }
+
+    let recipe = recipeData.convertToSwiftDataModel()
+    context.insert(recipe)
+    autoSavedRecipe = recipe
   }
 
   // Text from image extraction task
@@ -223,6 +269,12 @@ class RecipeProcessor {
     guard let context = modelContext else {
       processingState.errorMessage = "Cannot save recipe: database context unavailable"
       return false
+    }
+
+    // Replace the auto-saved copy with the reviewed version to avoid duplicates
+    if let autoSaved = autoSavedRecipe {
+      context.delete(autoSaved)
+      autoSavedRecipe = nil
     }
 
     // Snapshot current data

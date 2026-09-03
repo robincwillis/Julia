@@ -120,6 +120,8 @@ struct IngredientsView: View {
                 Image(systemName: "ellipsis")
                   .font(.system(size: 14))
                   .foregroundColor(Color.app.primary)
+                  .animation(.snappy, value: hasSelection)
+                  .transition(.opacity)
               }
               .frame(width: 30, height: 30)
               .background(.regularMaterial)
@@ -128,6 +130,7 @@ struct IngredientsView: View {
             }
           }
         }
+        .hidesSharedGlassBackground()
       }
     }
     .onChange(of: selectedIngredients) {

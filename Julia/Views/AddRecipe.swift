@@ -146,7 +146,7 @@ struct AddRecipe: View {
         .toolbar {
           if focusedField.needsDoneButton {
             ToolbarItemGroup(placement: .keyboard) {
-              HStack(spacing: 8) {
+              HStack(spacing: 12) {
                 if focusedField == .servings {
                   Button("Clear") {
                     servings = nil
@@ -154,7 +154,7 @@ struct AddRecipe: View {
                       existingRecipe.servings = nil
                     }
                   }
-                  .foregroundStyle(.red)
+                  .foregroundColor(.red)
                 }
 
                 Spacer()
@@ -165,25 +165,17 @@ struct AddRecipe: View {
                       rawText += clipboardString
                     }
                   }
-                  .foregroundStyle(.white)
-                  .padding(.horizontal, 14)
-                  .padding(.vertical, 6)
-                  .background(.blue)
-                  .clipShape(Capsule())
+                  .prominentKeyboardAccessoryStyle(fill: Color.app.primary)
                 }
 
                 Button("Done") {
                   hideKeyboard()
                 }
-                .foregroundStyle(.primary)
-                .fontWeight(.medium)
-                .padding(.horizontal, 14)
-                .padding(.vertical, 6)
-                .background(.fill.secondary)
-                .clipShape(Capsule())
               }
-              .padding(.bottom, 8)
+              .keyboardAccessoryBarStyle()
+              .padding(.bottom, 24)
             }
+            .hidesSharedGlassBackground()
           }
         }
         .toolbar {

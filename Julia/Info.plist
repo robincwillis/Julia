@@ -1,5 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
-<dict/>
+<dict>
+	<!-- Deep link the share extension uses to hand off a queued recipe.
+	     See Shared/SharedImportInbox.swift -->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>rcw.Julia.import</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>julia</string>
+			</array>
+		</dict>
+	</array>
+</dict>
 </plist>

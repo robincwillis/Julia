@@ -23,7 +23,7 @@ struct RecipeIngredientsSection: View {
       
       if recipe.ingredients.isEmpty && recipe.sections.isEmpty {
         Text("No ingredients available")
-          .foregroundColor(.gray)
+          .foregroundColor(Color.app.textSecondary)
           .padding(.vertical, 8)
       } else {
         // Display unsectioned ingredients first

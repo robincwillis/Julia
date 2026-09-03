@@ -31,7 +31,7 @@ struct RecipeEditTagsSection: View {
                 .padding(.vertical, 8)
                 .padding(.leading, 12)
                 .padding(.trailing, 8)
-                .background(Color(red: 0.85, green: 0.92, blue: 1.0))
+                .background(Color.app.secondary)
                 .clipShape(Capsule())
               }
               .buttonStyle(BorderlessButtonStyle())

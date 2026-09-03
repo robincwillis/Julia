@@ -11,6 +11,8 @@ struct RecipeRow: View {
     let recipe: Recipe
     var body: some View {
         Text("\(recipe.title)")
+        .lineLimit(1)
+        .truncationMode(.tail)
         .foregroundColor(Color.app.textPrimary)
     }
 }

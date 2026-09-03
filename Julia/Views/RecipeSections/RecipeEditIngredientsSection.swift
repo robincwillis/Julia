@@ -21,7 +21,7 @@ struct RecipeEditIngredientsSection: View {
     Section(header: Text("Ingredients")) {
       if ingredients.isEmpty {
         Text("No ingredients added")
-          .foregroundColor(.gray)
+          .foregroundColor(Color.app.textSecondary)
       } else {
         // Sort ingredients by position for consistent display order
         let sortedIngredients = ingredients.sorted { $0.position < $1.position }

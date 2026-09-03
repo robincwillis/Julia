@@ -42,32 +42,7 @@ struct RecipesView: View {
 
   var body: some View {
     NavigationStack {
-      Group {
-        if recipes.isEmpty {
-          EmptyRecipesView {
-            loadSampleData()
-          }
-        } else if filteredRecipes.isEmpty {
-          VStack(spacing: 12) {
-            Image(systemName: "magnifyingglass")
-              .font(.system(size: 44, weight: .ultraLight))
-              .foregroundStyle(.secondary)
-            Text("No recipes found")
-              .font(.headline)
-              .foregroundStyle(.secondary)
-            if selectedTag != nil || !searchText.isEmpty {
-              Button("Clear filters") {
-                searchText = ""
-                selectedTag = nil
-              }
-              .foregroundStyle(Color.app.primary)
-            }
-          }
-          .frame(maxWidth: .infinity, maxHeight: .infinity)
-        } else {
-          RecipeList(recipes: filteredRecipes)
-        }
-      }
+      recipesContent
       .safeAreaInset(edge: .top, spacing: 0) {
         if !recipes.isEmpty && !allTags.isEmpty {
           tagFilterBar
@@ -80,34 +55,7 @@ struct RecipesView: View {
       .background(Color.app.backgroundPrimary)
       .navigationTitle("Recipes")
       .navigationBarTitleDisplayMode(.inline)
-      .toolbar {
-        ToolbarItem(placement: .navigationBarLeading) {
-          if !recipes.isEmpty {
-            Button {
-              showSuggestions = true
-            } label: {
-              Image(systemName: "wand.and.stars")
-                .foregroundStyle(Color.app.primary)
-            }
-            .frame(width: 30, height: 30)
-            .background(.regularMaterial)
-            .clipShape(Circle())
-            .buttonStyle(.plain)
-          }
-        }
-        ToolbarItem(placement: .navigationBarTrailing) {
-          Button {
-            showAddSheet.toggle()
-          } label: {
-            Image(systemName: "plus")
-              .foregroundStyle(Color.app.primary)
-          }
-          .frame(width: 30, height: 30)
-          .background(.regularMaterial)
-          .clipShape(Circle())
-          .buttonStyle(.plain)
-        }
-      }
+      .toolbar { recipesToolbar }
       .sheet(isPresented: $showSuggestions) {
         RecipeSuggestionsView()
       }
@@ -115,6 +63,7 @@ struct RecipesView: View {
         AddRecipe()
           .interactiveDismissDisabled()
           .presentationDetents([.height(240), .large])
+          .presentationBackground(Color.app.backgroundSecondary)
           .presentationDragIndicator(.hidden)
       }
       .alert("Recipes Added", isPresented: $showSuccessAlert) {
@@ -128,6 +77,68 @@ struct RecipesView: View {
         Text(errorMessage)
       }
     }
+  }
+
+  @ViewBuilder
+  private var recipesContent: some View {
+    if recipes.isEmpty {
+      EmptyRecipesView(loadSampleData: loadSampleData)
+    } else if filteredRecipes.isEmpty {
+      noResultsView
+    } else {
+      RecipeList(recipes: filteredRecipes)
+    }
+  }
+
+  @ToolbarContentBuilder
+  private var recipesToolbar: some ToolbarContent {
+    ToolbarItem(placement: .navigationBarLeading) {
+      if !recipes.isEmpty {
+        Button {
+          showSuggestions = true
+        } label: {
+          Image(systemName: "wand.and.stars")
+            .foregroundStyle(Color.app.primary)
+        }
+        .frame(width: 30, height: 30)
+        .background(.regularMaterial)
+        .clipShape(Circle())
+        .buttonStyle(.plain)
+      }
+    }
+    .hidesSharedGlassBackground()
+    ToolbarItem(placement: .navigationBarTrailing) {
+      Button {
+        showAddSheet.toggle()
+      } label: {
+        Image(systemName: "plus")
+          .foregroundStyle(Color.app.primary)
+      }
+      .frame(width: 30, height: 30)
+      .background(.regularMaterial)
+      .clipShape(Circle())
+      .buttonStyle(.plain)
+    }
+    .hidesSharedGlassBackground()
+  }
+
+  private var noResultsView: some View {
+    VStack(spacing: 12) {
+      Image(systemName: "magnifyingglass")
+        .font(.system(size: 44, weight: .ultraLight))
+        .foregroundStyle(.secondary)
+      Text("No recipes found")
+        .font(.headline)
+        .foregroundStyle(.secondary)
+      if selectedTag != nil || !searchText.isEmpty {
+        Button("Clear filters") {
+          searchText = ""
+          selectedTag = nil
+        }
+        .foregroundStyle(Color.app.primary)
+      }
+    }
+    .frame(maxWidth: .infinity, maxHeight: .infinity)
   }
 
   private var tagFilterBar: some View {

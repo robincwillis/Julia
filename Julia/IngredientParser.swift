@@ -50,13 +50,13 @@ class IngredientParser {
             return Ingredient(name: components[0], location: location)
 
         case 2:
-            if let quantity = parseFraction(components[0]) {
+            if let quantity = parseQuantity(components[0]) {
                 return Ingredient(name: components[1], location: location, quantity: quantity)
             }
             return Ingredient(name: input, location: location)
 
         case 3:
-            if let quantity = parseFraction(components[0]) {
+            if let quantity = parseQuantity(components[0]) {
                 if MeasurementUnit(from: components[1].lowercased()) != nil {
                     return Ingredient(name: components[2], location: location,
                                      quantity: quantity, unit: components[1].lowercased())
@@ -67,7 +67,7 @@ class IngredientParser {
             return Ingredient(name: input, location: location)
 
         default:
-            if let quantity = parseFraction(components[0]) {
+            if let quantity = parseQuantity(components[0]) {
                 if MeasurementUnit(from: components[1].lowercased()) != nil {
                     let name = components.dropFirst(2).joined(separator: " ")
                     return Ingredient(name: name, location: location,

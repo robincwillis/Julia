@@ -2,7 +2,15 @@
 //  RecipeProcessingTests.swift
 //  JuliaTests
 //
-//  Created by Robin Willis on 5/10/25.
+//  Coverage of the import pipeline, split by what each stage needs:
+//
+//  • Offline suites run everywhere — text reconstruction, ingredient parsing
+//    and Vision OCR need no network and no Apple Intelligence.
+//  • The full-pipeline suite routes through FoundationModelsRecipeClassifier
+//    and so is skipped automatically when Apple Intelligence is unavailable
+//    (the usual case on a simulator) rather than failing.
+//
+//  Adding a test case is a file drop — see JuliaTests/Fixtures/README.md.
 //
 
 import Testing
@@ -11,464 +19,286 @@ import SwiftData
 import Vision
 @testable import Julia
 
-// let imageNames = ["onion_soup", "sardine_nicoise", "sauteed_chanterelles", "steamed_haddock"]
-let imageNames =  ["trout_with_haricots_verts_capers_and_lemons"] // ["kalbi_butter_noodles"]
-//TODO Add more:
-// let imageNames = ["baked_alaska", "butter_cookies", "carpaccio_tuna_fin", "cheese_dough_torte", "chesnut_almond_torte", "clear_pork_noodle_soup", "coconut_tapioca_soup", "coconut_tapioca", "coffee_cake", "crepes_suzette", "fish_stew", "fried_zucchini_blossoms", "green_salad_with_zatar", "grilled_hearts_of_palm", "grilled_rainbow_escabeche", "gunard_baked_banana_leaf", "herbs_de_provence", "how_southern_are_you", "leg_of_lamb", "linguini_and_clams", "little_gem_salad", "lobster_consumee_in_jelee", "mon_poulet_roti", "nicoise_toast", "onion_flan", "onion_pizza", "onion_soup", "party_posole_rojo", "pastry_fritters", "poached_salmon_with_coarse_salt", "potato_galette", "red_pepper_tapenade", "rice_noodles_multiple", "roast_chicken_with_bell_peppers", "rock_lobster_salad", "salade_nicoise", "sardine_nicoise", "scrambled_eggs_with_mushrooms", "seafood_gumbo", "slow_cooked_chicken_with_kale", "soft_shell_crab_with_sweet_black_pepper_sauce", "staff_lasagna", "tomato_melon_gazpacho", "unami_salami", "veal_scallops", "watermelon_radish_salad"]
-let textFiles = ["recipe"]
-//TODO Add more:
-// let textFiles = [ "recipe", "clean_recipe", "messy_recipe", "multiple_recipes_text", "recipe_with_ads", "incomplete_recipe"]
+// MARK: - Text reconstruction (offline)
 
-struct RecipeProcessingTests {
-    // State for each test
-    @MainActor
-    struct TestState {
-        
-        var processor: RecipeProcessor
-        var modelContainer: ModelContainer
-        var testImages: [String: UIImage] = [:]
-        var testTexts: [String: String] = [:]
-        var logFile: URL?
-        
-        init() throws {
-            // Create in-memory model container for testing
-            let config = ModelConfiguration(isStoredInMemoryOnly: true)
-            self.modelContainer = try ModelContainer(for: Recipe.self, Ingredient.self, configurations: config)
-            // Create processor
-            self.processor = RecipeProcessor(modelContext: modelContainer.mainContext)
-            self.processor = RecipeProcessor()
-            // Create log file
-            let fileManager = FileManager.default
-            let testLogsDirectory = fileManager.temporaryDirectory.appendingPathComponent("RecipeTests")
-            try? fileManager.createDirectory(at: testLogsDirectory, withIntermediateDirectories: true)
-            let dateFormatter = DateFormatter()
-            dateFormatter.dateFormat = "yyyy-MM-dd_HH-mm-ss"
-            let dateString = dateFormatter.string(from: Date())
-            logFile = testLogsDirectory.appendingPathComponent("recipe_test_\(dateString).log")
-            // Log test start
-            logMessage("=== RECIPE PROCESSOR TEST RUN ===")
-            logMessage("Date: \(Date())")
-            // Load test assets
-            loadTestAssets()
-        }
-        
-        mutating func loadTestAssets() {
-            logMessage("\nLoading test assets... images:\(imageNames) texts:\(textFiles)")
-            let mainBundle = Bundle.main
-            guard let testBundle = Bundle(identifier: "rcw.JuliaTests") else
-            {
-                logMessage("❌ Failed to find any usable test bundle")
-                return
-            }
-            
-            
-            // Check if the asset catalog is properly included
-//            let resources = testBundle.paths(forResourcesOfType: "", inDirectory: nil)
-//            {
-//                let assetPaths = resources.filter { $0.contains("Test Images.xcassets") }
-//                if !assetPaths.isEmpty {
-//                    logMessage("Found 'Test Images.xcassets' in the test bundle!")
-//                } else {
-//                    logMessage("WARNING: 'Test Images.xcassets' not found in the test bundle resources")
-//                }
-//            }
-                    
-//            logMessage("Test bundle path: \(testBundle.bundlePath)")
-            logMessage("Test bundle ID: \(testBundle.bundleIdentifier ?? "nil")")
-//            logMessage("Main bundle path: \(mainBundle.bundlePath)")
-            logMessage("Main bundle ID: \(mainBundle.bundleIdentifier ?? "nil")")
-            logMessage("Are main and processor bundles the same? \(mainBundle == testBundle)")
-            
-            // Load test image files
-            var loadedImages = 0
-            for name in imageNames {
-                if let image = UIImage(named: name, in: testBundle, compatibleWith: nil) {
-                    testImages[name] = image
-                    loadedImages += 1
-                }
-            }
-            
-            // Load test text files
-            var loadedTexts = 0
-            for file in textFiles {
-                if let url = testBundle.url(forResource: file, withExtension: "txt"),
-                   let text = try? String(contentsOf: url) {
-                    testTexts[file] = text
-                    loadedTexts += 1
-                }
-            }
-            
-            logMessage("Loaded \(loadedImages) test images and \(loadedTexts) test text files")
-            
-        }
-        
-        // MARK: - Logging
-        
-        
-        func logMessage(_ message: String, style: String = ConsoleStyle.none) {
-            let styledMessage = style + message
-            print(styledMessage)
-            // Also write to log file
-            if let logFile = logFile {
-                let logEntry = message + "\n"
-                if let data = logEntry.data(using: .utf8) {
-                    if let fileHandle = try? FileHandle(forWritingTo: logFile) {
-                        fileHandle.seekToEndOfFile()
-                        fileHandle.write(data)
-                        fileHandle.closeFile()
-                    } else {
-                        try? logEntry.write(to: logFile, atomically: true, encoding: .utf8)
-                    }
-                }
-            }
-            
-        }
-        
-        func logClassfiedLines(_ lines: [(String, RecipeLineType, Double)]) {
+@Suite("Text reconstruction (offline)")
+struct TextReconstructionTests {
 
-            let sortedLines = lines.sorted { $0.2 > $1.2 }
-                
-            // Create table headers with fixed widths for type and confidence
-            logMessage("  | Type            | Confidence | Text")
-            logMessage("  |-----------------|------------|")
-            
-            
-            // Print each row
-            for (index, item) in sortedLines.enumerated() {
-                let (text, type, confidence) = item
-                
-                // Type-specific styling
-                let confidenceStyle: String
-                let typeStyle: String
-                
-                switch type {
-                case RecipeLineType.title:
-                    typeStyle = ConsoleStyle.purple
-                case RecipeLineType.ingredient:
-                    typeStyle = ConsoleStyle.green
-                case RecipeLineType.instruction:
-                    typeStyle = ConsoleStyle.blue
-                default:
-                    typeStyle = ConsoleStyle.white
-                }
-                
-                if confidence < 0.5 {
-                    confidenceStyle = ConsoleStyle.brightRed
-                } else if confidence < 0.65 {
-                    confidenceStyle = ConsoleStyle.brightOrange
-                } else if confidence < 0.85 {
-                    confidenceStyle = ConsoleStyle.brightYellow
-                } else {
-                    confidenceStyle = ConsoleStyle.brightGreen
-                }
-                
-                let paddedConfidence = String(format: "%.2f", confidence).padding(toLength: 7, withPad: " ", startingAt: 0)
-                let paddedType = type.rawValue.padding(toLength: 12, withPad: " ", startingAt: 0)
-
-                // Print the full, unmodified text with aligned columns for type and confidence
-                logMessage("  | \(typeStyle) \(paddedType) | \(confidenceStyle) \(paddedConfidence) | \(text)")
-            }
-            logMessage("  --------------------------------")
-        }
-        
-        func logTestResult(_ result: TestResult) {
-            logMessage("\n  --- TEST RESULT: \(result.name) ---")
-
-            logMessage("  Status: \(result.success ? "SUCCESS" : "❌ FAILURE")")
-            
-            if let duration = result.duration {
-                logMessage("  Duration: \(String(format: "%.2f", duration)) seconds")
-            }
-            
-
-            if let data = result.resultData {
-
-                logMessage("\n  --- RAW OCR TEXT (\(data.rawText.count) lines) ---")
-                for (index, line) in data.rawText.enumerated() {
-                    logMessage("  \(index + 1). \(line)")
-                }
-                
-                
-                logMessage("\n  --- RECONSTRUCTED TEXT (\(data.reconstructedText.reconstructedLines.count) lines) ---")
-                logMessage("  Title: \(data.reconstructedText.title)")
-                for (index, line) in data.reconstructedText.reconstructedLines.enumerated() {
-                    logMessage("  \(index + 1). \(line)")
-                }
-                
-                logMessage("\n  --- ARTIFACTS (\(data.reconstructedText.artifacts.count) lines) ---")
-                for (index, line) in data.reconstructedText.artifacts.enumerated() {
-                    logMessage("  \(index + 1). \(line)")
-                }
-                
-                logMessage("\n  --- CLASSIFIED LINES (\(data.classifiedLines.count) lines) ---")
-                logClassfiedLines(data.classifiedLines)
-                logMessage("\n")
-                
-                logMessage("\n  --- SKIPPED LINES (\(data.skippedLines.count) lines) ---")
-                logClassfiedLines(data.skippedLines)
-                logMessage("\n")
-                                    
-                logMessage("Recipe Title: \(data.title)")
-                // Log first 3 ingredients and instructions as sample
-                if !data.ingredients.isEmpty {
-                    logMessage("Ingredients: \(data.ingredients.count)")
-                    for (index, ingredient) in data.ingredients.enumerated() {
-                        logMessage("  \(index + 1). \(ingredient)")
-                    }
-                }
-                
-                if !data.instructions.isEmpty {
-                    logMessage("Instructions: \(data.instructions.count)")
-                    for (index, instruction) in data.instructions.enumerated() {
-                        logMessage("  \(index + 1). \(instruction)")
-                    }
-                }
-            }
-                
-            if let logFile = logFile {
-                logMessage("📝 LOG FILE LOCATION: \(logFile.path)")
-            }
-        }
+    @Test("Empty input yields an empty result rather than crashing")
+    func emptyInput() {
+        let result = RecipeTextReconstructor.reconstructText(from: [])
+        #expect(result.reconstructedLines.isEmpty)
+        #expect(result.artifacts.isEmpty)
     }
-    
-    // MARK: - Tests
-    
-    
-//    @Test
-//    func testSingleRecipeImage() async throws {
-//        
-//    }
-//    
-//    @Test
-//    func testIncompleteRecipe() async throws {
-//    }
-//    
-//    @Test
-//    func testMultipleRecipesImage() async throws {
-//    }
-//    
-//    
-//    @Test
-//    func testComplexLayoutImage() async throws {
-//    }
-//    
-//    @Test
-//    func testCleanText() async throws {
-//    }
-    
-    @Test
-    func testAllImages() async throws {
-        let state = try await TestState()
-        await state.logMessage("\n=== TESTING ALL IMAGES ===")
-        for (name, image) in state.testImages {
-            try await testProcessorWithImage(image, testName: "Image: \(name)", state: state)
-        }
-        await state.logMessage("=== END IMAGE TESTS ===\n")
+
+    @Test("Blank lines are dropped without becoming artifacts")
+    func blankLines() {
+        let result = RecipeTextReconstructor.reconstructText(from: ["Butter", "", "   ", "Flour"])
+        #expect(!result.reconstructedLines.contains(""))
+        #expect(!result.artifacts.contains(""))
+        let joined = result.reconstructedLines.joined(separator: " ")
+        #expect(joined.contains("Butter"))
+        #expect(joined.contains("Flour"))
     }
-    
-//    @Test
-//    func testAllTexts() async throws {
-//        let state = try await TestState()
-//        await state.logMessage("\n=== TESTING ALL TEXTS ===")
-//        for (name, text) in state.testTexts {
-//            try await testProcessorWithText(text, testName: "Text: \(name)", state: state)
-//        }
-//        await state.logMessage("=== END TEXT TESTS ===\n")
-//    }
-    
-    // MARK: - Helpers
-    private func testProcessorWithImage(_ image: UIImage,
-                                        expectedTitle: String? = nil,
-                                        expectsMultiple: Bool = false,
-                                        expectsIncomplete: Bool = false,
-                                        testName: String,
-                                        state: TestState) async throws {
-        
-        // Log test start
-        await state.logMessage("\n--- TEST: \(testName) ---")
-        await state.logMessage("Type: Image | Expected Multiple: \(expectsMultiple) | Expected Incomplete: \(expectsIncomplete)")
-        
-        let result = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<TestResult, Error>) in
-            Task { @MainActor in
-                var testResult = TestResult(name: testName, type: .image)
-                testResult.startTime = Date()
-                
-                // Set up callbacks
-                state.processor.onCompletion = { recipeData in
-                    testResult.success = true
-                    testResult.resultData = recipeData
-                    
-                    // Check title if expected
-                    if let expected = expectedTitle {
-                        testResult.titleMatch = recipeData.title == expected
-                    }
-                    
-                    // Check for multiple recipes
-                    if expectsMultiple {
-                        //                                 testResult.hasMultipleRecipes = state.processor.processingState.detectedRecipes.count > 1
-                    }
-                    
-                    testResult.endTime = Date()
-                    
-                    // Log success
-                    Task { @MainActor in
-                        state.logTestResult(testResult)
-                        continuation.resume(returning: testResult)
-                    }
-                }
-                
-                state.processor.onError = { errorMessage in
-                    testResult.success = expectsIncomplete // Success if we expected failure
-                    testResult.errorMessage = errorMessage
-                    testResult.endTime = Date()
-                    
-                    // Log error
-                    Task { @MainActor in
-                        state.logMessage("ERROR: \(errorMessage)")
-                        state.logTestResult(testResult)
-                        continuation.resume(returning: testResult)
-                    }
-                }
-                
-                // Process the image
-                state.logMessage("Starting image processing...")
-                state.processor.processImage(image)
-            }
-        }
-        // Validate expectations
-        if expectsMultiple {
-            //            try #expect(state.processor.processingState.detectedRecipes.count > 1, "Expected multiple recipes")
-            //            state.logMessage("Multiple recipes: \(state.processor.processingState.detectedRecipes.count) recipes detected")
-        }
-        
-        if let expected = expectedTitle {
-            //            try #expect(state.processor.recipeData.title == expected, "Title should match expected value")
-            //            state.logMessage("Title match: \(state.processor.recipeData.title == expected ? "✓" : "✗")")
-        }
-        
-        if expectsIncomplete {
-            //            try #expect(!result.success || !state.processor.processingState.incompleteRecipes.isEmpty,
-            //                      "Expected incomplete recipe")
-            //            state.logMessage("Incomplete recipes: \(state.processor.processingState.incompleteRecipes.count)")
-        } else if !expectsMultiple {
-            //            try #expect(result.success, "Processing should succeed")
-        }
-        
-        // state.logMessage("--- END TEST: \(testName) ---\n")
+
+    @Test("Every line of real text survives into lines or artifacts")
+    func nothingSilentlyDropped() throws {
+        let fixture = try #require(
+            TestAssets.texts().first { $0.name == "simple_recipe" }?.text,
+            "Missing fixture Fixtures/Text/simple_recipe.txt"
+        )
+        let lines = fixture
+            .components(separatedBy: .newlines)
+            .filter { !$0.trimmingCharacters(in: .whitespaces).isEmpty }
+
+        let result = RecipeTextReconstructor.reconstructText(from: lines)
+
+        // Content should be preserved somewhere — the reconstructor joins
+        // fragments, so compare on total non-whitespace characters rather than
+        // line counts.
+        let inputChars = lines.joined().filter { !$0.isWhitespace }.count
+        let outputChars = (result.reconstructedLines + result.artifacts)
+            .joined().filter { !$0.isWhitespace }.count
+        #expect(outputChars >= inputChars,
+                "Reconstruction lost content: \(inputChars) chars in, \(outputChars) out")
     }
-    
-    private func testProcessorWithText(_ text: String,
-                                       expectedTitle: String? = nil,
-                                       expectsMultiple: Bool = false,
-                                       expectsIncomplete: Bool = false,
-                                       testName: String,
-                                       state: TestState) async throws {
-        
-        // Log test start - await automatically runs this on MainActor
-        await state.logMessage("\n--- TEST: \(testName) ---")
-        await state.logMessage("Type: Text | Expected Multiple: \(expectsMultiple) | Expected Incomplete: \(expectsIncomplete)")
-        
-        // Create completion handler
-        let result = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<TestResult, Error>) in
-            Task { @MainActor in
-                var testResult = TestResult(name: testName, type: .text)
-                testResult.startTime = Date()
-                
-                // Set up callbacks
-                state.processor.onCompletion = { recipeData in
-                    testResult.success = true
-                    testResult.resultData = recipeData
-                    
-                    // Check title if expected
-                    if let expected = expectedTitle {
-                        testResult.titleMatch = recipeData.title == expected
-                    }
-                    
-                    // Check for multiple recipes
-                    if expectsMultiple {
-                        // testResult.hasMultipleRecipes = state.processor.processingState.detectedRecipes.count > 1
-                    }
-                    
-                    testResult.endTime = Date()
-                    
-                    // Log success - now uses state.logTestResult directly
-                    Task { @MainActor in
-                        state.logTestResult(testResult)
-                        continuation.resume(returning: testResult)
-                    }
-                }
-                
-                state.processor.onError = { errorMessage in
-                    testResult.success = expectsIncomplete // Success if we expected failure
-                    testResult.errorMessage = errorMessage
-                    testResult.endTime = Date()
-                    
-                    // Log error - now uses state.logTestResult directly
-                    Task { @MainActor in
-                        state.logMessage("ERROR: \(errorMessage)")
-                        state.logTestResult(testResult)
-                        continuation.resume(returning: testResult)
-                    }
-                }
-                
-                // Process the text
-                state.logMessage("Starting text processing...")
-                state.processor.processText(text)
-            }
-        }
-        
-        // Validate expectations - await automatically runs this on MainActor
-        if expectsMultiple {
-            //try #expect(await state.processor.processingState.detectedRecipes.count > 1, "Expected multiple recipes")
-            // await state.logMessage("Multiple recipes: \(state.processor.processingState.detectedRecipes.count) recipes detected")
-        }
-        
-        if let expected = expectedTitle {
-            try #expect(await state.processor.recipeData.title == expected, "Title should match expected value")
-            await state.logMessage("Title match: \(await state.processor.recipeData.title == expected ? "✓" : "✗")")
-        }
-        
-        if expectsIncomplete {
-            // try #expect(!result.success || await !state.processor.processingState.incompleteRecipes.isEmpty, "Expected incomplete recipe")
-            //await state.logMessage("Incomplete recipes: \(state.processor.processingState.incompleteRecipes.count)")
-        } else if !expectsMultiple {
-            // try #expect(result.success, "Processing should succeed")
-        }
-        
-        await state.logMessage("--- END TEST: \(testName) ---\n")
+
+    @Test("Distinctive ingredient text is still findable after reconstruction")
+    func preservesIngredients() throws {
+        let fixture = try #require(
+            TestAssets.texts().first { $0.name == "simple_recipe" }?.text
+        )
+        let lines = fixture.components(separatedBy: .newlines)
+        let result = RecipeTextReconstructor.reconstructText(from: lines)
+        let haystack = result.reconstructedLines.joined(separator: "\n")
+
+        #expect(haystack.contains("olive oil"))
+        #expect(haystack.contains("chicken stock"))
+        #expect(haystack.contains("Preheat the oven"))
     }
 }
 
-struct ConsoleStyle {
-    // Colors
-    static let black = "⚫"
-    static let red = "🔴"
-    static let green = "🟢"
-    static let yellow = "🟡"
-    static let blue = "🔵"
-    static let purple = "🟣"
-    static let orange = "🟠"
-    static let white = "⚪"
-    static let brown = "🟤"
-    
-    // Colors Box
-    static let brightBlack = "⬛"
-    static let brightRed = "🟥"
-    static let brightGreen = "🟩"
-    static let brightYellow = "🟨"
-    static let brightBlue = "🟦"
-    static let brightPurple = "🟪"
-    static let brightOrange = "🟧"
-    static let brightWhite = "⬜"
-    static let brightBrown = "🟫"
-    
-    static let warn = "⚠️"
-    static let error = "❌"
-    static let success = "✅"
-    static let info = "ℹ️"
-    static let debug = "🔍"
+// MARK: - Ingredient parsing (offline)
 
-    // Default no formatting
-    static let none = ""
+@Suite("Ingredient parsing — heuristic path (offline)")
+struct IngredientParsingTests {
 
+    @Test("Plain decimal quantity with a unit")
+    func decimalWithUnit() throws {
+        let ingredient = try #require(
+            IngredientParser.fromString(input: "2 cups flour", location: .recipe)
+        )
+        #expect(ingredient.name == "flour")
+        #expect(ingredient.quantity == 2)
+        #expect(ingredient.unit != nil)
+    }
+
+    @Test("Slash fractions parse to a decimal quantity")
+    func slashFraction() throws {
+        let ingredient = try #require(
+            IngredientParser.fromString(input: "1/2 cup butter", location: .recipe)
+        )
+        #expect(ingredient.quantity == 0.5)
+        #expect(ingredient.name == "butter")
+    }
+
+    @Test("A bare item gets no quantity")
+    func bareItem() throws {
+        let ingredient = try #require(
+            IngredientParser.fromString(input: "Salt", location: .pantry)
+        )
+        #expect(ingredient.name == "Salt")
+        #expect(ingredient.quantity == nil)
+    }
+
+    @Test("Multi-word names keep every word")
+    func multiWordName() throws {
+        let ingredient = try #require(
+            IngredientParser.fromString(input: "3 tablespoons extra virgin olive oil", location: .recipe)
+        )
+        #expect(ingredient.quantity == 3)
+        #expect(ingredient.name == "extra virgin olive oil")
+    }
+
+    @Test("Empty and whitespace-only input is rejected", arguments: ["", "   ", "\n"])
+    func rejectsEmpty(input: String) {
+        #expect(IngredientParser.fromString(input: input, location: .recipe) == nil)
+    }
+
+    // These cover `parseQuantity`, which handles the Unicode fractions and
+    // hyphenated ranges the app advertises.
+    @Test("Unicode vulgar fractions parse", arguments: [
+        ("½ cup butter", 0.5),
+        ("¼ teaspoon salt", 0.25),
+        ("¾ cup sugar", 0.75),
+        ("⅓ cup cream", 1.0 / 3.0)
+    ])
+    func unicodeFractions(input: String, expected: Double) throws {
+        let ingredient = try #require(
+            IngredientParser.fromString(input: input, location: .recipe)
+        )
+        let quantity = try #require(ingredient.quantity, "No quantity parsed from \(input)")
+        #expect(abs(quantity - expected) < 0.0001, "\(input) → \(quantity), expected \(expected)")
+    }
+
+    @Test("A whole number plus a vulgar fraction sums")
+    func mixedNumber() throws {
+        let ingredient = try #require(
+            IngredientParser.fromString(input: "1½ cups milk", location: .recipe)
+        )
+        let quantity = try #require(ingredient.quantity)
+        #expect(abs(quantity - 1.5) < 0.0001, "Expected 1.5, got \(quantity)")
+    }
+
+    @Test("A hyphenated range averages its bounds")
+    func rangeAverages() throws {
+        let ingredient = try #require(
+            IngredientParser.fromString(input: "2-4 cups stock", location: .recipe)
+        )
+        let quantity = try #require(ingredient.quantity)
+        #expect(abs(quantity - 3.0) < 0.0001, "Expected the midpoint 3.0, got \(quantity)")
+    }
+
+    @Test("Round trip through toString keeps the quantity and name")
+    func roundTrip() throws {
+        let ingredient = try #require(
+            IngredientParser.fromString(input: "2 cups flour", location: .recipe)
+        )
+        let rendered = IngredientParser.toString(for: ingredient)
+        #expect(rendered.contains("flour"))
+        #expect(rendered.contains("2"))
+    }
+}
+
+// MARK: - OCR (offline)
+
+@Suite("Vision OCR (offline)")
+struct TextRecognitionTests {
+
+    @Test("OCR reads back text rendered into an image", .timeLimit(.minutes(1)))
+    func synthenticImageRoundTrip() async throws {
+        let expected = [
+            "Lemon Garlic Chicken",
+            "2 cups flour",
+            "Preheat the oven to 425F"
+        ]
+        let image = TestAssets.renderedTextImage(expected)
+
+        let lines = await TextRecognitionService.shared.recognizeText(from: image)
+        let joined = lines.joined(separator: " ")
+
+        #expect(!lines.isEmpty, "OCR returned nothing for a clean rendered image")
+        // OCR is fuzzy on punctuation, so assert on distinctive words.
+        #expect(joined.contains("Lemon"))
+        #expect(joined.contains("flour"))
+        #expect(joined.contains("Preheat"))
+    }
+
+    @Test("Every image fixture produces some text", .timeLimit(.minutes(5)))
+    func imageFixturesProduceText() async throws {
+        let images = TestAssets.images()
+        // Not a failure — the suite ships without binary photos. Drop JPEGs
+        // into Fixtures/Images to exercise this.
+        guard !images.isEmpty else { return }
+
+        let log = TestLog(name: "ocr")
+        for (name, image) in images {
+            let lines = await TextRecognitionService.shared.recognizeText(from: image)
+            log.write("\(name): \(lines.count) line(s) recognised")
+            for line in lines { log.write("    \(line)") }
+            #expect(!lines.isEmpty, "\(name): OCR produced no text")
+        }
+        log.attach()
+    }
+}
+
+// MARK: - Full pipeline (needs Apple Intelligence)
+
+@Suite(
+    "Full import pipeline (requires Apple Intelligence)",
+    .enabled(if: TestAssets.isAppleIntelligenceAvailable,
+             "Apple Intelligence is \(TestAssets.appleIntelligenceStatus)")
+)
+struct FullPipelineTests {
+
+    /// Drives the processor and waits for whichever callback fires first.
+    @MainActor
+    private func run(
+        _ start: @MainActor (RecipeProcessor) -> Void
+    ) async throws -> RecipeData {
+        let container = try ModelContainer(
+            for: DataController.appSchema,
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+        )
+        let processor = RecipeProcessor(modelContext: container.mainContext)
+
+        return try await withCheckedThrowingContinuation { continuation in
+            var settled = false
+            processor.onCompletion = { data in
+                guard !settled else { return }
+                settled = true
+                continuation.resume(returning: data)
+            }
+            processor.onError = { message in
+                guard !settled else { return }
+                settled = true
+                continuation.resume(throwing: PipelineFailure.processing(message))
+            }
+            start(processor)
+        }
+    }
+
+    enum PipelineFailure: Error, CustomStringConvertible {
+        case processing(String)
+        var description: String {
+            switch self {
+            case .processing(let message): return "Pipeline reported: \(message)"
+            }
+        }
+    }
+
+    @Test("Text import produces a titled recipe with ingredients", .timeLimit(.minutes(5)))
+    func textImport() async throws {
+        let fixture = try #require(
+            TestAssets.texts().first { $0.name == "simple_recipe" }?.text
+        )
+
+        let log = TestLog(name: "pipeline-text")
+        let data = try await run { $0.processText(fixture) }
+        log.dump(data, label: "simple_recipe")
+        defer { log.attach() }
+
+        #expect(!data.title.isEmpty, "Classifier produced no title")
+        #expect(!data.ingredients.isEmpty, "Classifier produced no ingredients")
+        #expect(!data.instructions.isEmpty, "Classifier produced no instructions")
+        #expect(!data.rawText.isEmpty, "rawText should be retained for the review sheet")
+    }
+
+    @Test("Every text fixture completes without error", .timeLimit(.minutes(10)))
+    func allTextFixtures() async throws {
+        let fixtures = TestAssets.texts()
+        try #require(!fixtures.isEmpty, "No text fixtures found in the test bundle")
+
+        let log = TestLog(name: "pipeline-all-text")
+        for (name, text) in fixtures {
+            let data = try await run { $0.processText(text) }
+            log.dump(data, label: name)
+            #expect(!data.ingredients.isEmpty, "\(name): no ingredients classified")
+        }
+        log.attach()
+    }
+
+    @Test("Every image fixture completes without error", .timeLimit(.minutes(10)))
+    func allImageFixtures() async throws {
+        let images = TestAssets.images()
+        guard !images.isEmpty else { return }
+
+        let log = TestLog(name: "pipeline-all-images")
+        for (name, image) in images {
+            let data = try await run { $0.processImage(image) }
+            log.dump(data, label: name)
+            #expect(!data.ingredients.isEmpty, "\(name): no ingredients classified")
+        }
+        log.attach()
+    }
 }
