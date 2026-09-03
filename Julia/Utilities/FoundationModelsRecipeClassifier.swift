@@ -4,14 +4,23 @@
 //
 
 import Foundation
+import FoundationModels
 
 /// Classifies recipe text lines into structured categories using Foundation Models.
 /// Handles chunking for long recipes to stay within the ~4000 token budget.
 struct FoundationModelsRecipeClassifier {
 
-    /// Maximum lines per Foundation Models call. Conservative to stay under the
-    /// ~4000 token combined input/output budget.
-    private let chunkSize = 150
+    /// Maximum lines per Foundation Models call.
+    ///
+    /// The ~4096 token budget covers the instructions (~900 tokens), the input
+    /// lines, AND the structured output — which echoes every input line back
+    /// into one of the arrays. So a chunk costs roughly twice its own token
+    /// count on top of the fixed prompt, and 150 lines routinely overflowed.
+    private let chunkSize = 40
+
+    /// Smallest chunk worth retrying. Below this, an overflow is not a sizing
+    /// problem and the error is surfaced instead of split further.
+    private let minimumChunkSize = 5
 
     private let instructions = """
     You are a recipe text classifier. Your job is to read lines of recipe text (often extracted via OCR) and sort them into the correct fields of a structured recipe model.
@@ -60,7 +69,7 @@ struct FoundationModelsRecipeClassifier {
         )
 
         for chunk in chunks {
-            let partial = try await classifyChunk(chunk)
+            let partial = try await classifyChunkSplittingOnOverflow(chunk)
             merged = mergeResults(merged, partial)
         }
 
@@ -68,6 +77,25 @@ struct FoundationModelsRecipeClassifier {
     }
 
     // MARK: - Private
+
+    /// Classifies a chunk, halving it and retrying if the model overflows its
+    /// context window. Structured generation output length is not fully
+    /// predictable — the model can ramble on messy OCR text and exceed the
+    /// budget even for an input that usually fits — so treat overflow as a
+    /// sizing hint rather than a fatal error.
+    private func classifyChunkSplittingOnOverflow(_ lines: [String]) async throws -> ClassifiedRecipe {
+        do {
+            return try await classifyChunk(lines)
+        } catch let error as LanguageModelSession.GenerationError {
+            guard case .exceededContextWindowSize = error,
+                  lines.count > minimumChunkSize else { throw error }
+
+            let middle = lines.count / 2
+            let first = try await classifyChunkSplittingOnOverflow(Array(lines[..<middle]))
+            let second = try await classifyChunkSplittingOnOverflow(Array(lines[middle...]))
+            return mergeResults(first, second)
+        }
+    }
 
     private func classifyChunk(_ lines: [String]) async throws -> ClassifiedRecipe {
         let numbered = lines.enumerated()

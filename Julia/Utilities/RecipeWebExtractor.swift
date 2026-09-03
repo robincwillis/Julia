@@ -155,7 +155,9 @@ final class RecipeWebScraper {
 
     // MARK: JSON-LD Extraction
 
-    private func extractJSONLD(from html: String, sourceURL: String) -> RecipeData? {
+    /// Internal rather than private so the test suite can exercise JSON-LD
+    /// extraction against local HTML fixtures without hitting the network.
+    func extractJSONLD(from html: String, sourceURL: String) -> RecipeData? {
         // Match every <script type="application/ld+json"> block
         guard let regex = try? NSRegularExpression(
             pattern: #"<script[^>]+type\s*=\s*["']application/ld\+json["'][^>]*>([\s\S]*?)<\/script>"#,
@@ -203,7 +205,8 @@ final class RecipeWebScraper {
 
     // MARK: HTML → Plain Text
 
-    private func stripHTML(_ html: String) -> String {
+    /// Internal for fixture-based tests — see `extractJSONLD`.
+    func stripHTML(_ html: String) -> String {
         var text = html
 
         // Drop <script> and <style> blocks entirely
@@ -244,7 +247,8 @@ final class RecipeWebScraper {
 
     // MARK: Normalization → RecipeData
 
-    private func normalizeJSONLD(_ dict: [String: Any], sourceURL: String) -> RecipeData {
+    /// Internal for fixture-based tests — see `extractJSONLD`.
+    func normalizeJSONLD(_ dict: [String: Any], sourceURL: String) -> RecipeData {
         var data = RecipeData()
         data.title = (dict["name"] as? String) ?? ""
 
@@ -407,7 +411,8 @@ final class RecipeWebScraper {
     }
 
     /// Parses ISO 8601 durations (e.g. PT1H30M) → total minutes.
-    private func isoToMinutes(_ iso: String?) -> Int? {
+    /// Internal for fixture-based tests — see `extractJSONLD`.
+    func isoToMinutes(_ iso: String?) -> Int? {
         guard let iso, iso.uppercased().hasPrefix("PT") else { return nil }
         var mins = 0, acc = ""
         for ch in iso.uppercased().dropFirst(2) {

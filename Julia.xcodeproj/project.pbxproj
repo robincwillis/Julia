@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		5AE1C0DE0000000000000010 /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5AE1C0DE000000000000000A /* ShareViewController.swift */; };
+		5AE1C0DE0000000000000011 /* SharedImportInbox.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5AE1C0DE000000000000000E /* SharedImportInbox.swift */; };
+		5AE1C0DE0000000000000012 /* SharedImportInbox.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5AE1C0DE000000000000000E /* SharedImportInbox.swift */; };
+		5AE1C0DE0000000000000014 /* JuliaShareExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 5AE1C0DE0000000000000002 /* JuliaShareExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		52010E4F2D7FD362007C4889 /* RecipeTextReconstructor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52010E4E2D7FD362007C4889 /* RecipeTextReconstructor.swift */; };
 		52010E642D809EBA007C4889 /* RecipeWebExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52010E632D809EBA007C4889 /* RecipeWebExtractor.swift */; };
 		520DE6A22C33208B00CAF570 /* NavigationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 520DE6A12C33208B00CAF570 /* NavigationView.swift */; };
@@ -66,7 +70,7 @@
 		527A08942F8031920030EE1C /* CookModeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 527A08922F8031920030EE1C /* CookModeView.swift */; };
 		527A08952F8031920030EE1C /* ScanInstructionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 527A08932F8031920030EE1C /* ScanInstructionView.swift */; };
 		527A08972F8031A30030EE1C /* DocumentClassifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 527A08962F8031A30030EE1C /* DocumentClassifier.swift */; };
-		527AF2572D8F684000FE6E38 /* PreviewHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 527AF2562D8F684000FE6E38 /* PreviewHelpers.swift */; };
+		527AF2572D8F684000FE6E38 /* Julia/Utilities/PreviewHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 527AF2562D8F684000FE6E38 /* Julia/Utilities/PreviewHelpers.swift */; };
 		52852E7D2F7C97C800716647 /* RecipeSuggestionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52852E7C2F7C97C800716647 /* RecipeSuggestionsView.swift */; };
 		52852E7E2F7C97C800716647 /* RecipeSuggestionDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52852E7B2F7C97C800716647 /* RecipeSuggestionDetailView.swift */; };
 		52852E7F2F7C97C800716647 /* ReceiptScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52852E7A2F7C97C800716647 /* ReceiptScannerView.swift */; };
@@ -78,8 +82,8 @@
 		52852E852F7C9D0600716647 /* FoundationModelsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100009BB000001CC000001 /* FoundationModelsService.swift */; };
 		52852E862F7C9D0600716647 /* RecipeSuggestionsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10000FBB000001CC000001 /* RecipeSuggestionsViewModel.swift */; };
 		52852E872F7C9D0600716647 /* FoundationModelsRecipeClassifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100007BB000001CC000001 /* FoundationModelsRecipeClassifier.swift */; };
-		52852E8A2F7C9D0600716647 /* JuliaTools.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100011BB000001CC000001 /* JuliaTools.swift */; };
 		52852E892F7CA00100716647 /* ProcessingResultsReceipt.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52852E882F7CA00100716647 /* ProcessingResultsReceipt.swift */; };
+		52852E8A2F7C9D0600716647 /* JuliaTools.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100011BB000001CC000001 /* JuliaTools.swift */; };
 		52A5E03A2DA60E4A002D3920 /* Dot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52A5E0392DA60E4A002D3920 /* Dot.swift */; };
 		52A5E03C2DA6C685002D3920 /* RecipeProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52A5E03B2DA6C685002D3920 /* RecipeProcessor.swift */; };
 		52AEA3382D7B3CDB00B514F2 /* RecipeEditIngredientsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52AEA3362D7B3CDA00B514F2 /* RecipeEditIngredientsSection.swift */; };
@@ -113,6 +117,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		5AE1C0DE0000000000000015 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 5228BD452C2362E6001C845E /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 5AE1C0DE0000000000000001;
+			remoteInfo = JuliaShareExtension;
+		};
 		52E7A6492DCFD1A900AFEF2B /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 5228BD452C2362E6001C845E /* Project object */;
@@ -122,7 +133,27 @@
 		};
 /* End PBXContainerItemProxy section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		5AE1C0DE0000000000000013 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				5AE1C0DE0000000000000014 /* JuliaShareExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
+		5AE1C0DE0000000000000002 /* JuliaShareExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = JuliaShareExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		5AE1C0DE000000000000000A /* ShareViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareViewController.swift; sourceTree = "<group>"; };
+		5AE1C0DE000000000000000B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		5AE1C0DE000000000000000C /* JuliaShareExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = JuliaShareExtension.entitlements; sourceTree = "<group>"; };
+		5AE1C0DE000000000000000D /* Julia.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Julia.entitlements; sourceTree = "<group>"; };
+		5AE1C0DE000000000000000E /* SharedImportInbox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedImportInbox.swift; sourceTree = "<group>"; };
 		52010E4E2D7FD362007C4889 /* RecipeTextReconstructor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeTextReconstructor.swift; sourceTree = "<group>"; };
 		52010E632D809EBA007C4889 /* RecipeWebExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeWebExtractor.swift; sourceTree = "<group>"; };
 		520DE69E2C330F9600CAF570 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
@@ -187,7 +218,7 @@
 		527A08922F8031920030EE1C /* CookModeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CookModeView.swift; sourceTree = "<group>"; };
 		527A08932F8031920030EE1C /* ScanInstructionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanInstructionView.swift; sourceTree = "<group>"; };
 		527A08962F8031A30030EE1C /* DocumentClassifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DocumentClassifier.swift; sourceTree = "<group>"; };
-		527AF2562D8F684000FE6E38 /* PreviewHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Julia/Utilities/PreviewHelpers.swift; sourceTree = SOURCE_ROOT; };
+		527AF2562D8F684000FE6E38 /* Julia/Utilities/PreviewHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Julia/Utilities/PreviewHelpers.swift; sourceTree = SOURCE_ROOT; };
 		52852E7A2F7C97C800716647 /* ReceiptScannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiptScannerView.swift; sourceTree = "<group>"; };
 		52852E7B2F7C97C800716647 /* RecipeSuggestionDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeSuggestionDetailView.swift; sourceTree = "<group>"; };
 		52852E7C2F7C97C800716647 /* RecipeSuggestionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeSuggestionsView.swift; sourceTree = "<group>"; };
@@ -241,6 +272,13 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		5AE1C0DE0000000000000004 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		5228BD4A2C2362E7001C845E /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -259,6 +297,24 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		5AE1C0DE0000000000000009 /* JuliaShareExtension */ = {
+			isa = PBXGroup;
+			children = (
+				5AE1C0DE000000000000000A /* ShareViewController.swift */,
+				5AE1C0DE000000000000000B /* Info.plist */,
+				5AE1C0DE000000000000000C /* JuliaShareExtension.entitlements */,
+			);
+			path = JuliaShareExtension;
+			sourceTree = "<group>";
+		};
+		5AE1C0DE000000000000000F /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				5AE1C0DE000000000000000E /* SharedImportInbox.swift */,
+			);
+			path = Shared;
+			sourceTree = "<group>";
+		};
 		520DE6A92C345FD000CAF570 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
@@ -326,7 +382,7 @@
 				521795162DB586FC004B265B /* ImportExportManager.swift */,
 				521795122DB58254004B265B /* SampleDataLoader.swift */,
 				52A5E03B2DA6C685002D3920 /* RecipeProcessor.swift */,
-				527AF2562D8F684000FE6E38 /* PreviewHelpers.swift */,
+				527AF2562D8F684000FE6E38 /* Julia/Utilities/PreviewHelpers.swift */,
 				523DB6482D8A5829009DFA47 /* View+Extensions.swift */,
 				520DE6BB2C346BD900CAF570 /* String+Extensions.swift */,
 				524043FE2D9A08FD009831D5 /* Double+Extensions.swift */,
@@ -356,6 +412,8 @@
 				52ADAFBB2D83CEE400F2E7A0 /* RecipeTextReconstructorDebug.playground */,
 				5228BD4F2C2362E7001C845E /* Julia */,
 				52E7A6462DCFD1A900AFEF2B /* JuliaTests */,
+				5AE1C0DE0000000000000009 /* JuliaShareExtension */,
+				5AE1C0DE000000000000000F /* Shared */,
 				5228BD4E2C2362E7001C845E /* Products */,
 				52FD148E2D99E0800094F611 /* Recovered References */,
 				52E7A64F2DCFD28800AFEF2B /* Frameworks */,
@@ -367,6 +425,7 @@
 			children = (
 				5228BD4D2C2362E7001C845E /* Julia.app */,
 				52E7A6452DCFD1A900AFEF2B /* JuliaTests.xctest */,
+				5AE1C0DE0000000000000002 /* JuliaShareExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -375,6 +434,7 @@
 			isa = PBXGroup;
 			children = (
 				520DE69E2C330F9600CAF570 /* Info.plist */,
+				5AE1C0DE000000000000000D /* Julia.entitlements */,
 				5228BD502C2362E7001C845E /* JuliaApp.swift */,
 				520DE6CB2C35B0CF00CAF570 /* Playground.swift */,
 				52CD8F892D7492CF0076F578 /* Components */,
@@ -484,6 +544,25 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		5AE1C0DE0000000000000001 /* JuliaShareExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 5AE1C0DE0000000000000006 /* Build configuration list for PBXNativeTarget "JuliaShareExtension" */;
+			buildPhases = (
+				5AE1C0DE0000000000000003 /* Sources */,
+				5AE1C0DE0000000000000004 /* Frameworks */,
+				5AE1C0DE0000000000000005 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = JuliaShareExtension;
+			packageProductDependencies = (
+			);
+			productName = JuliaShareExtension;
+			productReference = 5AE1C0DE0000000000000002 /* JuliaShareExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		5228BD4C2C2362E7001C845E /* Julia */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 5228BD5B2C2362EB001C845E /* Build configuration list for PBXNativeTarget "Julia" */;
@@ -491,10 +570,12 @@
 				5228BD492C2362E7001C845E /* Sources */,
 				5228BD4A2C2362E7001C845E /* Frameworks */,
 				5228BD4B2C2362E7001C845E /* Resources */,
+				5AE1C0DE0000000000000013 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				5AE1C0DE0000000000000016 /* PBXTargetDependency */,
 			);
 			name = Julia;
 			packageProductDependencies = (
@@ -544,6 +625,9 @@
 						CreatedOnToolsVersion = 16.3;
 						TestTargetID = 5228BD4C2C2362E7001C845E;
 					};
+					5AE1C0DE0000000000000001 = {
+						CreatedOnToolsVersion = 26.0;
+					};
 				};
 			};
 			buildConfigurationList = 5228BD482C2362E6001C845E /* Build configuration list for PBXProject "Julia" */;
@@ -564,11 +648,19 @@
 			targets = (
 				5228BD4C2C2362E7001C845E /* Julia */,
 				52E7A6442DCFD1A900AFEF2B /* JuliaTests */,
+				5AE1C0DE0000000000000001 /* JuliaShareExtension */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		5AE1C0DE0000000000000005 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		5228BD4B2C2362E7001C845E /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -591,10 +683,20 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		5AE1C0DE0000000000000003 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5AE1C0DE0000000000000010 /* ShareViewController.swift in Sources */,
+				5AE1C0DE0000000000000011 /* SharedImportInbox.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		5228BD492C2362E7001C845E /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5AE1C0DE0000000000000012 /* SharedImportInbox.swift in Sources */,
 				52E2C08F2D99D99B00F9B5F9 /* RecipeEditSourceSection.swift in Sources */,
 				52E7A65F2DDA13E500AFEF2B /* IngredientClassifier.mlmodel in Sources */,
 				52A5E03A2DA60E4A002D3920 /* Dot.swift in Sources */,
@@ -639,7 +741,7 @@
 				527A08972F8031A30030EE1C /* DocumentClassifier.swift in Sources */,
 				52EF0BB32CDC0C9100B8354A /* DataController.swift in Sources */,
 				52E2C0952D99DA0600F9B5F9 /* RecipeEditNotesSection.swift in Sources */,
-				527AF2572D8F684000FE6E38 /* PreviewHelpers.swift in Sources */,
+				527AF2572D8F684000FE6E38 /* Julia/Utilities/PreviewHelpers.swift in Sources */,
 				521313BC2D7344C60021DA90 /* RecipeTextClassifier.swift in Sources */,
 				52852E812F7C9CF500716647 /* RecipeClassificationResult.swift in Sources */,
 				527A088E2F8010370030EE1C /* ChefChatView.swift in Sources */,
@@ -705,6 +807,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		5AE1C0DE0000000000000016 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 5AE1C0DE0000000000000001 /* JuliaShareExtension */;
+			targetProxy = 5AE1C0DE0000000000000015 /* PBXContainerItemProxy */;
+		};
 		52E7A64A2DCFD1A900AFEF2B /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 5228BD4C2C2362E7001C845E /* Julia */;
@@ -713,6 +820,60 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		5AE1C0DE0000000000000007 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = JuliaShareExtension/JuliaShareExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = KU2HAE7AMY;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = JuliaShareExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Julia;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = rcw.Julia.ShareExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		5AE1C0DE0000000000000008 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = JuliaShareExtension/JuliaShareExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = KU2HAE7AMY;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = JuliaShareExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Julia;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = rcw.Julia.ShareExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 		5228BD592C2362EB001C845E /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -834,6 +995,7 @@
 		5228BD5C2C2362EB001C845E /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = Julia/Julia.entitlements;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
@@ -874,6 +1036,7 @@
 		5228BD5D2C2362EB001C845E /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = Julia/Julia.entitlements;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
@@ -957,6 +1120,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		5AE1C0DE0000000000000006 /* Build configuration list for PBXNativeTarget "JuliaShareExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5AE1C0DE0000000000000007 /* Debug */,
+				5AE1C0DE0000000000000008 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		5228BD482C2362E6001C845E /* Build configuration list for PBXProject "Julia" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

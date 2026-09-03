@@ -134,6 +134,37 @@ class RecipeProcessor {
     }
   }
 
+  /// Imports a URL with no view attached — used by the share extension, where
+  /// there is no `RecipeURLImportView` to host the scraper and show its phase
+  /// labels. Progress is reported through `processingState` so the floating
+  /// status sheet covers it, the same as an image or text import.
+  func importSharedURL(_ urlString: String) {
+    start()
+
+    Task {
+      work()
+      processingState.statusMessage = "Fetching recipe from the web..."
+
+      let scraper = RecipeWebScraper()
+      do {
+        let data = try await scraper.scrape(urlString: urlString)
+        recipeData = data
+        processingState.recognizedText = data.rawText
+        autoSave()
+        complete()
+      } catch {
+        handleError(error.localizedDescription)
+      }
+    }
+  }
+
+  /// Text arriving from the share extension. Thin wrapper for symmetry with
+  /// `importSharedURL`, so callers do not need to know which entry point the
+  /// pipeline uses for each payload kind.
+  func importSharedText(_ text: String) {
+    processText(text)
+  }
+
   // Persist the imported recipe immediately so it's kept even if the
   // review sheet is dismissed without an explicit save
   private func autoSave() {

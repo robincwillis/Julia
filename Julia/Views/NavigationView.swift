@@ -73,6 +73,7 @@ struct NavigationView: View {
   @State private var selectedImage: UIImage?
   @State private var selectedText: String?
   @State private var extractedRecipeData: RecipeData?
+  @Environment(\.scenePhase) private var scenePhase
   @State private var recipeProcessor = RecipeProcessor()
 
   // Receipt processing state
@@ -142,9 +143,29 @@ struct NavigationView: View {
       setupNotificationObservers()
       recipeProcessor.setModelContext(context)
       receiptProcessor.setModelContext(context)
+      importNextSharedItem()
     }
     .onDisappear {
       removeNotificationObservers()
+    }
+    // Share extension hand-off. The deep link covers the common case; the
+    // scenePhase check catches items queued while the app was backgrounded, or
+    // when opening the app was refused.
+    .onOpenURL { url in
+      if SharedImportInbox.isImportLink(url) {
+        importNextSharedItem()
+      }
+    }
+    .onChange(of: scenePhase) { _, phase in
+      if phase == .active {
+        importNextSharedItem()
+      }
+    }
+    .onChange(of: recipeProcessor.processingState.showResultsSheet) { wasShowing, isShowing in
+      // Once the user finishes with one shared item, pick up the next.
+      if wasShowing && !isShowing {
+        importNextSharedItem()
+      }
     }
     .onChange(of: selectedImage) { _, newValue in
       if let image = newValue {
@@ -161,6 +182,25 @@ struct NavigationView: View {
         recipeProcessor.processData(recipeData)
       }
     }
+}
+
+// MARK: - Share Extension Hand-off
+
+/// Takes one item at a time from the shared inbox. Importing runs through a
+/// single RecipeProcessor, so items are handled sequentially — the next is
+/// picked up when the results sheet for the previous one is dismissed.
+private func importNextSharedItem() {
+  guard !recipeProcessor.processingState.isProcessing,
+        !recipeProcessor.processingState.showResultsSheet,
+        let item = SharedImportInbox.dequeue()
+  else { return }
+
+  switch item {
+  case .text(let text):
+    recipeProcessor.importSharedText(text)
+  case .url(let urlString):
+    recipeProcessor.importSharedURL(urlString)
+  }
 }
 
 // MARK: - View Components

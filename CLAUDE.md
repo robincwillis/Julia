@@ -6,22 +6,41 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Open project: `open Julia.xcodeproj`
 - Build: ⌘B | Test: ⌘U | Run: ⌘R | Clean: ⇧⌘K
 - Run single test: click ▶️ in gutter next to the test method
+- From the CLI: `xcodebuild -project Julia.xcodeproj -scheme Julia -destination 'platform=iOS Simulator,name=iPhone 17 Pro' build` (swap `build` for `test`)
+
+Targets: **Julia** (app, iOS 26.0), **JuliaTests**, **JuliaShareExtension**.
+iOS 26 is required — the import pipeline depends on Foundation Models.
+
+## Further documentation
+
+- `docs/AUDIT.md` — known issues and open decisions. **Read before large changes.**
+- `docs/TESTING.md` — how the test suite is organised and how to add fixtures
+- `docs/SHARE-EXTENSION.md` — the Notes/Safari import flow
+- `docs/MERGE-NOTES.md` — why the current pipeline looks the way it does
 
 ## Architecture Overview
 
-Julia is an iOS recipe management app with an ML-driven import pipeline. The core flow:
+Julia is an iOS recipe management app with an AI-driven import pipeline built on
+**Foundation Models** (Apple Intelligence, on-device). The core flow:
 
 ```
-User Input (image / text / URL)
-  → RecipeProcessor (orchestrator)
+User Input (image / text / URL / share sheet)
+  → RecipeProcessor (@MainActor @Observable orchestrator)
       → TextRecognitionService (Vision OCR, for images)
       → RecipeLayoutAnalyzer (spatial grouping, WIP)
       → RecipeTextReconstructor (joins fragmented OCR lines)
-      → RecipeTextClassifier (Core ML line classification)
+      → FoundationModelsRecipeClassifier (line classification)
   → RecipeData (intermediate struct)
-      → IngredientParser (token-level ML parsing)
+      → IngredientParser (Foundation Models, heuristic fallback)
       → Recipe (SwiftData model, persisted)
 ```
+
+URL import does not go through OCR — `RecipeWebScraper`
+(`Utilities/RecipeWebExtractor.swift`) fetches the page, prefers JSON-LD
+structured data, and falls back to Foundation Models on the page text.
+
+> **There is no fallback if Apple Intelligence is unavailable**: image and text
+> import fail outright. See `docs/AUDIT.md` §1 — this is the top open issue.
 
 ## Data Models
 
@@ -38,30 +57,53 @@ Key enums:
 
 **RecipeTextReconstructor** — takes raw OCR `[String]` lines, removes artifacts, and joins fragmented lines using heuristics. Returns `ProcessingTextResult` with `reconstructedLines` and `artifacts`.
 
-**RecipeTextClassifier** — runs each line through `RecipeClassifier.mlmodel` (Core ML). Confidence threshold is 0.65; lines below threshold are tracked as `skipped` rather than discarded. Returns a `ClassificationResult` tuple.
+**FoundationModelsRecipeClassifier** — sorts lines into a `@Generable ClassifiedRecipe` with a single long instruction prompt, then converts it to the `ClassificationResult` tuple. Chunks input at 40 lines and halves-and-retries on `.exceededContextWindowSize`: the ~4096 token budget covers instructions (~900 tokens), the input, *and* the output, which echoes every input line back.
 
-**IngredientParser** — tokenizes ingredient strings and classifies each token (name, quantity, measurement, comment, marker) using `IngredientClassifier.mlmodel`. Falls back to regex parsing if the ML model is unavailable. Handles Unicode fractions and ranges.
+**IngredientParser** — `fromStringAsync` uses Foundation Models for rich structured output and falls back to `legacyParse` (heuristic, synchronous) when unavailable or on error. `fromString` is heuristic-only. Handles Unicode fractions (`½`, `1½`) and hyphenated ranges (`2-4`, averaged) via `parseQuantity`.
 
-## Core ML Models
+**RecipeWebScraper** — `scrape(urlString:)` fetches, extracts JSON-LD (walking `@graph`), normalizes to `RecipeData`, and falls back to Foundation Models over the stripped page text. Reports progress through `WebScrapePhase`.
 
-- **RecipeClassifier.mlmodel** — document-level: classifies each text line into a `RecipeLineType`
-- **IngredientClassifier.mlmodel** — token-level: classifies individual words/numbers within an ingredient string
+## Foundation Models
+
+`FoundationModelsService` is an actor owning access to `SystemLanguageModel.default`. It creates a **fresh `LanguageModelSession` per request** to avoid context accumulation, and throws `.unavailable` when Apple Intelligence is off. `JuliaApp` prewarms it at launch.
+
+`ChefChatView` is the one place that uses tool calling, registering `AddToGroceryListTool` and `CreateRecipeTool` from `Utilities/JuliaTools.swift`.
+
+> `RecipeClassifier.mlmodel`, `IngredientClassifier.mlmodel` and
+> `RecipeTextClassifier.swift` are the **previous** Core ML pipeline. They are
+> still in the app target but nothing references them — do not treat them as
+> live code. See `docs/AUDIT.md` §4.
 
 ## View Structure
 
 ```
 ContentView
-  └─ TabView (Grocery • Pantry • Recipes)
-  └─ FloatingActionMenu (camera / text / URL import triggers)
-  └─ FloatingStatusSheet → RecipeProcessing (live progress)
-  └─ ProcessingResults sheet (preview pipeline output before saving)
-       ├─ ProcessingResultsRawText
-       ├─ ProcessingResultsReconstructedText
-       ├─ ProcessingResultsClassifiedText
-       └─ ProcessingResultsRecipe
+  └─ NavigationView
+       └─ TabView (Grocery • Pantry • Recipes)
+       └─ FloatingActionMenu (single button → opens ChefChatView)
+       └─ FloatingStatusSheet → RecipeProcessing (live progress)
+       └─ ChefChatView (fullScreenCover — the import hub: camera,
+       │                text, URL, receipt scan, tool-calling chat)
+       └─ ProcessingResults sheet (preview pipeline output before saving)
+            ├─ ProcessingResultsRawText
+            ├─ ProcessingResultsReconstructedText
+            ├─ ProcessingResultsClassifiedText
+            ├─ ProcessingResultsReceipt
+            └─ ProcessingResultsRecipe
 ```
 
-`RecipeProcessor` is an `ObservableObject` injected at the top level. `RecipeProcessingState` tracks stage, status message, and sheet visibility.
+`RecipeProcessor` is `@Observable @MainActor`, held as `@State` in
+`NavigationView` (not an `ObservableObject`, and not injected via environment).
+`RecipeProcessingState` tracks stage, status message, and sheet visibility.
+
+`NavigationView` also drains the share-extension inbox — see
+`docs/SHARE-EXTENSION.md`.
+
+Toolbar note: `hidesSharedGlassBackground()` extends **`ToolbarContent`**, not
+`View` — apply it to a `ToolbarItem`, never after `.toolbar { }`. Large view
+bodies here can exceed the SwiftUI type-checker budget; extract
+`@ToolbarContentBuilder` and `@ViewBuilder` properties as `RecipeDetails` and
+`RecipesView` do.
 
 ## Code Style
 
@@ -72,4 +114,18 @@ ContentView
 
 ## Tests
 
-`JuliaTests/RecipeProcessingTests.swift` uses Swift Testing (`@Test` macro). Tests load image and text assets, run the full processing pipeline, and log detailed classification results. When adding tests, follow this pattern and validate title accuracy, ingredient count, and confidence scores.
+Swift Testing (`@Test`, `#expect`, `#require`). See **`docs/TESTING.md`** for the
+full picture. The essentials:
+
+- **Add a test case by dropping a file** into `JuliaTests/Fixtures/Images`,
+  `.../Text` or `.../Web`. `TestAssets` discovers fixtures by extension at
+  runtime, and `JuliaTests` is a synchronized folder group — no project edit,
+  no code edit. Names must be unique across the three folders.
+- Suites are split by requirement: reconstruction, ingredient parsing, OCR and
+  JSON-LD scraping run **offline everywhere**; `FullPipelineTests` needs Apple
+  Intelligence and **skips itself** via `.enabled(if:)` when unavailable.
+- Assert **shape, not exact strings** — the classifier is a non-deterministic
+  language model. Give pipeline tests a `.timeLimit` trait.
+- Detailed per-asset dumps go to the test report via `Testing.Attachment`.
+  Do not write logs to `temporaryDirectory` (tests run in throwaway simulator
+  clones) and do not rely on `print` (swallowed by the harness).
