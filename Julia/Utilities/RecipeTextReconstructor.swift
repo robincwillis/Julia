@@ -11,7 +11,7 @@ struct TextReconstructorResult {
 class RecipeTextReconstructor {
   // Main function to reconstruct recipe text from an array of lines
   static func reconstructText(from lines: [String]) -> TextReconstructorResult {
-    var title = ""
+    let title = ""
     var reconstructedLines: [String] = []
     var artifacts: [String] = []
     
@@ -45,7 +45,7 @@ class RecipeTextReconstructor {
     // Step 2: Join lines by context rather than assuming title position
     var currentLine = ""
     
-    for (i, (line, isArtifact)) in processedLines.enumerated() {
+    for (_, (line, isArtifact)) in processedLines.enumerated() {
       // Always include artifact lines without joining them
       if isArtifact {
         // First save any current line buffer

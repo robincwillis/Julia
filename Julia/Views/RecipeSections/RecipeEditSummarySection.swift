@@ -64,7 +64,7 @@ struct RecipeEditSummarySection: View {
         .focused($isTitleFieldFocused)
         .submitLabel(.done)
         .padding(.vertical, 2)
-        .background(Color.app.white)
+        //.background(Color.app.white)
       
       TextField("Recipe summary", text: summaryTextBinding, axis: .vertical)
         .lineLimit(3...6)

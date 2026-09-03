@@ -127,8 +127,8 @@ struct AddIngredient: View {
 }
 
 #Preview {
-  @State var location = IngredientLocation.pantry
-  @State var showBottomSheet = true
+  @Previewable @State var location = IngredientLocation.pantry
+  @Previewable @State var showBottomSheet = true
   return FloatingBottomSheet(isPresented: $showBottomSheet) {
     AddIngredient(
       ingredientLocation: $location,

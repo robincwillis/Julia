@@ -60,10 +60,11 @@ struct RecipeData: Equatable {
   // Convert extracted data to your SwiftData Recipe model
   public func convertToSwiftDataModel() -> Recipe {
     // Create basic Recipe object
+    let summaryLines = self.summary.filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
     let recipe = Recipe(
       id: UUID().uuidString,
       title: self.title,
-      summary: self.summary.isEmpty ? nil : self.summary.joined(separator: "\n"),
+      summary: summaryLines.isEmpty ? nil : summaryLines.joined(separator: "\n"),
       ingredients: [], // Will populate below
       instructions: [],
       sections: [],
@@ -78,7 +79,7 @@ struct RecipeData: Equatable {
       website: self.website,
       author: self.author
     )
-    
+
     // Create Ingredient objects for each ingredient string
     for ingredientText in self.ingredients {
       if let ingredient = IngredientParser.fromString(input: ingredientText, location: .recipe) {
@@ -126,6 +127,60 @@ struct RecipeData: Equatable {
     return recipe
   }
   
+  /// Async version that uses Foundation Models for richer ingredient parsing.
+  public func convertToSwiftDataModelAsync() async -> Recipe {
+    let summaryLinesAsync = self.summary.filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+    let recipe = Recipe(
+      id: UUID().uuidString,
+      title: self.title,
+      summary: summaryLinesAsync.isEmpty ? nil : summaryLinesAsync.joined(separator: "\n"),
+      ingredients: [],
+      instructions: [],
+      sections: [],
+      servings: self.servings.isEmpty ? nil : Int(self.servings.first ?? ""),
+      timings: [],
+      notes: [],
+      tags: [],
+      rawText: self.rawText,
+      source: self.source,
+      sourceType: self.sourceType != nil ? SourceType(rawValue: self.sourceType!) : nil,
+      sourceTitle: self.sourceTitle,
+      website: self.website,
+      author: self.author
+    )
+
+    for ingredientText in self.ingredients {
+      if let ingredient = await IngredientParser.fromStringAsync(input: ingredientText, location: .recipe) {
+        recipe.ingredients.append(ingredient)
+      }
+    }
+
+    for instructionText in self.instructions {
+      let step = Step(value: instructionText)
+      recipe.instructions.append(step)
+    }
+
+    for timingText in self.timings {
+      let parts = timingText.components(separatedBy: ":")
+      if parts.count >= 2 {
+        let type = parts[0].trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        let timeValue = parts[1].trimmingCharacters(in: .whitespacesAndNewlines)
+        let (hours, minutes) = parseTimeString(timeValue)
+        recipe.timings.append(Timing(type: type, hours: hours, minutes: minutes))
+      }
+    }
+
+    for noteText in self.notes {
+      recipe.notes.append(Note(text: noteText))
+    }
+
+    for (index, sectionName) in self.sections.enumerated() {
+      recipe.sections.append(IngredientSection(name: sectionName, position: index))
+    }
+
+    return recipe
+  }
+
   // Helper method to parse time strings like "1 hour 15 minutes" or "45 min"
   private func parseTimeString(_ timeString: String) -> (Int, Int) {
     var hours = 0

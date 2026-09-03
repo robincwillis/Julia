@@ -2,476 +2,427 @@
 //  RecipeWebExtractor.swift
 //  Julia
 //
-//  Created by Robin Willis on 3/11/25.
-//
 
 import Foundation
-import SwiftSoup
-import SwiftData
+import Observation
+import FoundationModels
 
-class RecipeWebExtractor {
-  
-  enum ExtractionError: Error {
-    case networkError(Error)
-    case invalidURL
-    case parsingFailed(String)
-    case noRecipeFound
-  }
-  
-  // Main function that returns RecipeData
-  func extractRecipe(from urlString: String) async throws -> RecipeData {
-    guard let url = URL(string: urlString) else {
-      throw ExtractionError.invalidURL
-    }
-    
-    // Fetch HTML content
-    let htmlContent = try await fetchHTML(from: url)
-    
-    // Parse the HTML
-    return try parseRecipeFromHTML(htmlContent, sourceURL: urlString)
-  }
-  
-  // Fetch HTML content from URL
-  private func fetchHTML(from url: URL) async throws -> String {
-    do {
-      let (data, response) = try await URLSession.shared.data(from: url)
-      
-      guard let httpResponse = response as? HTTPURLResponse,
-            (200...299).contains(httpResponse.statusCode) else {
-        throw ExtractionError.parsingFailed("Invalid HTTP response")
-      }
-      
-      guard let htmlString = String(data: data, encoding: .utf8) else {
-        throw ExtractionError.parsingFailed("Unable to convert data to string")
-      }
-      
-      return htmlString
-    } catch {
-      throw ExtractionError.networkError(error)
-    }
-  }
-  
-  // Parse recipe data from HTML
-  private func parseRecipeFromHTML(_ html: String, sourceURL: String) throws -> RecipeData {
-    do {
-      let document = try SwiftSoup.parse(html)
-      
-      // First try to find structured data (JSON-LD)
-      if let recipeData = try extractStructuredData(from: document, sourceURL: sourceURL) {
-        return recipeData
-      }
-      
-      // If no structured data, try to extract from HTML using common patterns
-      return try extractFromHTMLPattern(document, sourceURL: sourceURL)
-    } catch {
-      throw ExtractionError.parsingFailed(error.localizedDescription)
-    }
-  }
-  
-  // Helper to extract ISO8601 duration strings
-  private func extractTimeString(_ timeValue: Any?) -> String {
-    if let timeString = timeValue as? String {
-      // You could add ISO8601 duration parsing here if needed
-      return timeString
-    }
-    return ""
-  }
-  
-  // Extract recipe from JSON-LD structured data
-  private func extractStructuredData(from document: Document, sourceURL: String) throws -> RecipeData? {
-    let scriptElements = try document.select("script[type='application/ld+json']")
-    
-    for element in scriptElements {
-      let jsonString = try element.html()
-      
-      if let jsonData = jsonString.data(using: .utf8),
-         let json = try? JSONSerialization.jsonObject(with: jsonData, options: []) as? [String: Any] {
-        
-        // Handle both direct Recipe and Graph with Recipe
-        if let context = json["@context"] as? String,
-           context.contains("schema.org") {
-          
-          // Direct Recipe object
-          if let type = json["@type"] as? String,
-             type == "Recipe" || type == "schema:Recipe" {
-            return createExtractedDataFromJSON(json, sourceURL: sourceURL)
-          }
-          
-          // Graph with Recipe object
-          if let graph = json["@graph"] as? [[String: Any]] {
-            for item in graph {
-              if let type = item["@type"] as? String,
-                 type == "Recipe" || type == "schema:Recipe" {
-                return createExtractedDataFromJSON(item, sourceURL: sourceURL)
-              }
-            }
-          }
-        }
-      }
-    }
-    
-    return nil
-  }
-  
-  // Create RecipeData from JSON-LD data
-  private func createExtractedDataFromJSON(_ json: [String: Any], sourceURL: String) -> RecipeData {
-    var recipeData = RecipeData()
-    
-    // Basic fields
-    recipeData.title = json["name"] as? String ?? "Untitled Recipe"
-    
-    // Description/Summary
-    if let description = json["description"] as? String, !description.isEmpty {
-      recipeData.summary = [description]
-    }
-    
-    // Ingredients
-    if let jsonIngredients = json["recipeIngredient"] as? [String] {
-      recipeData.ingredients = jsonIngredients
-    } else if let ingredient = json["recipeIngredient"] as? String {
-      recipeData.ingredients = [ingredient]
-    }
-    
-    // Instructions
-    if let jsonInstructions = json["recipeInstructions"] as? [String] {
-      recipeData.instructions = jsonInstructions
-    } else if let jsonInstructions = json["recipeInstructions"] as? [[String: Any]] {
-      for step in jsonInstructions {
-        if let text = step["text"] as? String {
-          recipeData.instructions.append(text)
-        }
-      }
-    } else if let instruction = json["recipeInstructions"] as? String {
-      recipeData.instructions = [instruction]
-    }
-    
-    // Time related fields
-    let prepTime = extractTimeString(json["prepTime"])
-    let cookTime = extractTimeString(json["cookTime"])
-    let totalTime = extractTimeString(json["totalTime"])
-    
-    if !prepTime.isEmpty {
-      recipeData.timings.append("prep: \(prepTime)")
-    }
-    
-    if !cookTime.isEmpty {
-      recipeData.timings.append("cook: \(cookTime)")
-    }
-    
-    if !totalTime.isEmpty {
-      recipeData.timings.append("total: \(totalTime)")
-    }
-    
-    // Servings
-    if let servings = json["recipeYield"] as? String, !servings.isEmpty {
-      recipeData.servings = [servings]
-    }
-    
-    // Source information
-    recipeData.source = sourceURL
-    recipeData.website = sourceURL
-    
-    if let author = json["author"] as? [String: Any], let authorName = author["name"] as? String {
-      recipeData.author = authorName
-    } else if let author = json["author"] as? String {
-      recipeData.author = author
-    }
-    
-    // Source type
-    recipeData.sourceType = "website"
-    
-    // Add source title (could be publication name)
-    if let publisher = json["publisher"] as? [String: Any], let publisherName = publisher["name"] as? String {
-      recipeData.sourceTitle = publisherName
-    }
-    
-    // Collect raw text for safe keeping
-    var rawText: [String] = []
-    rawText.append("TITLE: \(recipeData.title)")
-    for summary in recipeData.summary {
-      rawText.append("SUMMARY: \(summary)")
-    }
-    rawText.append("INGREDIENTS:")
-    rawText.append(contentsOf: recipeData.ingredients)
-    rawText.append("INSTRUCTIONS:")
-    rawText.append(contentsOf: recipeData.instructions)
-    for timing in recipeData.timings {
-      rawText.append("TIMING: \(timing)")
-    }
-    for serving in recipeData.servings {
-      rawText.append("SERVINGS: \(serving)")
-    }
-    rawText.append("SOURCE URL: \(sourceURL)")
-    
-    recipeData.rawText = rawText
-    
-    return recipeData
-  }
-  
-  // Extract recipe from HTML patterns when structured data isn't available
-  private func extractFromHTMLPattern(_ document: Document, sourceURL: String) throws -> RecipeData {
-    var recipeData = RecipeData()
-    
-    // Title extraction strategies
-    var title = try document.select("h1").first()?.text() ?? ""
-    if title.isEmpty {
-      title = try document.select("meta[property='og:title']").attr("content")
-    }
-    if title.isEmpty {
-      title = try document.title()
-    }
-    recipeData.title = title
-    
-    // Ingredients extraction strategies
-    var ingredients: [String] = []
-    
-    // Common ingredient containers
-    let ingredientSelectors = [
-      "ul.ingredients li",
-      "div.ingredients li",
-      ".recipe-ingredients li",
-      "[itemprop='recipeIngredient']",
-      ".ingredient-list li"
-    ]
-    
-    for selector in ingredientSelectors {
-      let elements = try document.select(selector)
-      if !elements.isEmpty() {
-        for element in elements {
-          let text = try element.text().trimmingCharacters(in: .whitespacesAndNewlines)
-          if !text.isEmpty {
-            ingredients.append(text)
-          }
-        }
-        if !ingredients.isEmpty {
-          break
-        }
-      }
-    }
-    
-    // Instructions extraction strategies
-    var instructions: [String] = []
-    
-    // Common instruction containers
-    let instructionSelectors = [
-      "ol.instructions li",
-      "div.instructions li",
-      ".recipe-directions li",
-      "[itemprop='recipeInstructions']",
-      ".preparation-steps li",
-      ".recipe-method li"
-    ]
-    
-    for selector in instructionSelectors {
-      let elements = try document.select(selector)
-      if !elements.isEmpty() {
-        for element in elements {
-          let text = try element.text().trimmingCharacters(in: .whitespacesAndNewlines)
-          if !text.isEmpty {
-            instructions.append(text)
-          }
-        }
-        if !instructions.isEmpty {
-          break
-        }
-      }
-    }
-    
-    // If we couldn't extract structured ingredients/instructions, fall back to smart text extraction
-    if ingredients.isEmpty || instructions.isEmpty {
-      let textBlocks = try smartTextExtraction(document)
-      
-      if ingredients.isEmpty {
-        ingredients = identifyIngredients(from: textBlocks)
-      }
-      
-      if instructions.isEmpty {
-        instructions = identifyInstructions(from: textBlocks)
-      }
-    }
-    
-    // If still no success, throw error
-    if ingredients.isEmpty && instructions.isEmpty {
-      throw ExtractionError.noRecipeFound
-    }
-    
-    recipeData.ingredients = ingredients
-    recipeData.instructions = instructions
-    
-    // Description extraction
-    let description = try document.select("meta[name='description']").attr("content")
-    if !description.isEmpty {
-      recipeData.summary = [description]
-    }
-    
-    // Try to extract servings
-    let servingsSelectors = ["[itemprop='recipeYield']", ".recipe-yield", ".recipe-servings"]
-    for selector in servingsSelectors {
-      if let element = try document.select(selector).first() {
-        let servings = try element.text().trimmingCharacters(in: .whitespacesAndNewlines)
-        if !servings.isEmpty {
-          recipeData.servings = [servings]
-          break
-        }
-      }
-    }
-    
-    // Source information
-    recipeData.source = sourceURL
-    recipeData.website = sourceURL
-    recipeData.sourceType = "website"
-    
-    // Try to extract author
-    let authorSelectors = ["[itemprop='author']", ".recipe-author", ".byline"]
-    for selector in authorSelectors {
-      if let element = try document.select(selector).first() {
-        let author = try element.text().trimmingCharacters(in: .whitespacesAndNewlines)
-        if !author.isEmpty {
-          recipeData.author = author
-          break
-        }
-      }
-    }
-    
-    // Try to extract website/publication name
-    if let siteName = try document.select("meta[property='og:site_name']").first()?.attr("content") {
-      recipeData.sourceTitle = siteName
-    }
-    
-    // Collect raw text for classification
-    var rawText: [String] = []
-    rawText.append("TITLE: \(recipeData.title)")
-    for summary in recipeData.summary {
-      rawText.append("DESCRIPTION: \(summary)")
-    }
-    rawText.append("INGREDIENTS:")
-    rawText.append(contentsOf: recipeData.ingredients)
-    rawText.append("INSTRUCTIONS:")
-    rawText.append(contentsOf: recipeData.instructions)
-    for timing in recipeData.timings {
-      rawText.append("TIMING: \(timing)")
-    }
-    for serving in recipeData.servings {
-      rawText.append("SERVINGS: \(serving)")
-    }
-    rawText.append("SOURCE URL: \(sourceURL)")
-    
-    recipeData.rawText = rawText
-    
-    return recipeData
-  }
-  
-  // Smart text extraction for unstructured content
-  private func smartTextExtraction(_ document: Document) throws -> [String] {
-    // Remove unhelpful elements
-    try document.select("header, footer, nav, aside, .sidebar, .comments, script, style").remove()
-    
-    // Get main content areas
-    let mainContent = try document.select("main, article, .content, .post, .recipe, .entry, .post-content").first() ?? document
-    
-    // Extract text blocks from paragraphs, list items, divs with text
-    var textBlocks: [String] = []
-    
-    for element in try mainContent.select("p, li, div:not(:has(*))") {
-      let text = try element.text().trimmingCharacters(in: .whitespacesAndNewlines)
-      if !text.isEmpty && text.count > 10 {
-        textBlocks.append(text)
-      }
-    }
-    
-    return textBlocks
-  }
-  
-  // Identify ingredients from text blocks using natural language patterns
-  private func identifyIngredients(from textBlocks: [String]) -> [String] {
-    var ingredients: [String] = []
-    
-    // Patterns that suggest ingredients
-    let patterns: [NSRegularExpression] = [
-      try! NSRegularExpression(pattern: "\\d+\\s*(cup|tablespoon|teaspoon|tbsp|tsp|oz|ounce|pound|lb|g|kg)s?\\b", options: .caseInsensitive),
-      try! NSRegularExpression(pattern: "\\b(salt|pepper|oil|butter|sugar|flour)\\b", options: .caseInsensitive)
-    ]
-    
-    for block in textBlocks {
-      var isIngredient = false
-      
-      // Check if this block matches ingredient patterns
-      for pattern in patterns {
-        let matches = pattern.matches(in: block, options: [], range: NSRange(location: 0, length: block.utf16.count))
-        if !matches.isEmpty {
-          isIngredient = true
-          break
-        }
-      }
-      
-      // Check for bullet points or dashes which often indicate ingredients
-      if block.hasPrefix("•") || block.hasPrefix("-") || block.hasPrefix("*") {
-        isIngredient = true
-      }
-      
-      if isIngredient && block.count < 200 { // Ingredients are usually short
-        ingredients.append(block)
-      }
-    }
-    
-    return ingredients
-  }
-  
-  // Identify instructions from text blocks
-  private func identifyInstructions(from textBlocks: [String]) -> [String] {
-    var instructions: [String] = []
-    
-    // Look for numbered steps or cooking verbs
-    let stepPattern = try! NSRegularExpression(pattern: "^\\s*\\d+\\.?\\s+", options: .caseInsensitive)
-    let verbPattern = try! NSRegularExpression(pattern: "\\b(mix|stir|add|place|bake|cook|heat|pour|beat|whisk|combine)\\b", options: .caseInsensitive)
-    
-    for block in textBlocks {
-      var isInstruction = false
-      
-      // Check for numbered steps
-      let stepMatches = stepPattern.matches(in: block, options: [], range: NSRange(location: 0, length: block.utf16.count))
-      if !stepMatches.isEmpty {
-        isInstruction = true
-      }
-      
-      // Check for cooking verbs
-      let verbMatches = verbPattern.matches(in: block, options: [], range: NSRange(location: 0, length: block.utf16.count))
-      if !verbMatches.isEmpty {
-        isInstruction = true
-      }
-      
-      if isInstruction && block.count > 20 { // Instructions are usually longer
-        instructions.append(block)
-      }
-    }
-    
-    return instructions
-  }
+// MARK: - Phase & Errors
+
+enum WebScrapePhase: Equatable {
+    case idle
+    case browser    // URLSession fetch
+    case parsing    // JSON-LD extraction
+    case ai         // Foundation Models fallback
+    case done
 }
 
-// Example usage in your app:
-func importRecipeFromURL(_ urlString: String) async -> RecipeData? {
-  let extractor = RecipeWebExtractor()
-  
-  do {
-    // Extract the recipe data
-    let recipeData = try await extractor.extractRecipe(from: urlString)
-    return recipeData
-    
-  } catch let error as RecipeWebExtractor.ExtractionError {
-    switch error {
-    case .invalidURL:
-      print("Error: The URL provided is invalid")
-    case .networkError(let underlyingError):
-      print("Network error: \(underlyingError.localizedDescription)")
-    case .parsingFailed(let reason):
-      print("Parsing failed: \(reason)")
-    case .noRecipeFound:
-      print("No recipe could be found on this page")
+enum WebScrapeError: LocalizedError {
+    case invalidURL
+    case noRecipeFound
+    case navigationFailed(String)
+    case timeout
+    case aiUnavailable
+    case aiError(String)
+
+    var errorDescription: String? {
+        switch self {
+        case .invalidURL:               return "That doesn't look like a valid URL."
+        case .noRecipeFound:            return "No recipe was found on this page."
+        case .navigationFailed(let m):  return "Page failed to load: \(m)"
+        case .timeout:                  return "Page load timed out."
+        case .aiUnavailable:            return "Apple Intelligence is unavailable. Enable it in Settings → Apple Intelligence & Siri."
+        case .aiError(let m):           return "AI extraction failed: \(m)"
+        }
     }
-    return nil
-  } catch {
-    print("Unexpected error: \(error.localizedDescription)")
-    return nil
-  }
+}
+
+// MARK: - Foundation Models structured output
+
+@Generable
+struct ScrapedRecipeAI {
+    @Guide(description: "The recipe name")
+    var name: String
+    @Guide(description: "A brief description of the dish")
+    var description: String
+    @Guide(description: "Prep time in minutes, 0 if unknown")
+    var prepTimeMinutes: Int
+    @Guide(description: "Cook time in minutes, 0 if unknown")
+    var cookTimeMinutes: Int
+    @Guide(description: "Total time in minutes, 0 if unknown")
+    var totalTimeMinutes: Int
+    @Guide(description: "Servings, e.g. '4 servings' or '8 cookies', empty string if unknown")
+    var servings: String
+    @Guide(description: "List of ingredient strings with quantities")
+    var ingredients: [String]
+    @Guide(description: "List of instruction steps")
+    var instructions: [String]
+}
+
+// MARK: - Scraper
+
+/// Fetches a page via URLSession, extracts JSON-LD structured data, and falls
+/// back to Foundation Models if no schema is found. No WebKit required.
+@MainActor
+@Observable
+final class RecipeWebScraper {
+
+    private(set) var phase: WebScrapePhase = .idle
+    private(set) var statusMessage: String = ""
+
+    private var currentTask: Task<RecipeData, Error>?
+
+    // MARK: Public API
+
+    func scrape(urlString: String) async throws -> RecipeData {
+        currentTask?.cancel()
+        guard let url = normalizeURL(urlString) else { throw WebScrapeError.invalidURL }
+
+        let task = Task<RecipeData, Error> { [weak self] in
+            guard let self else { throw CancellationError() }
+            return try await self.run(url: url)
+        }
+        currentTask = task
+        return try await task.value
+    }
+
+    func cancel() {
+        currentTask?.cancel()
+        phase = .idle
+        statusMessage = ""
+    }
+
+    // MARK: Pipeline
+
+    private func run(url: URL) async throws -> RecipeData {
+        // Stage 1: Fetch raw HTML
+        phase = .browser
+        statusMessage = "Fetching page..."
+        let html = try await fetchHTML(url: url)
+
+        // Stage 2: JSON-LD extraction from raw HTML
+        phase = .parsing
+        statusMessage = "Reading recipe schema..."
+        if let recipeData = extractJSONLD(from: html, sourceURL: url.absoluteString) {
+            phase = .done
+            return recipeData
+        }
+
+        // Stage 3: Foundation Models fallback on stripped page text
+        phase = .ai
+        statusMessage = "Recovering recipe with AI..."
+        let pageText = String(stripHTML(html).prefix(40000))
+        guard !pageText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            throw WebScrapeError.noRecipeFound
+        }
+        let recipeData = try await scrapeWithAI(url: url.absoluteString, pageText: pageText)
+        phase = .done
+        return recipeData
+    }
+
+    // MARK: HTML Fetch
+
+    private func fetchHTML(url: URL) async throws -> String {
+        var request = URLRequest(url: url, timeoutInterval: 30)
+        // Use a browser-like User-Agent so sites return their full HTML (including JSON-LD for SEO)
+        request.setValue(
+            "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1",
+            forHTTPHeaderField: "User-Agent"
+        )
+        request.setValue(
+            "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+            forHTTPHeaderField: "Accept"
+        )
+        request.setValue("en-US,en;q=0.9", forHTTPHeaderField: "Accept-Language")
+
+        do {
+            let (data, response) = try await URLSession.shared.data(for: request)
+            if let http = response as? HTTPURLResponse, http.statusCode >= 400 {
+                throw WebScrapeError.navigationFailed("HTTP \(http.statusCode)")
+            }
+            // Try UTF-8 first, fall back to latin-1 for older sites
+            return String(data: data, encoding: .utf8)
+                ?? String(data: data, encoding: .isoLatin1)
+                ?? ""
+        } catch let error as WebScrapeError {
+            throw error
+        } catch let urlError as URLError where urlError.code == .timedOut {
+            throw WebScrapeError.timeout
+        } catch {
+            throw WebScrapeError.navigationFailed(error.localizedDescription)
+        }
+    }
+
+    // MARK: JSON-LD Extraction
+
+    private func extractJSONLD(from html: String, sourceURL: String) -> RecipeData? {
+        // Match every <script type="application/ld+json"> block
+        guard let regex = try? NSRegularExpression(
+            pattern: #"<script[^>]+type\s*=\s*["']application/ld\+json["'][^>]*>([\s\S]*?)<\/script>"#,
+            options: .caseInsensitive
+        ) else { return nil }
+
+        let nsHTML = html as NSString
+        let matches = regex.matches(in: html, range: NSRange(location: 0, length: nsHTML.length))
+
+        for match in matches {
+            guard match.numberOfRanges > 1 else { continue }
+            let jsonString = nsHTML.substring(with: match.range(at: 1))
+            guard let data = jsonString.data(using: .utf8),
+                  let obj = try? JSONSerialization.jsonObject(with: data)
+            else { continue }
+
+            // Handle both single object and array at the top level
+            if let dict = obj as? [String: Any],
+               let rd = findRecipe(in: dict, sourceURL: sourceURL) {
+                return rd
+            }
+            if let arr = obj as? [[String: Any]] {
+                for dict in arr {
+                    if let rd = findRecipe(in: dict, sourceURL: sourceURL) { return rd }
+                }
+            }
+        }
+        return nil
+    }
+
+    private func findRecipe(in dict: [String: Any], sourceURL: String) -> RecipeData? {
+        let types = (dict["@type"] as? [String])
+            ?? ((dict["@type"] as? String).map { [$0] } ?? [])
+        if types.contains(where: { $0.lowercased().contains("recipe") }) {
+            return normalizeJSONLD(dict, sourceURL: sourceURL)
+        }
+        // Walk @graph arrays (common on large food media sites)
+        if let graph = dict["@graph"] as? [[String: Any]] {
+            for item in graph {
+                if let rd = findRecipe(in: item, sourceURL: sourceURL) { return rd }
+            }
+        }
+        return nil
+    }
+
+    // MARK: HTML → Plain Text
+
+    private func stripHTML(_ html: String) -> String {
+        var text = html
+
+        // Drop <script> and <style> blocks entirely
+        let blockTags = try? NSRegularExpression(
+            pattern: #"<(script|style|noscript)[^>]*>[\s\S]*?<\/\1>"#,
+            options: .caseInsensitive
+        )
+        if let re = blockTags {
+            text = re.stringByReplacingMatches(
+                in: text, range: NSRange(text.startIndex..., in: text), withTemplate: " "
+            )
+        }
+
+        // Strip remaining tags
+        if let tagRe = try? NSRegularExpression(pattern: "<[^>]+>") {
+            text = tagRe.stringByReplacingMatches(
+                in: text, range: NSRange(text.startIndex..., in: text), withTemplate: " "
+            )
+        }
+
+        // Decode common HTML entities
+        text = text
+            .replacingOccurrences(of: "&amp;", with: "&")
+            .replacingOccurrences(of: "&lt;", with: "<")
+            .replacingOccurrences(of: "&gt;", with: ">")
+            .replacingOccurrences(of: "&quot;", with: "\"")
+            .replacingOccurrences(of: "&#39;", with: "'")
+            .replacingOccurrences(of: "&nbsp;", with: " ")
+
+        // Collapse whitespace
+        if let wsRe = try? NSRegularExpression(pattern: #"\s{2,}"#) {
+            text = wsRe.stringByReplacingMatches(
+                in: text, range: NSRange(text.startIndex..., in: text), withTemplate: " "
+            )
+        }
+        return text.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    // MARK: Normalization → RecipeData
+
+    private func normalizeJSONLD(_ dict: [String: Any], sourceURL: String) -> RecipeData {
+        var data = RecipeData()
+        data.title = (dict["name"] as? String) ?? ""
+
+        if let desc = dict["description"] as? String, !desc.isEmpty {
+            data.summary = [desc]
+        }
+
+        data.ingredients = (dict["recipeIngredient"] as? [String] ?? [])
+            .filter { !$0.trimmingCharacters(in: .whitespaces).isEmpty }
+
+        data.instructions = normalizeInstructions(dict["recipeInstructions"])
+
+        if let mins = isoToMinutes(dict["prepTime"] as? String) {
+            data.timings.append("prep: \(minutesToTimeString(mins))")
+        }
+        if let mins = isoToMinutes(dict["cookTime"] as? String) {
+            data.timings.append("cook: \(minutesToTimeString(mins))")
+        }
+        if let mins = isoToMinutes(dict["totalTime"] as? String) {
+            data.timings.append("total: \(minutesToTimeString(mins))")
+        }
+
+        if let servings = normalizeServings(dict["recipeYield"]) {
+            data.servings = [servings]
+        }
+
+        if let author = dict["author"] as? [String: Any],
+           let name = author["name"] as? String {
+            data.author = name
+        } else if let author = dict["author"] as? String {
+            data.author = author
+        } else if let authors = dict["author"] as? [[String: Any]],
+                  let first = authors.first,
+                  let name = first["name"] as? String {
+            data.author = name
+        }
+
+        if let publisher = dict["publisher"] as? [String: Any],
+           let name = publisher["name"] as? String {
+            data.sourceTitle = name
+        }
+
+        data.source = sourceURL
+        data.website = sourceURL
+        data.sourceType = "website"
+        data.rawText = buildRawText(from: data)
+        return data
+    }
+
+    private func normalizeServings(_ value: Any?) -> String? {
+        if let s = value as? String, !s.isEmpty { return s }
+        if let n = value as? Int { return "\(n)" }
+        if let a = value as? [Any] { return normalizeServings(a.first) }
+        return nil
+    }
+
+    private func normalizeInstructions(_ value: Any?) -> [String] {
+        if let str = value as? String { return [str] }
+        if let arr = value as? [Any] {
+            return arr.compactMap { item -> String? in
+                if let s = item as? String { return s }
+                if let d = item as? [String: Any] {
+                    if let t = d["text"] as? String { return t }
+                    if let sub = d["itemListElement"] {
+                        return normalizeInstructions(sub).joined(separator: " ")
+                    }
+                }
+                return nil
+            }.filter { !$0.trimmingCharacters(in: .whitespaces).isEmpty }
+        }
+        return []
+    }
+
+    // MARK: AI Fallback (Foundation Models)
+
+    private func scrapeWithAI(url: String, pageText: String) async throws -> RecipeData {
+        let service = FoundationModelsService.shared
+        guard await service.isAvailable else { throw WebScrapeError.aiUnavailable }
+
+        let prompt = """
+            Extract the recipe from this web page content.
+
+            URL: \(url)
+
+            Page content:
+            \(pageText)
+            """
+
+        let instructions = """
+            You are a recipe extraction assistant. Extract recipe data from web page text. \
+            Return only the recipe information found on the page. \
+            For time fields, return the number of minutes as an integer (0 if not found). \
+            DO NOT invent data that is not present in the page content.
+            """
+
+        do {
+            let scraped = try await service.generate(
+                prompt, type: ScrapedRecipeAI.self, instructions: instructions
+            )
+
+            var data = RecipeData()
+            data.title = scraped.name
+            if !scraped.description.isEmpty { data.summary = [scraped.description] }
+            data.ingredients = scraped.ingredients
+                .filter { !$0.trimmingCharacters(in: .whitespaces).isEmpty }
+            data.instructions = scraped.instructions
+                .filter { !$0.trimmingCharacters(in: .whitespaces).isEmpty }
+
+            if scraped.prepTimeMinutes > 0 {
+                data.timings.append("prep: \(minutesToTimeString(scraped.prepTimeMinutes))")
+            }
+            if scraped.cookTimeMinutes > 0 {
+                data.timings.append("cook: \(minutesToTimeString(scraped.cookTimeMinutes))")
+            }
+            if scraped.totalTimeMinutes > 0 {
+                data.timings.append("total: \(minutesToTimeString(scraped.totalTimeMinutes))")
+            }
+            if !scraped.servings.isEmpty { data.servings = [scraped.servings] }
+
+            data.source = url
+            data.website = url
+            data.sourceType = "website"
+            data.rawText = buildRawText(from: data)
+
+            guard !data.title.isEmpty || !data.ingredients.isEmpty else {
+                throw WebScrapeError.noRecipeFound
+            }
+            return data
+        } catch is WebScrapeError {
+            throw WebScrapeError.aiError("Foundation Models extraction failed")
+        }
+    }
+
+    // MARK: Helpers
+
+    private func buildRawText(from data: RecipeData) -> [String] {
+        var raw: [String] = []
+        raw.append("TITLE: \(data.title)")
+        for s in data.summary { raw.append("SUMMARY: \(s)") }
+        if !data.ingredients.isEmpty {
+            raw.append("INGREDIENTS:")
+            raw.append(contentsOf: data.ingredients)
+        }
+        if !data.instructions.isEmpty {
+            raw.append("INSTRUCTIONS:")
+            raw.append(contentsOf: data.instructions)
+        }
+        for t in data.timings { raw.append("TIMING: \(t)") }
+        for s in data.servings { raw.append("SERVINGS: \(s)") }
+        if let source = data.source { raw.append("SOURCE URL: \(source)") }
+        return raw
+    }
+
+    private func normalizeURL(_ raw: String) -> URL? {
+        var s = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !s.hasPrefix("http://") && !s.hasPrefix("https://") { s = "https://" + s }
+        guard let url = URL(string: s),
+              url.scheme == "https" || url.scheme == "http" else { return nil }
+        return url
+    }
+
+    /// Parses ISO 8601 durations (e.g. PT1H30M) → total minutes.
+    private func isoToMinutes(_ iso: String?) -> Int? {
+        guard let iso, iso.uppercased().hasPrefix("PT") else { return nil }
+        var mins = 0, acc = ""
+        for ch in iso.uppercased().dropFirst(2) {
+            if ch.isNumber { acc.append(ch) }
+            else if ch == "H" { mins += (Int(acc) ?? 0) * 60; acc = "" }
+            else if ch == "M" { mins += Int(acc) ?? 0; acc = "" }
+        }
+        return mins > 0 ? mins : nil
+    }
+
+    private func minutesToTimeString(_ minutes: Int) -> String {
+        let h = minutes / 60
+        let m = minutes % 60
+        if h > 0 && m > 0 { return "\(h) hr \(m) min" }
+        if h > 0 { return "\(h) hr" }
+        return "\(m) min"
+    }
 }

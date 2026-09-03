@@ -210,7 +210,7 @@ struct RecipeEditIngredientsSection: View {
 #Preview("Recipe Edit Ingredients") {
   LoadablePreviewContainer(loader: {
     // This closure runs asynchronously and handles MainActor isolation
-   let ingredients:[Ingredient] = await MainActor.run { MockData.createSampleIngredients() }
+   let ingredients:[Ingredient] = MockData.createSampleIngredients()
    let sections: [IngredientSection] = []
    // TODO figure out why this MockData is breaking the view
     //await MainActor.run { MockData.createSampleIngredientSections() }

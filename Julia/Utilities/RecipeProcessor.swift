@@ -85,13 +85,9 @@ class RecipeProcessor {
         try await Task.sleep(for: .milliseconds(200))
         work()
         let recognizedText = try await extractTextFromImage(image)
-        try await Task.sleep(for: .milliseconds(750))
         let reconstructedText = try await reconstructText(recognizedText)
-        try await Task.sleep(for: .milliseconds(750))
         let classifiedText = try await classifyText(reconstructedText.reconstructedLines)
-        try await Task.sleep(for: .milliseconds(750))
         updateRecipeData(recognizedText, reconstructedText, classifiedText)
-        try await Task.sleep(for: .milliseconds(750))
         complete()
       } catch {
         handleError(error.localizedDescription)
@@ -109,13 +105,9 @@ class RecipeProcessor {
         try await Task.sleep(for: .milliseconds(200))
         work()
         let recognizedText = try await extractTextFromText(text)
-        try await Task.sleep(for: .milliseconds(750))
         let reconstructedText = try await reconstructText(recognizedText)
-        try await Task.sleep(for: .milliseconds(750))
         let classifiedText = try await classifyText(reconstructedText.reconstructedLines)
-        try await Task.sleep(for: .milliseconds(750))
         updateRecipeData(recognizedText, reconstructedText, classifiedText)
-        try await Task.sleep(for: .milliseconds(750))
         complete()
       } catch {
         handleError(error.localizedDescription)
@@ -123,52 +115,23 @@ class RecipeProcessor {
     }
   }
 
-  // Process recipe URL input
-  func processURL(_ urlString: String) {
-    start()
-
-    Task {
-      do {
-        try await Task.sleep(for: .milliseconds(200))
-        work()
-        let extractedData = try await extractRecipeFromURL(urlString)
-        try await Task.sleep(for: .milliseconds(750))
-        recipeData = extractedData
-        processingState.recognizedText = extractedData.rawText
-        autoSave()
-        try await Task.sleep(for: .milliseconds(750))
-        complete()
-      } catch let error as RecipeWebExtractor.ExtractionError {
-        switch error {
-        case .invalidURL:
-          handleError("The URL provided is invalid")
-        case .networkError(let underlyingError):
-          handleError("Network error: \(underlyingError.localizedDescription)")
-        case .parsingFailed(let reason):
-          handleError("Parsing failed: \(reason)")
-        case .noRecipeFound:
-          handleError("No recipe could be found on this page")
-        }
-      } catch {
-        handleError(error.localizedDescription)
-      }
-    }
-  }
-
-  // Recipe extraction from website task
-  private func extractRecipeFromURL(_ urlString: String) async throws -> RecipeData {
-    processingState.statusMessage = "AI is extracting recipe from website..."
-
-    let extractor = RecipeWebExtractor()
-    return try await extractor.extractRecipe(from: urlString)
-  }
-
-  // Process existing recipe data
-  func processData(_ data: RecipeData) {
-    start()
+  // Process existing recipe data (pre-extracted, no processing phase needed).
+  // Pass immediatePresentation: true when called from a sheet's onDismiss — the
+  // previous sheet is already fully gone so we can present the results sheet right away.
+  // The default 650ms delay covers the case where a fullScreenCover is still animating out.
+  func processData(_ data: RecipeData, immediatePresentation: Bool = false) {
+    processingState.reset()
     recipeData = data
     autoSave()
-    complete()
+    processingState.processingStage = .completed
+    if immediatePresentation {
+      processingState.showResultsSheet = true
+    } else {
+      Task {
+        try? await Task.sleep(for: .milliseconds(650))
+        processingState.showResultsSheet = true
+      }
+    }
   }
 
   // Persist the imported recipe immediately so it's kept even if the
@@ -240,8 +203,7 @@ class RecipeProcessor {
     processingState.isClassifying = true
     processingState.statusMessage = "AI is classifying recipe..."
 
-    let classifier = RecipeTextClassifier(confidenceThreshold: Self.confidenceThreshold)
-    return await classifier.processRecipeTextAsync(reconstructedLines)
+    return try await FoundationModelsRecipeClassifier().classify(reconstructedLines)
   }
 
   // Update recipe data with processing results
@@ -284,15 +246,13 @@ class RecipeProcessor {
       autoSavedRecipe = nil
     }
 
-    // Create recipe from data
-    let recipe = recipeData.convertToSwiftDataModel()
+    // Snapshot current data
+    let data = recipeData
 
-    // Save to context
+    // Build and insert the recipe synchronously so we can save immediately
+    let recipe = data.convertToSwiftDataModel()
     context.insert(recipe)
-
-    // Clear processing data
-    processingState.reset()
-    recipeData.reset()
+    try? context.save()
 
     return true
   }
@@ -319,32 +279,23 @@ class RecipeProcessor {
 // Type alias for classification result
 typealias ClassificationResult = (
   title: String,
+  sectionTitles: [String],
   ingredients: [String],
   instructions: [String],
   summary: [String],
   servings: [String],
   timings: [String],
-  sectionTitles: [String],
   notes: [String],
   source: [String],
   skipped: [(String, RecipeLineType, Double)],
   classified: [(String, RecipeLineType, Double)]
 )
 
-// Add async methods to the service classes for consistent usage patterns
+// Async wrapper for the text reconstructor (pure heuristic, no ML needed)
 extension RecipeTextReconstructor {
   static func reconstructTextAsync(_ lines: [String]) async -> ProcessingTextResult {
     await Task.detached(priority: .userInitiated) {
       reconstructText(from: lines)
-    }.value
-  }
-}
-
-extension RecipeTextClassifier {
-  func processRecipeTextAsync(_ text: [String]) async -> ClassificationResult {
-    let classifier = self
-    return await Task.detached(priority: .userInitiated) { () -> ClassificationResult in
-      classifier.processRecipeText(text)
     }.value
   }
 }

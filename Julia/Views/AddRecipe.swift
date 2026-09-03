@@ -183,13 +183,15 @@ struct AddRecipe: View {
             Button("Cancel") {
               dismiss()
             }
+            .foregroundStyle(.secondary)
           }
-          
+
           ToolbarItem(placement: .primaryAction) {
             Button(recipe == nil ? "Save" : "Update") {
               saveRecipe()
               dismiss()
             }
+            .foregroundStyle(title.isEmpty ? Color.app.primary.opacity(0.4) : Color.app.primary)
             .disabled(title.isEmpty)
           }
           

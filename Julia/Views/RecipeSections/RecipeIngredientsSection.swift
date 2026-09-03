@@ -10,6 +10,7 @@ import SwiftData
 
 struct RecipeIngredientsSection: View {
   let recipe: Recipe
+  var multiplier: Double = 1.0
   let selectableBinding: (Ingredient) -> Binding<Bool>
   let toggleSelection: (Ingredient) -> Void
 
@@ -30,7 +31,7 @@ struct RecipeIngredientsSection: View {
         if !unsectionedIngredients.isEmpty {
           VStack(alignment: .leading, spacing: 8) {
             ForEach(unsectionedIngredients) { ingredient in
-              IngredientRow(ingredient: ingredient)
+              IngredientRow(ingredient: ingredient, multiplier: multiplier)
                 .selectable(selected: selectableBinding(ingredient))
                 .contentShape(Rectangle())
                 .onTapGesture {

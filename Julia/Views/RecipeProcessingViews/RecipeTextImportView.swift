@@ -16,12 +16,12 @@ struct RecipeTextImportView: View {
         Form {
           Section ("Recipe Text") {
             TextEditor(text: $inputText)
-              .font(.system(size: 12, design: .monospaced))
+              .font(.system(size: 14, design: .monospaced))
               .frame(minHeight: 200)
               .frame(maxWidth: .infinity)
-              .foregroundColor(.secondary)
-              .background(Color.app.white)
-              .cornerRadius(12)
+              .foregroundColor(.primary)
+              //.background(Color.app.white)
+              //.cornerRadius(12)
               .focused($isRecipeTextFieldFocused)
               .onSubmit {
                 isRecipeTextFieldFocused = false
@@ -42,6 +42,12 @@ struct RecipeTextImportView: View {
                       Button("Done") {
                         isRecipeTextFieldFocused = false
                       }
+                      .foregroundStyle(.primary)
+                      .fontWeight(.medium)
+                      .padding(.horizontal, 14)
+                      .padding(.vertical, 6)
+                      .background(.fill.secondary)
+                      .clipShape(Capsule())
                     }
                     .keyboardAccessoryBarStyle()
                     .padding(.bottom, 24)
@@ -69,11 +75,13 @@ struct RecipeTextImportView: View {
           Button("Cancel") {
             dismiss()
           }
+          .foregroundStyle(.secondary)
         }
         ToolbarItem(placement: .primaryAction) {
           Button("Import") {
             processRecipeText()
           }
+          .foregroundStyle(inputText.isEmpty ? Color.app.primary.opacity(0.4) : Color.app.primary)
           .disabled(inputText.isEmpty)
         }
       }

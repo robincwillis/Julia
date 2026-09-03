@@ -19,56 +19,6 @@ extension EnvironmentValues {
     }
 }
 
-struct ComponentTheme {
-  // Button Styles
-//    static func primaryButtonStyle() -> some ButtonStyle {
-//        return PrimaryButtonStyle()
-//    }
-//    
-//    static func secondaryButtonStyle() -> some ButtonStyle {
-//        return SecondaryButtonStyle()
-//    }
-}
-
-// Button Styles
-//struct PrimaryButtonStyle: ButtonStyle {
-//    func makeBody(configuration: Configuration) -> some View {
-//        configuration.label
-//            .padding(.horizontal, 12)
-//            .padding(.vertical, 8)
-//            .background(AppTheme.primary)
-//            .foregroundColor(AppTheme.textOnPrimary)
-//            .cornerRadius(8)
-//            .scaleEffect(configuration.isPressed ? 0.95 : 1)
-//            .animation(.easeOut(duration: 0.2), value: configuration.isPressed)
-//    }
-//}
-//
-//struct SecondaryButtonStyle: ButtonStyle {
-//    func makeBody(configuration: Configuration) -> some View {
-//        configuration.label
-//            .padding(.horizontal, 12)
-//            .padding(.vertical, 8)
-//            .background(AppTheme.secondary)
-//            .foregroundColor(AppTheme.primary)
-//            .cornerRadius(8)
-//            .scaleEffect(configuration.isPressed ? 0.95 : 1)
-//            .animation(.easeOut(duration: 0.2), value: configuration.isPressed)
-//    }
-//}
-
-// Extension for view modifiers
-//extension View {
-//    func primaryButtonStyle() -> some View {
-//        self.buttonStyle(AppTheme.primaryButtonStyle())
-//    }
-//    
-//    func secondaryButtonStyle() -> some View {
-//        self.buttonStyle(AppTheme.secondaryButtonStyle())
-//    }
-//}
-
-
 
 struct AppTheme {
   enum Colors {
