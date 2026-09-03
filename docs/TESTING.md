@@ -57,6 +57,40 @@ it is written at the top of every attached log.
 Availability varies by simulator and by device settings — do not assume a green
 run means those tests executed. Check the report.
 
+### `.available` does not guarantee a request will succeed
+
+Observed 2026-09-03: after roughly six full suite runs on one simulator, both
+pipeline tests began failing in ~3.7s with
+
+```
+The operation couldn't be completed.
+(FoundationModels.LanguageModelSession.GenerationError error -1.)
+```
+
+while the offline 36 kept passing. The code was byte-identical to a run that
+had passed 38/38 three times the same day — no `.swift`, `.pbxproj` or
+`.plist` change between them — so it was environmental, not a regression.
+Rebooting the simulator did not clear it, and the simulator log had nothing.
+
+Two things follow:
+
+1. **The gate is insufficient.** `.enabled(if:)` checks
+   `availability == .available`, which is evaluated *before* any request. The
+   model can report available and still refuse to generate — assets evicted,
+   a quota, or the host service degrading under repeated runs. When that
+   happens the suite goes **red rather than skipping**, which looks like a code
+   regression and is not one.
+2. **`GenerationError error -1` carries no diagnosis.** If you hit it, first
+   establish whether compiled inputs changed at all:
+
+   ```sh
+   git diff --name-only <last-green-commit>..HEAD | grep -E '\.swift$|\.pbxproj$|\.plist$'
+   ```
+
+   Empty output means look at the environment, not the code.
+
+Hardening the gate is tracked in [TODO.md](TODO.md).
+
 ### Why no expectations-per-asset
 
 Considered and rejected for now: a companion JSON of expected values per

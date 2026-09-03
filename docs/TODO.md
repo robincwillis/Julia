@@ -175,6 +175,18 @@ Effort is rough: **S** under an hour, **M** a session, **L** a day or more.
   ingredient lists with `1 1/2` space-separated mixed numbers (see the
   `legacyParse` item in P1).
 
+- [ ] **Harden the Apple Intelligence test gate** — S
+  `.enabled(if: availability == .available)` is evaluated before any request,
+  and the model can report available then still refuse to generate — so the
+  suite goes **red instead of skipping** for environmental reasons. Seen
+  2026-09-03: both pipeline tests failing in 3.7s with `GenerationError error
+  -1` against code byte-identical to a 38/38 run earlier the same day.
+  Options: probe with one trivial generation in a suite-level trait and skip if
+  it throws; or catch `.assetsUnavailable`/`.rateLimited` in the test helper and
+  record a skip rather than a failure. Either way the signal should distinguish
+  "the model would not answer" from "the pipeline is broken".
+  → [TESTING.md](TESTING.md)
+
 - [ ] **Cover the share extension** — M
   `SharedImportInbox` has no unit tests. `enqueue`/`dequeue` ordering, corrupt
   JSON being skipped, and `isImportLink` are all cheap to test. The
