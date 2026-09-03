@@ -13,7 +13,12 @@ iOS 26 is required — the import pipeline depends on Foundation Models.
 
 ## Further documentation
 
+- `docs/TODO.md` — prioritised backlog. **Start here.**
 - `docs/AUDIT.md` — known issues and open decisions. **Read before large changes.**
+- `docs/bugs/context-window-overflow.md` — why the classifier chunks at 40 lines
+  and retries; read before changing `FoundationModelsRecipeClassifier`
+- `docs/bugs/ingredient-quantity-parsing.md` — the ingredient parser call graph
+  and why the heuristic path is the one that actually runs
 - `docs/TESTING.md` — how the test suite is organised and how to add fixtures
 - `docs/SHARE-EXTENSION.md` — the Notes/Safari import flow
 - `docs/MERGE-NOTES.md` — why the current pipeline looks the way it does

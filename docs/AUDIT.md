@@ -5,6 +5,8 @@ work from `main` (`61e889b`). Findings are ordered by severity. Each says
 whether it was **fixed** in this pass or is **open**.
 
 The merge that preceded this audit is documented in [MERGE-NOTES.md](MERGE-NOTES.md).
+Actionable follow-up is tracked in [TODO.md](TODO.md). The two fixed bugs have
+detailed write-ups in [bugs/](bugs/).
 
 ---
 
@@ -26,7 +28,7 @@ switched off. Every image and text import then fails with an error alert.
 There is no degraded mode.
 
 This is the highest-impact finding, because the code that used to do this job
-still exists in the repo but is no longer wired to anything (see §4). Options,
+still exists in the repo but is no longer wired to anything (see §5). Options,
 roughly in order of effort:
 
 1. Re-wire `RecipeTextClassifier` + `RecipeClassifier.mlmodel` as the fallback
@@ -42,12 +44,12 @@ and falls back to heuristics — so the pattern exists in the codebase.
 ## 2. Classifier could overflow its context window — **FIXED**
 
 Found by the new test suite on its first honest run: importing an ordinary
-30-line recipe intermittently failed with `Exceeded model context window size`.
+22-line recipe intermittently failed with `Exceeded model context window size`.
 The same fixture had passed minutes earlier, and took 108s on the failing run
 versus 18s on the passing one.
 
-Cause: the ~4096-token budget has to cover the instructions (~900 tokens), the
-input lines, **and** the structured output — which echoes every input line back
+Cause: the ~4096-token budget has to cover the instructions (~579 tokens,
+measured), the input lines, **and** the structured output — which echoes every input line back
 into one of the arrays. A chunk therefore costs roughly twice its own token
 count on top of the fixed prompt, and `chunkSize` was 150 lines. Output length
 is not fully predictable, so a rambling generation on messy text tips it over.
@@ -58,6 +60,13 @@ Fixed in `FoundationModelsRecipeClassifier`:
 - Added `classifyChunkSplittingOnOverflow`, which halves the chunk and retries
   on `.exceededContextWindowSize`, down to a floor of 5 lines.
 
+A *full* 150-line chunk needed ~4,813 tokens — **117% of the budget** — so it
+could not fit at all. Chunking gave no protection; it only appeared to work
+because most recipes are under 150 lines and never filled a chunk.
+
+Full analysis, including the residual risks the fix does not remove:
+**[bugs/context-window-overflow.md](bugs/context-window-overflow.md)**.
+
 ## 3. Unicode fractions and ranges never parsed — **FIXED**
 
 `IngredientParser.parseQuantity` holds all the vulgar-fraction (`½`, `⅓`) and
@@ -65,12 +74,51 @@ hyphenated-range (`2-4 cups`) logic. It was **never called**: `legacyParse`
 called `parseFraction` directly at all three of its quantity sites, and
 `parseFraction` handles only `1/2`-style fractions and plain numbers.
 
-So `½ cup butter` parsed as a *name* of `"½ cup butter"` with no quantity. This
-is the path used whenever Apple Intelligence is unavailable — i.e. exactly the
-case in §1. Fixed by pointing those three sites at `parseQuantity`; covered by
-new tests in `IngredientParsingTests`.
+So `½ cup butter` parsed as a *name* of `"½ cup butter"` with no quantity.
 
-## 4. Dead Core ML pipeline still shipping — **OPEN**
+**This was initially recorded as affecting only the no-Apple-Intelligence
+fallback. That understated it.** `fromString` → `legacyParse` has six
+production call sites — every persisted import, both chat tools, and all manual
+ingredient entry — while the AI path has one, which is itself unreachable
+(§4). `legacyParse` was not a fallback; it was the only ingredient parser that
+ever ran.
+
+Fixed by pointing those three sites at `parseQuantity`; covered by new tests in
+`IngredientParsingTests`. **Not** fixed: already-saved ingredients keep the bad
+values, since the fix is forward-only.
+
+Full analysis: **[bugs/ingredient-quantity-parsing.md](bugs/ingredient-quantity-parsing.md)**.
+
+## 4. The Foundation Models ingredient parser has never run — **OPEN**
+
+Discovered while tracing §3. The AI ingredient parser is unreachable:
+
+```
+FoundationModelsIngredientParser ← fromStringAsync ← convertToSwiftDataModelAsync ← nothing
+```
+
+`RecipeData` has two conversions. `convertToSwiftDataModelAsync()` uses
+`IngredientParser.fromStringAsync` (Foundation Models, structured output);
+`convertToSwiftDataModel()` uses `fromString` (heuristic). Both
+`RecipeProcessor` call sites use the **synchronous** one:
+
+```
+RecipeProcessor.swift:173  →  recipeData.convertToSwiftDataModel()
+RecipeProcessor.swift:284  →  data.convertToSwiftDataModel()
+```
+
+and `convertToSwiftDataModelAsync()` has no callers anywhere in the repo.
+
+So structured ingredient parsing — quantity, unit, name and comment split
+properly by the model — has never executed in production. Every ingredient goes
+through positional `split(separator: " ")` heuristics, which is also why §3 hit
+everything rather than just a fallback.
+
+Not a one-line swap: `saveRecipe()` is synchronous and returns `Bool`, and
+`autoSave()` is called from synchronous contexts, so this needs an async save
+path. Tracked in [TODO.md](TODO.md) as P0.
+
+## 5. Dead Core ML pipeline still shipping — **OPEN**
 
 The Foundation Models migration left the old pipeline in place but unreferenced:
 
@@ -86,7 +134,7 @@ are compiled and shipped — ~416 KB of bundle for code that nothing calls.
 Deliberately left in place: they are the most plausible fix for §1. Decide §1
 first, then either re-wire them or delete all three.
 
-## 5. Confidence UI is now inert — **OPEN**
+## 6. Confidence UI is now inert — **OPEN**
 
 `ProcessingResultsClassifiedText` colours lines and offers a "skipped only"
 filter based on `confidence < RecipeProcessor.confidenceThreshold` (0.65). But
@@ -102,7 +150,7 @@ So every line reads as maximum confidence, the colouring never varies, and the
 "skipped only" filter can never match anything. Either drop the confidence
 column from that view or have the classifier emit a meaningful signal.
 
-## 6. `parsely-swiftui/` is not in the build — **OPEN**
+## 7. `parsely-swiftui/` is not in the build — **OPEN**
 
 A 9-file, ~976-line SwiftPM package (`Package.swift`, `RecipeScraper`, a full
 set of views) sits at the repo root and is referenced **nowhere** in
@@ -112,7 +160,7 @@ set of views) sits at the repo root and is referenced **nowhere** in
 If it is a spike, move it out of the repo or note its status in the README —
 right now it reads as live code and duplicates the scraper concept.
 
-## 7. Crash-on-failure paths — **OPEN**
+## 8. Crash-on-failure paths — **OPEN**
 
 ```swift
 // Julia/Utilities/DataController.swift:79 — inside the error handler for a failed container
@@ -128,7 +176,7 @@ Also three `try! NSRegularExpression` in `Julia/Models/RecipeData.swift`
 fail, but `static let` compiled once is both safer and cheaper than
 force-trying on every call.
 
-## 8. Colour strategy is split — **OPEN**
+## 9. Colour strategy is split — **OPEN**
 
 The merge resolved every colour conflict toward `Color.app.*` design tokens, as
 chosen. Two things remain inconsistent, both flagged at merge time:
@@ -137,7 +185,7 @@ chosen. Two things remain inconsistent, both flagged at merge time:
   left untouched: `Dot.swift:28` `private let buttonColor = Color(red: 1.0, green: 0.30, blue: 0.15)`,
   plus several `.foregroundStyle(.white)` calls.
 - The token choice diverges visually from main's new toolbar styling.
-  `NavigationView.swift:257` and `RecipeDetails.editingMenu` use
+  `NavigationView.swift:300` and `RecipeDetails.editingMenu` use
   `Color.app.white` at 40×40, while main's other toolbar buttons are 30×30
   `.regularMaterial`. Worth eyeballing in the simulator before deciding.
 
@@ -145,7 +193,7 @@ Deciding this properly means picking one rule — e.g. *system semantic colours
 for neutrals, `Color.app.*` for brand* — and applying it everywhere, including
 main's new code.
 
-## 9. Smaller items — **MIXED**
+## 10. Smaller items — **MIXED**
 
 | Finding | Status |
 |---|---|
