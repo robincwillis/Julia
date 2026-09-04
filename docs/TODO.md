@@ -5,9 +5,13 @@ findings in [AUDIT.md](AUDIT.md) and the two bug write-ups in [bugs/](bugs/).
 
 Effort is rough: **S** under an hour, **M** a session, **L** a day or more.
 
+**Next up:** bringing the image fixtures over (P4). The classifier has never
+been tested against real OCR, and that same evidence is what unblocks the
+deferred section-based redesign. Note the asset-catalog gotcha recorded there.
+
 ---
 
-## P0 — Users hit these
+## P0 — Users hit these ✅ complete
 
 - [x] **Give `classifyText` a fallback for when Apple Intelligence is unavailable** — S
   **Done 2026-09-04.** `RecipeProcessor.failIfModelUnavailable()` checks
@@ -121,7 +125,9 @@ to migrate.
   - `.assetsUnavailable` → "Apple Intelligence isn't ready on this device
     yet. Try again shortly."
 
-## P1 — Robustness of the import pipeline
+## P1 — Robustness of the import pipeline ✅ complete
+
+Two items were downgraded to P2 and one deferred — see those sections.
 
 - [x] **Stop the classifier output echoing its input** — L
   **Done 2026-09-04, option 1.** `ClassifiedRecipe`'s ten string arrays are
@@ -172,46 +178,24 @@ to migrate.
   Touches `ClassifiedRecipe` and `toClassificationResult`.
   → [bugs/context-window-overflow.md](bugs/context-window-overflow.md)
 
-- [ ] **Holistically rethink context-window limits: classify by recipe section, not one monolithic pass** — L
-  Added 2026-09-03, alongside the echo-fix decision above. Chunking by line
-  count treats a recipe as an undifferentiated list of lines, which is why
-  chunk boundaries currently cut through section headings and separate them
-  from their ingredients, and why a mid-chunk's opening line can be misread
-  as a title. Consider instead splitting the *classification task itself* by
-  recipe section — title/summary/tags as one (small, cheap) call, ingredients
-  as another, instructions as another — rather than one call classifying
-  every line type at once per chunk. Each call's instructions and output
-  schema would only need to describe the categories relevant to that
-  section, which also shrinks the ~579-token fixed instruction overhead per
-  call (the prompt-shrinking item is now **done** — 181 tokens — so that part
-  of the rationale is largely spent; the fragmentation argument still stands). Needs real scoping: how sections are first
-  identified (a cheap pre-pass? heuristic on blank lines/headings?), whether
-  this composes with or replaces line-count chunking, and how it interacts
-  with the halve-and-retry overflow logic.
-
-- [ ] **Estimate tokens before calling, instead of discovering overflow** — M
-  `chars / 4` is crude but enough to split proactively. Today the first
-  overflow costs ~100s before it fails.
-
 - [x] **Shrink the instruction prompt** — M
-  **Done 2026-09-04**, as part of the echo fix above: 579 → 181 tokens by
-  moving the ten-category glossary into `@Guide` descriptions on
-  `LineCategory` and dropping the OCR-correction section, which no longer
-  applies now that the model returns no text. What remains is only the
-  judgement calls the schema cannot express.
+  **Done 2026-09-04: 579 → 393 tokens**, by dropping the OCR-correction
+  section, which no longer applies now that the model returns no text.
 
-- [ ] **Overlap chunk boundaries** — M
-  `chunkSize = 40` splits more recipes than 150 did, and each chunk is
-  classified blind to the others: `mergeResults` takes the first non-empty
-  title, mid-recipe chunks can misread their opening lines as a title, and
-  section headings get separated from their ingredients. A few lines of overlap
-  plus de-duplication on merge would fix it.
+  An intermediate version got to 181 tokens by also dropping the ten-category
+  glossary, on the mistaken belief it had moved into `@Guide` descriptions on
+  `LineCategory`. It had not — `@Generable` on an enum sends only the case
+  *names*, and there is no per-case `@Guide`. Accuracy fell measurably, so the
+  glossary is back. Do not remove it again without a per-case mechanism.
 
-- [ ] **Harden `legacyParse` for real-world formats** — M
-  Positional `split(separator: " ")` means `1 1/2 cups flour` (space-separated
-  mixed number — very common) parses as quantity 1, name `1/2 cups flour`.
-  Also `2 cups (250 g) flour` keeps the parenthetical in the name. Lower value
-  if the AI parser gets wired up, but it stays the fallback.
+- [x] **Overlap chunk boundaries** — M
+  **Done 2026-09-04.** `makeChunks` returns `ChunkWindow` values carrying their
+  absolute start, and every window after the first is prefixed with 5 lines of
+  preceding context. De-duplication is first-write-wins: a window's leading
+  overlap lines were primary in the previous window, where they had full
+  context, so that verdict wins — and a line the previous window omitted still
+  gets a second chance. 21 tests in `ClassifierChunkingTests` pin the
+  windowing, since an off-by-one here loses ingredients silently.
 
 - [x] **Fix the stale comment in `FoundationModelsRecipeClassifier`** — S
   **Done 2026-09-04.** The comment was rewritten wholesale by the echo fix and
@@ -229,6 +213,26 @@ to migrate.
   an `Archive/` folder excluded from the target) so the ~416 KB stops shipping
   but the code stays available if a fallback classifier is revisited later.
   → [AUDIT.md §5](AUDIT.md)
+
+- [ ] **Estimate tokens before calling, instead of discovering overflow** — M
+  **Downgraded from P1 2026-09-04.** `chars / 4` is crude but enough to split
+  proactively rather than discovering overflow after ~100s. Still worth having,
+  but the risk it guards shrank a lot: a 40-line chunk now sits at ~24% of
+  budget instead of ~42%, so overflow needs the model to over-generate roughly
+  4×, and halve-and-retry already catches that.
+
+- [ ] **Improve the heuristic parser for devices without Apple Intelligence** — M
+  **Downgraded and re-scoped from "Harden `legacyParse`" 2026-09-04.** The two
+  cases that motivated it — `1 1/2 cups flour` (space-separated mixed number)
+  and `2 cups (250 g) flour` — are now exactly what the confidence gate
+  escalates to the model, so the original reason is spent.
+
+  What remains is a different job: `legacyParse` is the *only* ingredient
+  parser on a device without Apple Intelligence, and it is positional
+  (`split(separator: " ")`), so quantities away from position 0 are never
+  found. That makes this part of the no-AI story rather than parser polish —
+  see [AUDIT.md §1](AUDIT.md), which chose detect-and-communicate for
+  classification but left ingredient parsing on the heuristic.
 
 - [ ] **Fix or remove the inert confidence UI** — S
   `ProcessingResultsClassifiedText` colours lines and filters "skipped only"
@@ -354,6 +358,48 @@ to migrate.
   Needs the App Groups capability first (below). Only the simulator hand-off
   has been exercised end to end; the actual Notes and Safari share sheets have
   not. → [SHARE-EXTENSION.md](SHARE-EXTENSION.md)
+
+## Deferred — waiting on evidence
+
+Not skipped, but not worth scoping until there is data to justify the size.
+
+- [ ] **Classify by recipe section, not one monolithic pass** — L
+  Added 2026-09-03; **deferred 2026-09-04.**
+
+  Chunking by line count treats a recipe as an undifferentiated list of lines,
+  so boundaries can cut through a section heading and separate it from the
+  ingredients it introduces. The alternative is to split the *classification
+  task itself* by recipe section — title/summary as one small call, ingredients
+  as another, instructions as another — instead of one call classifying every
+  line type at once. Each call's instructions and output schema would then
+  describe only the categories relevant to that section.
+
+  Open scoping questions, if it goes ahead: how sections get identified in the
+  first place (a cheap pre-pass? a heuristic on blank lines and headings?),
+  whether it composes with or replaces line-count chunking, and how it
+  interacts with the halve-and-retry overflow logic.
+
+  **Why deferred.** Both legs of the original rationale moved:
+
+  - *Prompt overhead per call* — largely spent. Instructions are 393 tokens
+    now, and per-section prompts would only shave part of that.
+  - *Context fragmentation* — chunk overlap (P1, done) mitigates it. And when
+    the three misclassifications on a 46-line recipe were mapped to their
+    windows, **none were boundary artifacts** — two were mid-window-0, one was
+    window-1 primary with proper context. They were prompt problems, fixed by
+    restoring the glossary.
+
+  So there is currently **no evidence of fragmentation harm** to justify an
+  L-sized redesign. The evidence that would settle it is already on the list:
+  the OCR stress test with real scans in P4. Messy multi-column OCR — fragmented
+  lines, higher effective line counts, no clean headings — is where boundaries
+  should actually hurt. Run that first: either boundary-shaped errors appear and
+  this is justified, or they do not and it is speculative.
+
+  **If pursued anyway, decide the target first:** budget or accuracy? Narrower
+  per-section schemas might improve accuracy independently of tokens, which is a
+  legitimate reason on its own — but it is a different design than one aimed at
+  the token budget.
 
 ## Features — not yet scoped
 
