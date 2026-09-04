@@ -21,7 +21,16 @@ struct FoundationModelsRecipeClassifier {
     /// its own token count plus a small per-line assignment, rather than double.
     /// Kept at 40 rather than raised: chunking also bounds the blast radius of a
     /// single bad generation, and a smaller chunk keeps line numbers short.
-    private let chunkSize = 40
+    let chunkSize = 40
+
+    /// Lines of preceding context prepended to every chunk after the first.
+    ///
+    /// A chunk is otherwise classified blind: its opening lines have no preamble,
+    /// so mid-recipe instructions can read as a title and a section heading gets
+    /// separated from the ingredients it introduces. These lines were already
+    /// classified by the previous chunk — they are here to be *read*, not
+    /// re-decided, and their answers are discarded on merge.
+    let chunkOverlap = 5
 
     /// Smallest chunk worth retrying. Below this, an overflow is not a sizing
     /// problem and the error is surfaced instead of split further.
@@ -35,11 +44,18 @@ struct FoundationModelsRecipeClassifier {
     /// the review sheet can actually surface these.
     private let defaultedConfidence = 0.3
 
-    /// Shorter than it was: the ten-category glossary moved into `@Guide`
-    /// descriptions on `LineCategory`, which the framework already sends as part
-    /// of the schema, and the OCR-correction section is gone because the model
-    /// no longer returns text to correct. What remains is the judgement calls
-    /// the schema cannot express.
+    /// Shorter than it was, but the category glossary has to stay here.
+    ///
+    /// `@Generable` on an enum sends only the *case names* to the model — there
+    /// is no per-case `@Guide`, so "timing" and "note" arrive as bare labels
+    /// with no definition. An earlier version of this file dropped the glossary
+    /// on the assumption the schema carried it, and accuracy fell measurably:
+    /// "Total: 3 hours including cooling" was classified as summary, "Heat the
+    /// oven to 175C" as a timing, and "Keeps 4 days in an airtight tin" as a
+    /// timing rather than a note.
+    ///
+    /// What did leave is the OCR-correction section, which is genuinely obsolete
+    /// now that the model returns no text to correct.
     private let instructions = """
     You classify lines of recipe text, often extracted via OCR.
 
@@ -47,15 +63,28 @@ struct FoundationModelsRecipeClassifier {
     part of the recipe it belongs to. Never omit a line. Never invent a number
     that was not in the input.
 
-    Judgement calls:
-    - A line is an instruction only if it describes a cooking action the reader
-      performs, in sequence.
-    - "Serve immediately", "Keeps 3 days refrigerated", "Best eaten fresh" are
-      notes, not instructions.
-    - A short standalone heading labelling a group of ingredients or steps is a
-      sectionTitle, not an instruction.
-    - There is exactly one title per recipe.
-    - Use unknown only when a line genuinely fits nothing else.
+    Categories:
+    - title: the name of the dish. Exactly one per recipe.
+    - summary: a sentence or two describing or introducing the dish.
+    - timing: how long a stage takes — prep, cook, bake, chill, rest, or total.
+    - serving: how much it makes ("Serves 4", "Makes 24 cookies").
+    - sectionTitle: a short heading labelling a group of ingredients or steps
+      ("For the sauce:", "Assembly"). A label, never a cooking action.
+    - ingredient: one thing needed, usually quantity + unit + item.
+    - instruction: one cooking action the reader performs, in sequence.
+    - note: advice rather than a step — tips, substitutions, storage, make-ahead,
+      serving suggestions.
+    - source: attribution, author, publication, or URL.
+    - unknown: only when a line genuinely fits nothing else.
+
+    Distinctions that are easy to get wrong:
+    - A line naming a duration is a timing only if it states how long a stage
+      takes. "Total: 3 hours including cooling" is a timing. "Keeps 4 days in an
+      airtight tin" is storage advice, so it is a note.
+    - A step that mentions a temperature or a duration is still an instruction:
+      "Heat the oven to 175C" and "Bake 30 to 35 minutes" are instructions, not
+      timings.
+    - "Serve immediately", "Best eaten fresh" are notes, not instructions.
     """
 
     /// Classifies an array of recipe lines and returns a structured `ClassificationResult`.
@@ -70,17 +99,24 @@ struct FoundationModelsRecipeClassifier {
         // model cannot append the same line twice.
         var categories: [Int: RecipeLineType] = [:]
 
-        var offset = 0
-        for chunk in makeChunks(nonEmpty) {
-            let assignments = try await classifyChunkSplittingOnOverflow(chunk)
+        for window in makeChunks(nonEmpty) {
+            let assignments = try await classifyChunkSplittingOnOverflow(window.lines)
             for assignment in assignments {
-                // Line numbers are 1-based within the chunk. Anything outside it
+                // Line numbers are 1-based within the window. Anything outside it
                 // is a hallucinated number and is dropped rather than trusted.
                 let local = assignment.lineNumber - 1
-                guard chunk.indices.contains(local) else { continue }
-                categories[offset + local] = assignment.category.lineType
+                guard window.lines.indices.contains(local) else { continue }
+
+                // First write wins. A window's leading `chunkOverlap` lines were
+                // primary in the previous window, where they had full preceding
+                // context, so that verdict is the better one. The exception is
+                // useful: if the previous window omitted a line entirely, the
+                // overlap gives it a second chance to be classified.
+                let absolute = window.start + local
+                if categories[absolute] == nil {
+                    categories[absolute] = assignment.category.lineType
+                }
             }
-            offset += chunk.count
         }
 
         return buildResult(from: nonEmpty, categories: categories)
@@ -192,23 +228,37 @@ struct FoundationModelsRecipeClassifier {
         return result.lines
     }
 
-    private func makeChunks(_ lines: [String]) -> [[String]] {
-        guard lines.count > chunkSize else { return [lines] }
+    /// One request's worth of lines, plus where it sits in the whole document.
+    struct ChunkWindow {
+        /// Absolute index into the full line array of `lines[0]`.
+        let start: Int
+        /// Overlap context followed by this window's primary lines.
+        let lines: [String]
+    }
 
-        var chunks: [[String]] = []
-        var current: [String] = []
+    /// Splits into windows of `chunkSize` primary lines, each after the first
+    /// prefixed with `chunkOverlap` lines of preceding context.
+    ///
+    /// Primary ranges tile the input exactly — every line is primary in exactly
+    /// one window — so coverage is complete and `categories` cannot be written
+    /// twice for the same line by two windows that both consider it primary.
+    func makeChunks(_ lines: [String]) -> [ChunkWindow] {
+        guard lines.count > chunkSize else {
+            return [ChunkWindow(start: 0, lines: lines)]
+        }
 
-        for line in lines {
-            current.append(line)
-            if current.count >= chunkSize {
-                chunks.append(current)
-                current = []
-            }
+        var windows: [ChunkWindow] = []
+        var primaryStart = 0
+
+        while primaryStart < lines.count {
+            let primaryEnd = min(primaryStart + chunkSize, lines.count)
+            let windowStart = max(0, primaryStart - chunkOverlap)
+            windows.append(
+                ChunkWindow(start: windowStart, lines: Array(lines[windowStart..<primaryEnd]))
+            )
+            primaryStart = primaryEnd
         }
-        if !current.isEmpty {
-            chunks.append(current)
-        }
-        return chunks
+        return windows
     }
 
     private func emptyResult() -> ClassificationResult {

@@ -8,6 +8,7 @@ struct ProcessingResults: View {
   var processingState: RecipeProcessingState
   @Binding var recipeData: RecipeData
   var saveRecipe: () async -> Bool
+  @State private var isSaving = false
   
   @State var showDismissAlert: Bool = false
   @State var selectedTab = 0
@@ -85,15 +86,19 @@ struct ProcessingResults: View {
 
         ToolbarItem(placement: .primaryAction) {
           if !recipeData.title.isEmpty || !recipeData.ingredients.isEmpty || !recipeData.instructions.isEmpty {
-            Button(isSaved ? "Saved ✓" : "Save") {
+            Button(isSaved ? "Saved ✓" : (isSaving ? "Saving…" : "Save")) {
+              // Saving can take a few seconds: ingredients the heuristic parser
+              // is unsure of are escalated to Foundation Models one at a time.
+              // Without this flag the button looks inert for the duration.
+              isSaving = true
               Task {
-                if await saveRecipe() {
-                  isSaved = true
-                }
+                let didSave = await saveRecipe()
+                isSaving = false
+                if didSave { isSaved = true }
               }
             }
-            .foregroundStyle(isSaved ? .secondary : Color.app.primary)
-            .disabled(isSaved)
+            .foregroundStyle(isSaved || isSaving ? .secondary : Color.app.primary)
+            .disabled(isSaved || isSaving)
           }
         }
       }
@@ -103,8 +108,11 @@ struct ProcessingResults: View {
         dismiss()
       }
       Button("Save & Continue") {
+        isSaving = true
         Task {
-          if await saveRecipe() { isSaved = true }
+          let didSave = await saveRecipe()
+          isSaving = false
+          if didSave { isSaved = true }
         }
       }
       Button("Cancel", role: .cancel) {
