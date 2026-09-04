@@ -123,7 +123,28 @@ to migrate.
 
 ## P1 — Robustness of the import pipeline
 
-- [ ] **Stop the classifier output echoing its input** — L
+- [x] **Stop the classifier output echoing its input** — L
+  **Done 2026-09-04, option 1.** `ClassifiedRecipe`'s ten string arrays are
+  replaced by `ClassifiedLines` — an array of `{lineNumber, category}` where
+  `category` is a `@Generable` **enum** (`LineCategory`), so an invalid category
+  is unrepresentable rather than something to parse and defend against.
+
+  Measured effect: instructions 579 → **181 tokens** (68% shorter, since the
+  ten-category glossary moved into `@Guide` descriptions the framework already
+  sends as schema, and the OCR-correction section is gone). A 40-line chunk went
+  from ~42% of budget to **~24%**; a 22-line chunk from 30% to **15%**.
+  `allTextFixtures` runtime halved, 16.1s → 8.9s.
+
+  **The omission risk is handled.** With no text in the response, a line number
+  the model skips would silently drop an ingredient. `buildResult` therefore
+  walks the *input* in document order and looks each line up, so a line the
+  model never returned is still present, categorised `.unknown`. Hallucinated
+  numbers outside the chunk are dropped. Document order comes free from walking
+  the input, so no sort is needed.
+
+  Verified end-to-end on a sectioned recipe: title, both timings, and
+  ingredients from both sections all classified correctly.
+  → [bugs/context-window-overflow.md](bugs/context-window-overflow.md)
   The structural fix for the context window: the response restates every input
   line, so output exceeds input and a chunk costs ~2× its own tokens.
 
@@ -162,8 +183,8 @@ to migrate.
   every line type at once per chunk. Each call's instructions and output
   schema would only need to describe the categories relevant to that
   section, which also shrinks the ~579-token fixed instruction overhead per
-  call (see the P1 prompt-shrinking item below — this may subsume or reshape
-  that item once scoped). Needs real scoping: how sections are first
+  call (the prompt-shrinking item is now **done** — 181 tokens — so that part
+  of the rationale is largely spent; the fragmentation argument still stands). Needs real scoping: how sections are first
   identified (a cheap pre-pass? heuristic on blank lines/headings?), whether
   this composes with or replaces line-count chunking, and how it interacts
   with the halve-and-retry overflow logic.
@@ -172,10 +193,12 @@ to migrate.
   `chars / 4` is crude but enough to split proactively. Today the first
   overflow costs ~100s before it fails.
 
-- [ ] **Shrink the instruction prompt** — M
-  ~579 tokens of fixed overhead on every call, retries included — 14% of the
-  window. Much of the ten-category explanation could move into `@Guide`
-  descriptions on `ClassifiedRecipe`, which the framework already sends.
+- [x] **Shrink the instruction prompt** — M
+  **Done 2026-09-04**, as part of the echo fix above: 579 → 181 tokens by
+  moving the ten-category glossary into `@Guide` descriptions on
+  `LineCategory` and dropping the OCR-correction section, which no longer
+  applies now that the model returns no text. What remains is only the
+  judgement calls the schema cannot express.
 
 - [ ] **Overlap chunk boundaries** — M
   `chunkSize = 40` splits more recipes than 150 did, and each chunk is
@@ -190,8 +213,9 @@ to migrate.
   Also `2 cups (250 g) flour` keeps the parenthetical in the name. Lower value
   if the AI parser gets wired up, but it stays the fallback.
 
-- [ ] **Fix the stale comment in `FoundationModelsRecipeClassifier`** — S
-  Says the instructions cost ~900 tokens; measured ~579.
+- [x] **Fix the stale comment in `FoundationModelsRecipeClassifier`** — S
+  **Done 2026-09-04.** The comment was rewritten wholesale by the echo fix and
+  no longer quotes a token figure that can drift.
 
 ## P2 — Dead code and hygiene
 

@@ -3,7 +3,7 @@
 **Component** `Julia/Utilities/FoundationModelsRecipeClassifier.swift`
 **Symptom** Recipe import fails with `Exceeded model context window size`
 **Severity** High — intermittent hard failure of the primary import path
-**Status** Mitigated 2026-09-03. Residual risk remains, see [Residual risk](#residual-risk).
+**Status** Mitigated 2026-09-03; structurally fixed 2026-09-04, see [Structural fix](#structural-fix-2026-09-04).
 **Found by** `FullPipelineTests/textImport()` on its first run with assertions enabled
 
 ---
@@ -167,6 +167,59 @@ run does not prove much. When investigating a suspected recurrence:
    mapping to something actionable, since a user cannot do anything about a
    token budget.
 
+## Structural fix (2026-09-04)
+
+Option 3 from the list below was implemented, which removes the mechanism rather
+than reducing its probability.
+
+`ClassifiedRecipe`'s ten string arrays are gone. The model now returns
+`ClassifiedLines` — `{lineNumber, category}` per line, where `category` is a
+`@Generable` enum. **The response no longer contains the input text at all**, so
+the "output restates the input" property that drove this bug is eliminated:
+
+| | before | after |
+|---|---|---|
+| instructions | ~579 tokens | **~181 tokens** |
+| 22-line chunk, total | ~1,229 (30% of budget) | **~641 (15%)** |
+| 40-line chunk, total | ~1,726 (42%) | **~1,001 (24%)** |
+| `allTextFixtures` runtime | 16.1s | **8.9s** |
+
+The instructions shrank because the ten-category glossary moved into `@Guide`
+descriptions on `LineCategory`, which the framework already sends as part of the
+schema, and the OCR-correction section became meaningless once no text comes
+back.
+
+### The new failure mode, and how it is handled
+
+Returning no text introduces a risk the old shape did not have: a line number
+the model **omits** would silently drop an ingredient, and one it **invents**
+would index the wrong line.
+
+`buildResult` walks the *input* in document order and looks up each line's
+category, rather than walking the model's response:
+
+- a line the model never returned is still present, categorised `.unknown`
+- line numbers outside the chunk are discarded rather than trusted
+- a dictionary keyed by absolute index means duplicate numbers cannot append the
+  same line twice
+- document order is inherent, so the sort this doc previously called for is
+  unnecessary
+
+Omitted lines are also recorded with confidence **0.3** against 1.0 for
+classified ones, which gives the review sheet's "skipped only" filter a real
+signal for the first time (see [../AUDIT.md](../AUDIT.md) §6).
+
+### What this does not fix
+
+`chunkSize` stays at 40 rather than rising with the extra headroom: chunking
+also bounds the blast radius of one bad generation. The context-fragmentation
+cost described under [Residual risk](#residual-risk) is therefore unchanged —
+chunk boundaries still cut through sections, and that is what the section-based
+classification idea in [../TODO.md](../TODO.md) addresses.
+
+Overflow is now unlikely rather than impossible: the model can still
+over-generate, so the halve-and-retry path remains.
+
 ## Better fixes, if this recurs
 
 Ordered by effort:
@@ -177,7 +230,7 @@ Ordered by effort:
    window spent on every call, including retries. The prompt has ten labelled
    categories with examples; much of it could move into `@Guide` descriptions
    on `ClassifiedRecipe`, which the framework already sends as schema.
-3. **Stop echoing the input.** The expensive property is that output restates
+3. ~~**Stop echoing the input.**~~ **Done 2026-09-04 — see above.** The expensive property is that output restates
    input. Asking for `[lineNumber: category]` instead of ten arrays of full
    strings would cut output to a few tokens per line and roughly halve total
    cost. This is the structural fix — it makes the failure mode go away rather

@@ -144,7 +144,7 @@ are compiled and shipped — ~416 KB of bundle for code that nothing calls.
 Deliberately left in place: they are the most plausible fix for §1. Decide §1
 first, then either re-wire them or delete all three.
 
-## 6. Confidence UI is now inert — **OPEN**
+## 6. Confidence UI is now inert — **PARTLY FIXED**
 
 `ProcessingResultsClassifiedText` colours lines and offers a "skipped only"
 filter based on `confidence < RecipeProcessor.confidenceThreshold` (0.65). But
@@ -157,8 +157,14 @@ let skipped = r.unknown.map { ($0, .unknown, 1.0) }
 ```
 
 So every line reads as maximum confidence, the colouring never varies, and the
-"skipped only" filter can never match anything. Either drop the confidence
-column from that view or have the classifier emit a meaningful signal.
+"skipped only" filter can never match anything.
+
+**Partially resolved 2026-09-04.** The line-number redesign gave the classifier
+a real signal to emit: a line the model *did* classify records 1.0, while a line
+it omitted — defaulted to `.unknown` by `buildResult` — records **0.3**, below
+the 0.65 threshold. So the colouring and the "skipped only" filter now surface
+something meaningful: the lines the model failed to account for. Still open is
+whether a genuine per-line confidence is wanted beyond that binary.
 
 ## 7. `parsely-swiftui/` is not in the build — **OPEN**
 
