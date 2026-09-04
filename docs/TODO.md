@@ -9,13 +9,15 @@ Effort is rough: **S** under an hour, **M** a session, **L** a day or more.
 
 ## P0 — Users hit these
 
-- [ ] **Give `classifyText` a fallback for when Apple Intelligence is unavailable** — L
-  Image and text import fail outright on an unsupported device, an unsupported
-  region, or with the setting simply off. There is no degraded mode.
-  Decide between: re-wiring `RecipeTextClassifier` + `RecipeClassifier.mlmodel`
-  (still in the bundle, §5); a heuristic classifier off the reconstructor; or
-  accepting the limit but detecting it up front and saying so clearly.
-  **This blocks the dead-code decision below — settle it first.**
+- [ ] **Give `classifyText` a fallback for when Apple Intelligence is unavailable** — S
+  **Decided 2026-09-03: detect and communicate (option 3).** No new
+  classifier path. Check `SystemLanguageModel.default.availability` up front
+  (mirror the pattern `IngredientParser` already uses) and short-circuit
+  before calling `classifyText` with a clear message distinguishing
+  unsupported device / unsupported region / setting off — not the raw
+  `localizedDescription`. Share messaging logic with the error-mapping item
+  right below, since both need to turn model errors into something a user
+  can act on.
   → [AUDIT.md §1](AUDIT.md)
 
 - [ ] **Wire up `convertToSwiftDataModelAsync` so the AI ingredient parser actually runs** — M
@@ -24,14 +26,36 @@ Effort is rough: **S** under an hour, **M** a session, **L** a day or more.
   so both `RecipeProcessor` sites use the synchronous heuristic parser.
   Note `saveRecipe()` is synchronous and returns `Bool`, so this is not a
   one-line swap — it needs an async save path, and `autoSave()` too.
+
+  **Decided 2026-09-03: keep `legacyParse` as the primary parser; bolt FM on
+  top as a confidence-gated upgrade rather than a full replacement.**
+  `legacyParse` doesn't currently score confidence — derive it from how the
+  parse resolved:
+  - single word, nothing to misparse → 1.0
+  - quantity **and** recognized unit found → 1.0
+  - quantity found, unit not recognized (absorbed into name) → 0.6
+  - `parseQuantity` failed entirely, whole string dumped into `name` → 0.3
+
+  Threshold at 0.7. `fromString` (sync) is unchanged — all 6 sync call sites
+  keep current behavior. `fromStringAsync` changes: run `legacyParse` first;
+  confidence ≥ 0.7 returns immediately with no FM call; below 0.7 and FM
+  available escalates to `FoundationModelsIngredientParser`; otherwise keeps
+  the heuristic result. This should catch the known-bad cases like
+  `1 1/2 cups flour` (space-separated mixed number) and
+  `2 cups (250 g) flour`.
+
+  The async wiring problem doesn't go away — `convertToSwiftDataModelAsync`
+  still needs `saveRecipe()`/`autoSave()` to support an async path before any
+  of this runs during import.
   → [bugs/ingredient-quantity-parsing.md](bugs/ingredient-quantity-parsing.md)
 
-- [ ] **Migrate ingredients saved with unparsed fractions** — M
-  The quantity fix is forward-only. Everything already saved from `½ cup
-  butter` still has `quantity == nil` and the fraction stuck in `name`.
-  Re-parse ingredients whose `name` still contains a vulgar-fraction character
-  or a leading digit. Needs a schema version bump or a one-shot flag in
-  `UserDefaults`.
+~~**Migrate ingredients saved with unparsed fractions**~~ — **Dropped
+2026-09-03.** Not released, no production data. Checked both seed files
+(`recipeData.json`, `ingredientData.json`) for the bug pattern (vulgar-fraction
+characters or leading digits in `name`) — clean. They import through
+`ImportExportManager.createIngredient`/`importRecipesFile` with structured
+`quantity`/`unit`/`name` fields already, never touching `legacyParse`. Nothing
+to migrate.
 
 - [ ] **Map model errors to something a user can act on** — S
   `RecipeProcessor.handleError` surfaces raw `localizedDescription`, so people
@@ -39,16 +63,72 @@ Effort is rough: **S** under an hour, **M** a session, **L** a day or more.
   Cover at least `.exceededContextWindowSize`, `.guardrailViolation`,
   `.rateLimited` and `.assetsUnavailable`.
 
+  **Decided 2026-09-03:** single helper, e.g. `friendlyMessage(for error:
+  Error) -> String`, switching on `LanguageModelSession.GenerationError`
+  cases and falling back to `error.localizedDescription` for anything
+  unhandled. Swap all three `handleError(error.localizedDescription)` call
+  sites (`processImage`, `processText`, `importSharedURL`) to
+  `handleError(friendlyMessage(for: error))`. This is the same helper the
+  detect-and-communicate fallback above should call for the "unavailable"
+  case — `FoundationModelsServiceError.unavailable` already has a good
+  `errorDescription` and needs no special case, just falls through.
+
+  Draft copy:
+  - `.exceededContextWindowSize` → "This recipe is too long to process at
+    once. Try splitting it into smaller sections."
+  - `.guardrailViolation` → "This content couldn't be processed due to
+    Apple's content safety guidelines."
+  - `.rateLimited` → "Too many requests right now — wait a moment and try
+    again."
+  - `.assetsUnavailable` → "Apple Intelligence isn't ready on this device
+    yet. Try again shortly."
+
 ## P1 — Robustness of the import pipeline
 
 - [ ] **Stop the classifier output echoing its input** — L
   The structural fix for the context window: the response restates every input
-  line, so output exceeds input and a chunk costs ~2× its own tokens. Asking
-  for `[lineNumber: category]` instead of ten arrays of full strings would cut
-  output to a few tokens per line and roughly halve total cost — turning the
-  overflow from "rarer" into "structurally impossible" for normal input.
+  line, so output exceeds input and a chunk costs ~2× its own tokens.
+
+  **Decided 2026-09-03, revised same day: option 1 — minimal
+  `{lineNumber, category}`, drop OCR correction from this call.** Initially
+  decided option 2 (keep `correctedText` alongside `{lineNumber, category}`),
+  but a numeric check against a real recipe (38-line Mille-Feuille Nabe,
+  ~2,025 tokens / ~49% of budget under the *current* design) surfaced a flaw
+  in that reasoning: `ClassifiedRecipe`'s existing ten-array design already
+  places each line's text in exactly one array — it is not duplicated
+  per-array — so the actual "echo" cost is close to input-text-once, not a
+  multiplied duplication. Keeping `correctedText` in the new shape would have
+  paid the same text cost as today plus new per-line `lineNumber`/`category`
+  overhead, for little or no net saving. Dropping `correctedText` entirely
+  (option 1) is what actually removes the echoed text from the budget — this
+  is the version that gets output down to a few tokens per line.
+  Consequence: OCR correction leaves this call. `RecipeTextReconstructor`
+  upstream only does structural line-joining, not text correction, so if
+  OCR-garbled text correction is still wanted somewhere, it needs a new home
+  — not scoped yet, revisit if it turns out to matter in practice (see the
+  stress-test item below).
+  Side benefit retained: sort merged results by `lineNumber` to restore true
+  document order across chunk boundaries, instead of `mergeResults`' current
+  chunk-concatenation order.
   Touches `ClassifiedRecipe` and `toClassificationResult`.
   → [bugs/context-window-overflow.md](bugs/context-window-overflow.md)
+
+- [ ] **Holistically rethink context-window limits: classify by recipe section, not one monolithic pass** — L
+  Added 2026-09-03, alongside the echo-fix decision above. Chunking by line
+  count treats a recipe as an undifferentiated list of lines, which is why
+  chunk boundaries currently cut through section headings and separate them
+  from their ingredients, and why a mid-chunk's opening line can be misread
+  as a title. Consider instead splitting the *classification task itself* by
+  recipe section — title/summary/tags as one (small, cheap) call, ingredients
+  as another, instructions as another — rather than one call classifying
+  every line type at once per chunk. Each call's instructions and output
+  schema would only need to describe the categories relevant to that
+  section, which also shrinks the ~579-token fixed instruction overhead per
+  call (see the P1 prompt-shrinking item below — this may subsume or reshape
+  that item once scoped). Needs real scoping: how sections are first
+  identified (a cheap pre-pass? heuristic on blank lines/headings?), whether
+  this composes with or replaces line-count chunking, and how it interacts
+  with the halve-and-retry overflow logic.
 
 - [ ] **Estimate tokens before calling, instead of discovering overflow** — M
   `chars / 4` is crude but enough to split proactively. Today the first
@@ -77,12 +157,16 @@ Effort is rough: **S** under an hour, **M** a session, **L** a day or more.
 
 ## P2 — Dead code and hygiene
 
-- [ ] **Resolve the old Core ML pipeline** — S once P0 is decided
+- [ ] **Archive the old Core ML pipeline (don't delete)** — S
+  **Decided 2026-09-03:** P0 fallback went with detect-and-communicate, so
+  these aren't wired to anything — but keep them, don't delete.
   `RecipeTextClassifier.swift` (36 lines, no references),
   `RecipeClassifier.mlmodel` (368 KB) and `IngredientClassifier.mlmodel`
   (48 KB) are unreferenced but still in the app target's Sources phase, so
-  ~416 KB ships. Either becomes the P0 fallback or gets deleted. Don't delete
-  before P0 is settled. → [AUDIT.md §5](AUDIT.md)
+  ~416 KB ships as dead weight. Move out of the Sources build phase (e.g. into
+  an `Archive/` folder excluded from the target) so the ~416 KB stops shipping
+  but the code stays available if a fallback classifier is revisited later.
+  → [AUDIT.md §5](AUDIT.md)
 
 - [ ] **Fix or remove the inert confidence UI** — S
   `ProcessingResultsClassifiedText` colours lines and filters "skipped only"
@@ -174,6 +258,17 @@ Effort is rough: **S** under an hour, **M** a session, **L** a day or more.
   multiple recipes on one page, ad-interleaved text, incomplete recipes,
   ingredient lists with `1 1/2` space-separated mixed numbers (see the
   `legacyParse` item in P1).
+
+  **Added 2026-09-03: also stress-test with actual scanned/photographed
+  recipe images, not just clean or hand-messed text.** A paper estimate
+  against a clean 38-line blog recipe came out to only ~49% of the 4,096
+  token budget in a single call — real risk concentrates in genuinely messy
+  OCR output (multi-column reading-order errors, garbled characters, longer
+  effective line counts from fragmentation), which a typed fixture doesn't
+  reproduce. This matters doubly now that the classifier's `{lineNumber,
+  category}` redesign above drops inline OCR correction — need real scans to
+  see whether uncorrected-but-categorized OCR garble is good enough for
+  usable output, or whether correction needs a new home in the pipeline.
 
 - [ ] **Harden the Apple Intelligence test gate** — S
   `.enabled(if: availability == .available)` is evaluated before any request,
