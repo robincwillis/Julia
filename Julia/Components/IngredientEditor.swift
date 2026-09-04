@@ -233,7 +233,7 @@ struct IngredientEditor: View {
                     .frame(minHeight: 40)
                     .frame(maxWidth: .infinity)
                     .background(Color.app.secondary)
-                    .foregroundColor(.primary)
+                    .foregroundColor(Color.app.textPrimary)
                     .cornerRadius(12)
                 }
               }

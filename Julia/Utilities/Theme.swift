@@ -36,32 +36,27 @@ struct AppTheme {
     static let grey400 = Color("grey.400")
     static let grey500 = Color("grey.500")
     // Accent Colors
-    static let primary = Color("primary") // #D72638
-    static let primaryDisabled = Color("Primary.disabled")
+    static let primary = Color("primary")
+    static let primaryDisabled = Color("primary.disabled")
 
-    static let secondary = Color("secondary") // (red: 0.85, green: 0.92, blue: 1.0)
-    static let secondaryDisabled = Color("Secondary.disabled")
+    static let secondary = Color("secondary")
+    static let secondaryDisabled = Color("secondary.disabled")
 
 
     // Background Colors
     static let backgroundPrimary = Color("background.primary")
     static let backgroundSecondary = Color("background.secondary")
-    
+
     // Text Colors
-    static let textPrimary = Color("text.primary") // #1C1C1C
+    static let textPrimary = Color("text.primary")
     static let textSecondary = Color("grey.400")
     static let textLabel = Color("grey.300")
     static let textTitle = Color("grey.300")
-    
+
     // Misc Colors
     static let textOnPrimary = Color.white
     static let danger = Color("danger")
     static let white = Color("white")
-    
-    // MARK: - Primary Colors
-    static let primaryColor = Color("PrimaryColor") // Define in assets
-    static let secondaryColor = Color("SecondaryColor")
-    
 
   }
 }

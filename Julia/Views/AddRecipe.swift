@@ -154,7 +154,7 @@ struct AddRecipe: View {
                       existingRecipe.servings = nil
                     }
                   }
-                  .foregroundColor(.red)
+                  .foregroundColor(Color.app.danger)
                 }
 
                 Spacer()

@@ -122,7 +122,7 @@ struct CookModeView: View {
       } label: {
         Image(systemName: "xmark")
           .font(.system(size: 13, weight: .semibold))
-          .foregroundStyle(.primary)
+          .foregroundStyle(Color.app.textPrimary)
           .frame(width: 32, height: 32)
           .background(Color(UIColor.secondarySystemBackground))
           .clipShape(Circle())
@@ -371,7 +371,7 @@ private struct StepCardView: View {
         Text(step.value)
           .font(.title3)
           .lineSpacing(7)
-          .foregroundStyle(.primary)
+          .foregroundStyle(Color.app.textPrimary)
           .frame(maxWidth: .infinity, alignment: .leading)
 
         Spacer(minLength: 0)

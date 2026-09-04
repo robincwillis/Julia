@@ -77,7 +77,7 @@ struct ProcessingResultsClassifiedText: View {
               VStack(alignment: .leading) {
                 Text(text)
                   .font(.body)
-                  .foregroundColor(confidence >= RecipeProcessor.confidenceThreshold ? .primary : .secondary)
+                  .foregroundColor(confidence >= RecipeProcessor.confidenceThreshold ? Color.app.textPrimary : .secondary)
                 
                 HStack {
                   Label(type.rawValue.capitalized, systemImage: typeIcon(for: type))

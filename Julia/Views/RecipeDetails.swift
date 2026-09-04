@@ -106,7 +106,7 @@ struct RecipeDetails: View {
               Button("Clear") {
                 recipe.servings = nil
               }
-              .foregroundColor(.red)
+              .foregroundColor(Color.app.danger)
             }
 
             Spacer()
@@ -114,7 +114,7 @@ struct RecipeDetails: View {
             Button("Done") {
               hideKeyboard()
             }
-            .foregroundStyle(.primary)
+            .foregroundStyle(Color.app.textPrimary)
             .fontWeight(.medium)
             .padding(.horizontal, 14)
             .padding(.vertical, 6)

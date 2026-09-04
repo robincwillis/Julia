@@ -103,7 +103,7 @@ private struct ReceiptItemRow: View {
 
             // Editable name
             TextField("Item name", text: $item.name)
-                .foregroundStyle(item.isSelected ? .primary : .secondary)
+                .foregroundStyle(item.isSelected ? Color.app.textPrimary : .secondary)
 
             // Grocery / Pantry picker
             if item.isSelected {

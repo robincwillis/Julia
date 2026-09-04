@@ -19,7 +19,7 @@ struct RecipeTextImportView: View {
               .font(.system(size: 14, design: .monospaced))
               .frame(minHeight: 200)
               .frame(maxWidth: .infinity)
-              .foregroundColor(.primary)
+              .foregroundColor(Color.app.textPrimary)
               //.background(Color.app.white)
               //.cornerRadius(12)
               .focused($isRecipeTextFieldFocused)
@@ -42,7 +42,7 @@ struct RecipeTextImportView: View {
                       Button("Done") {
                         isRecipeTextFieldFocused = false
                       }
-                      .foregroundStyle(.primary)
+                      .foregroundStyle(Color.app.textPrimary)
                       .fontWeight(.medium)
                       .padding(.horizontal, 14)
                       .padding(.vertical, 6)
