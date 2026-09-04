@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		5AE1C0DE0000000000000021 /* ModelErrorMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5AE1C0DE0000000000000020 /* ModelErrorMessage.swift */; };
 		5AE1C0DE0000000000000010 /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5AE1C0DE000000000000000A /* ShareViewController.swift */; };
 		5AE1C0DE0000000000000011 /* SharedImportInbox.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5AE1C0DE000000000000000E /* SharedImportInbox.swift */; };
 		5AE1C0DE0000000000000012 /* SharedImportInbox.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5AE1C0DE000000000000000E /* SharedImportInbox.swift */; };
@@ -148,6 +149,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		5AE1C0DE0000000000000020 /* ModelErrorMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelErrorMessage.swift; sourceTree = "<group>"; };
 		5AE1C0DE0000000000000002 /* JuliaShareExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = JuliaShareExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		5AE1C0DE000000000000000A /* ShareViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareViewController.swift; sourceTree = "<group>"; };
 		5AE1C0DE000000000000000B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -376,6 +378,7 @@
 		520DE6BA2C346A4F00CAF570 /* Utilities */ = {
 			isa = PBXGroup;
 			children = (
+				5AE1C0DE0000000000000020 /* ModelErrorMessage.swift */,
 				527A08962F8031A30030EE1C /* DocumentClassifier.swift */,
 				52E7A63B2DCFCA8600AFEF2B /* RecipeLayoutAnalyzer.swift */,
 				52E7A63F2DCFCBD700AFEF2B /* RecipePostProcessor.swift */,
@@ -696,6 +699,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5AE1C0DE0000000000000021 /* ModelErrorMessage.swift in Sources */,
 				5AE1C0DE0000000000000012 /* SharedImportInbox.swift in Sources */,
 				52E2C08F2D99D99B00F9B5F9 /* RecipeEditSourceSection.swift in Sources */,
 				52E7A65F2DDA13E500AFEF2B /* IngredientClassifier.mlmodel in Sources */,

@@ -7,7 +7,7 @@ struct ProcessingResults: View {
   
   var processingState: RecipeProcessingState
   @Binding var recipeData: RecipeData
-  var saveRecipe: () -> Bool
+  var saveRecipe: () async -> Bool
   
   @State var showDismissAlert: Bool = false
   @State var selectedTab = 0
@@ -86,8 +86,10 @@ struct ProcessingResults: View {
         ToolbarItem(placement: .primaryAction) {
           if !recipeData.title.isEmpty || !recipeData.ingredients.isEmpty || !recipeData.instructions.isEmpty {
             Button(isSaved ? "Saved ✓" : "Save") {
-              if saveRecipe() {
-                isSaved = true
+              Task {
+                if await saveRecipe() {
+                  isSaved = true
+                }
               }
             }
             .foregroundStyle(isSaved ? .secondary : Color.app.primary)
@@ -101,7 +103,9 @@ struct ProcessingResults: View {
         dismiss()
       }
       Button("Save & Continue") {
-        if saveRecipe() { isSaved = true }
+        Task {
+          if await saveRecipe() { isSaved = true }
+        }
       }
       Button("Cancel", role: .cancel) {
         showDismissAlert = false
@@ -146,7 +150,7 @@ struct ProcessingResults: View {
   struct PreviewWrapper: View {
     @State var mockProcessingState = RecipeProcessingState()
     @State var mockRecipeData = RecipeData()
-    let saveRecipe: () -> Bool = { return true }
+    let saveRecipe: () async -> Bool = { return true }
 
     init() {
       var data = RecipeData()

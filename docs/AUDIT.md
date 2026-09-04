@@ -10,7 +10,7 @@ detailed write-ups in [bugs/](bugs/).
 
 ---
 
-## 1. Import is completely broken without Apple Intelligence — **OPEN**
+## 1. Import is completely broken without Apple Intelligence — **FIXED**
 
 `RecipeProcessor.classifyText` has no fallback:
 
@@ -40,6 +40,11 @@ roughly in order of effort:
 
 `IngredientParser` already does the right thing here — it checks availability
 and falls back to heuristics — so the pattern exists in the codebase.
+
+**Fixed 2026-09-04** with option 3, detect-and-communicate: no new classifier
+path, but `failIfModelUnavailable()` short-circuits `processImage`/`processText`
+with a reason the user can act on. URL import is untouched, since JSON-LD needs
+no model. See [TODO.md](TODO.md).
 
 ## 2. Classifier could overflow its context window — **FIXED**
 
@@ -89,7 +94,7 @@ values, since the fix is forward-only.
 
 Full analysis: **[bugs/ingredient-quantity-parsing.md](bugs/ingredient-quantity-parsing.md)**.
 
-## 4. The Foundation Models ingredient parser has never run — **OPEN**
+## 4. The Foundation Models ingredient parser has never run — **FIXED**
 
 Discovered while tracing §3. The AI ingredient parser is unreachable:
 
@@ -114,9 +119,14 @@ properly by the model — has never executed in production. Every ingredient goe
 through positional `split(separator: " ")` heuristics, which is also why §3 hit
 everything rather than just a fallback.
 
-Not a one-line swap: `saveRecipe()` is synchronous and returns `Bool`, and
-`autoSave()` is called from synchronous contexts, so this needs an async save
-path. Tracked in [TODO.md](TODO.md) as P0.
+**Fixed 2026-09-04.** `saveRecipe()` is now async and calls
+`convertToSwiftDataModelAsync()`. `autoSave()` stays synchronous and heuristic
+on purpose — it is a safety net that `saveRecipe()` replaces, so paying for
+model calls there would double the AI cost per import and race the dedupe.
+
+`fromStringAsync` now escalates to the model only for parses the heuristic
+scored below 0.7, so a clean "2 cups flour" costs no model call. See
+[TODO.md](TODO.md).
 
 ## 5. Dead Core ML pipeline still shipping — **OPEN**
 

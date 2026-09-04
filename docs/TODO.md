@@ -9,7 +9,20 @@ Effort is rough: **S** under an hour, **M** a session, **L** a day or more.
 
 ## P0 — Users hit these
 
-- [ ] **Give `classifyText` a fallback for when Apple Intelligence is unavailable** — S
+- [x] **Give `classifyText` a fallback for when Apple Intelligence is unavailable** — S
+  **Done 2026-09-04.** `RecipeProcessor.failIfModelUnavailable()` checks
+  `SystemLanguageModel.default.availability` at the top of `processImage` and
+  `processText` and surfaces `ModelErrorMessage.message(for:)` through the
+  normal error UI. Deliberately *not* applied to `importSharedURL` — the
+  scraper prefers JSON-LD and only falls back to the model, so a well-marked-up
+  page still imports without Apple Intelligence.
+
+  One constraint found while implementing: the API exposes only
+  `.deviceNotEligible`, `.appleIntelligenceNotEnabled` and `.modelNotReady`.
+  **There is no distinct "unsupported region" case** — regional ineligibility
+  arrives as `.deviceNotEligible`, so that copy covers device and region
+  together rather than claiming a distinction the API cannot make.
+
   **Decided 2026-09-03: detect and communicate (option 3).** No new
   classifier path. Check `SystemLanguageModel.default.availability` up front
   (mirror the pattern `IngredientParser` already uses) and short-circuit
@@ -20,7 +33,26 @@ Effort is rough: **S** under an hour, **M** a session, **L** a day or more.
   can act on.
   → [AUDIT.md §1](AUDIT.md)
 
-- [ ] **Wire up `convertToSwiftDataModelAsync` so the AI ingredient parser actually runs** — M
+- [x] **Wire up `convertToSwiftDataModelAsync` so the AI ingredient parser actually runs** — M
+  **Done 2026-09-04.** `saveRecipe()` is now `async` and calls
+  `convertToSwiftDataModelAsync()`, so the chain
+  `FoundationModelsIngredientParser ← fromStringAsync ← convertToSwiftDataModelAsync ← saveRecipe`
+  is connected for the first time. `ProcessingResults.saveRecipe` became
+  `() async -> Bool`; both button call sites wrap in `Task`.
+
+  **Divergence from the plan, on purpose:** `autoSave()` stays **synchronous
+  and heuristic**. The plan called for both to support an async path, but that
+  copy is a safety net `saveRecipe()` deletes and replaces, so running the
+  model per ingredient there would double the AI cost of an import, stall the
+  moment the review sheet appears, and race a quick save against
+  `autoSavedRecipe` being set. Good parsing matters on the copy the user keeps.
+
+  **Scoring needed one rule beyond the four decided.** `2 cups (250 g) flour`
+  scored 1.0 on the strength of a recognized `cups` and so would never have
+  escalated — despite being listed as a case escalation should catch. Added
+  `adjust(_:forName:)`: any score above 0.6 is capped at 0.6 when the resulting
+  *name* still contains digits or a parenthetical, since that means content was
+  left unparsed. Covered by `IngredientParsingTests`.
   `FoundationModelsIngredientParser` has never executed in production. The
   chain is broken at the top: nothing calls `convertToSwiftDataModelAsync()`,
   so both `RecipeProcessor` sites use the synchronous heuristic parser.
@@ -57,7 +89,13 @@ characters or leading digits in `name`) — clean. They import through
 `quantity`/`unit`/`name` fields already, never touching `legacyParse`. Nothing
 to migrate.
 
-- [ ] **Map model errors to something a user can act on** — S
+- [x] **Map model errors to something a user can act on** — S
+  **Done 2026-09-04.** `ModelErrorMessage.friendlyMessage(for:)` in
+  `Julia/Utilities/ModelErrorMessage.swift`, wired into all three
+  `handleError` sites (`processImage`, `processText`, `importSharedURL`).
+  Covers the four decided cases with the drafted copy; everything else falls
+  through to `localizedDescription`, so `FoundationModelsServiceError` and
+  `WebScrapeError` pass through untouched as intended.
   `RecipeProcessor.handleError` surfaces raw `localizedDescription`, so people
   see "Exceeded model context window size". Nobody can do anything with that.
   Cover at least `.exceededContextWindowSize`, `.guardrailViolation`,

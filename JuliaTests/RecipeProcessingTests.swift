@@ -159,6 +159,60 @@ struct IngredientParsingTests {
         #expect(abs(quantity - 3.0) < 0.0001, "Expected the midpoint 3.0, got \(quantity)")
     }
 
+    // MARK: Confidence scoring
+
+    // The score decides whether `fromStringAsync` spends a Foundation Models
+    // call. Getting these wrong either wastes calls on clean input or silently
+    // stops the model rescuing the cases it exists for.
+
+    @Test("Clean parses score at or above the escalation threshold", arguments: [
+        "Salt",                     // single word — nothing to misparse
+        "2 cups flour",             // quantity + recognized unit
+        "2 eggs",                   // quantity, no unit slot to fail at
+        "1/2 cup butter",
+        "½ cup butter"
+    ])
+    func confidentParses(input: String) throws {
+        let scored = try #require(
+            IngredientParser.scoredParseForTesting(input: input, location: .recipe)
+        )
+        #expect(scored.confidence >= IngredientParser.escalationThreshold,
+                "\(input) scored \(scored.confidence) — would escalate unnecessarily")
+    }
+
+    @Test("Parses the heuristic gets wrong score below the threshold", arguments: [
+        "1 1/2 cups flour",         // space-separated mixed number
+        "2 cups (250 g) flour"      // parenthetical absorbed into the name
+    ])
+    func unconfidentParses(input: String) throws {
+        let scored = try #require(
+            IngredientParser.scoredParseForTesting(input: input, location: .recipe)
+        )
+        #expect(scored.confidence < IngredientParser.escalationThreshold,
+                "\(input) scored \(scored.confidence) — the model would never be asked")
+    }
+
+    @Test("An unrecognized unit token is scored lower than a recognized one")
+    func unitRecognitionAffectsConfidence() throws {
+        let recognized = try #require(
+            IngredientParser.scoredParseForTesting(input: "3 tablespoons olive oil", location: .recipe)
+        )
+        let unrecognized = try #require(
+            IngredientParser.scoredParseForTesting(input: "3 glugs olive oil", location: .recipe)
+        )
+        #expect(recognized.confidence > unrecognized.confidence)
+    }
+
+    @Test("A low-confidence parse still returns a usable ingredient")
+    func lowConfidenceStillParses() throws {
+        // The heuristic result is the fallback when the model is unavailable,
+        // so it must never be nil just because confidence is low.
+        let scored = try #require(
+            IngredientParser.scoredParseForTesting(input: "1 1/2 cups flour", location: .recipe)
+        )
+        #expect(!scored.ingredient.name.isEmpty)
+    }
+
     @Test("Round trip through toString keeps the quantity and name")
     func roundTrip() throws {
         let ingredient = try #require(

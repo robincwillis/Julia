@@ -9,6 +9,7 @@ import SwiftUI
 import SwiftData
 import Vision
 import Foundation
+import FoundationModels
 
 /// Manages recipe processing workflow and state
 @Observable
@@ -75,8 +76,36 @@ class RecipeProcessor {
     onError?(error)
   }
 
+  /// Nil when the on-device model can be used, otherwise a user-facing reason.
+  ///
+  /// Classification has no non-AI path, so image and text import cannot work
+  /// without Apple Intelligence. Checking up front means the user gets a clear
+  /// explanation immediately instead of watching OCR run and then failing on an
+  /// opaque framework error.
+  ///
+  /// Deliberately NOT applied to URL import: `RecipeWebScraper` prefers JSON-LD
+  /// structured data and only falls back to the model, so a well-marked-up
+  /// recipe page imports fine without it.
+  private var modelUnavailableMessage: String? {
+    if case .unavailable(let reason) = SystemLanguageModel.default.availability {
+      return ModelErrorMessage.message(for: reason)
+    }
+    return nil
+  }
+
+  /// Surfaces `reason` through the normal error UI and returns true when the
+  /// caller should bail out. `start()` first so the status sheet is on screen
+  /// to display it.
+  private func failIfModelUnavailable() -> Bool {
+    guard let reason = modelUnavailableMessage else { return false }
+    start()
+    fail(error: reason)
+    return true
+  }
+
   // Process image input
   func processImage(_ image: UIImage) {
+    if failIfModelUnavailable() { return }
     start()
     processingState.image = image
 
@@ -90,13 +119,14 @@ class RecipeProcessor {
         updateRecipeData(recognizedText, reconstructedText, classifiedText)
         complete()
       } catch {
-        handleError(error.localizedDescription)
+        handleError(ModelErrorMessage.friendlyMessage(for: error))
       }
     }
   }
 
   // Process text input
   func processText(_ text: String) {
+    if failIfModelUnavailable() { return }
     start()
     processingState.text = text
 
@@ -110,7 +140,7 @@ class RecipeProcessor {
         updateRecipeData(recognizedText, reconstructedText, classifiedText)
         complete()
       } catch {
-        handleError(error.localizedDescription)
+        handleError(ModelErrorMessage.friendlyMessage(for: error))
       }
     }
   }
@@ -153,7 +183,7 @@ class RecipeProcessor {
         autoSave()
         complete()
       } catch {
-        handleError(error.localizedDescription)
+        handleError(ModelErrorMessage.friendlyMessage(for: error))
       }
     }
   }
@@ -165,8 +195,14 @@ class RecipeProcessor {
     processText(text)
   }
 
-  // Persist the imported recipe immediately so it's kept even if the
-  // review sheet is dismissed without an explicit save
+  /// Persists the imported recipe immediately so it is kept even if the review
+  /// sheet is dismissed without an explicit save.
+  ///
+  /// Stays **synchronous and heuristic** on purpose. This copy is a safety net
+  /// that `saveRecipe()` deletes and replaces, so paying for a model call per
+  /// ingredient here would double the AI cost of an import, stall the moment
+  /// the review sheet appears, and open a race where a quick save runs before
+  /// `autoSavedRecipe` is set and so fails to dedupe.
   private func autoSave() {
     guard let context = modelContext else { return }
 
@@ -264,8 +300,15 @@ class RecipeProcessor {
     fail(error: message)
   }
 
-  // Save the recipe to the data store
-  func saveRecipe() -> Bool {
+  /// Saves the reviewed recipe — the copy the user keeps.
+  ///
+  /// Async because this is the one place worth spending model calls on
+  /// ingredient parsing: `convertToSwiftDataModelAsync` runs each ingredient
+  /// through `IngredientParser.fromStringAsync`, which escalates to Foundation
+  /// Models only for the ones the heuristic scored below its threshold.
+  ///
+  /// `autoSave()` deliberately stays synchronous and heuristic — see there.
+  func saveRecipe() async -> Bool {
     guard let context = modelContext else {
       processingState.errorMessage = "Cannot save recipe: database context unavailable"
       return false
@@ -280,8 +323,7 @@ class RecipeProcessor {
     // Snapshot current data
     let data = recipeData
 
-    // Build and insert the recipe synchronously so we can save immediately
-    let recipe = data.convertToSwiftDataModel()
+    let recipe = await data.convertToSwiftDataModelAsync()
     context.insert(recipe)
     try? context.save()
 
