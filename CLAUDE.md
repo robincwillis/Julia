@@ -13,7 +13,8 @@ iOS 26 is required — the import pipeline depends on Foundation Models.
 
 ## Further documentation
 
-- `docs/TODO.md` — prioritised backlog. **Start here.**
+- `docs/TODO.md` — open backlog, prioritised. **Start here.**
+- `docs/DONE.md` — completed work, with the decisions and constraints behind it
 - `docs/AUDIT.md` — known issues and open decisions. **Read before large changes.**
 - `docs/bugs/context-window-overflow.md` — why the classifier chunks at 40 lines
   and retries; read before changing `FoundationModelsRecipeClassifier`
@@ -22,6 +23,11 @@ iOS 26 is required — the import pipeline depends on Foundation Models.
 - `docs/TESTING.md` — how the test suite is organised and how to add fixtures
 - `docs/SHARE-EXTENSION.md` — the Notes/Safari import flow
 - `docs/MERGE-NOTES.md` — why the current pipeline looks the way it does
+- `docs/figma-screenshot-mapping.md` — which captured app screenshot in the
+  Figma file corresponds to which SwiftUI view
+- `docs/figma-build-spec.md` — tokens, type ramp, geometry and naming for
+  recreating screens in Figma. **Read before touching the Figma file or
+  starting the design system.**
 
 ## Architecture Overview
 
