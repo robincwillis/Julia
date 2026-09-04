@@ -255,31 +255,6 @@ New capability rather than fixes. Unranked between themselves.
   imports do? Is it undoable? And which operations should be AI at all — scaling
   is arithmetic, and "double it" through an LLM will occasionally get it wrong.
 
-- [ ] **Timer in live cooking mode** — M
-  `CookModeView` has no timer of any kind today — greenfield, not an addition.
-
-  ⚠️ **Deep-linking the native Clock app is not supportable.** Apple publishes
-  no URL scheme for creating a timer. Undocumented schemes (`clock-alarm://` and
-  similar) have circulated but are private API in practice — they break between
-  iOS versions and are an App Review risk. Worth a check before committing
-  either way, but do not plan around it.
-
-  What actually delivers the goal — a timer that keeps running and alerts you
-  while you are not looking at the app:
-  - **`ActivityKit` Live Activity** — Lock Screen and Dynamic Island, which is
-    the behaviour people want from a cooking timer. Needs
-    `NSSupportsLiveActivities` in `Info.plist` and a widget extension (a second
-    extension target, so `JuliaShareExtension` is the template for the
-    project-file side).
-  - **`UNUserNotificationCenter` with a time-interval trigger** — the reliable
-    alert, and it fires even if the app is killed. Needed regardless: the Live
-    Activity is presentation, the notification is the guarantee.
-
-  Multiple concurrent timers are the interesting design problem, since recipes
-  have overlapping steps. `Step` has no duration field, so parsing "simmer 20
-  minutes" out of instruction text — or capturing a duration during import — is
-  a prerequisite for a timer per step rather than one generic one.
-
 - [ ] **Two app icons, and shipping with debug on or off** — M, approach undecided
   Captured as-is; **not resolved.** Two icon designs exist and need preparing
   and testing. Separately, the app should be archivable in two modes: debug

@@ -187,6 +187,41 @@ Not planned items — found while doing the above, written up in [bugs/](bugs/).
 
 ---
 
+## Investigated and dropped
+
+Ideas taken off the backlog. Recorded so the same ground is not covered twice.
+
+### Timer in live cooking mode — dropped 2026-09-04
+
+Dropped at Robin's call after establishing the native-Clock route is not
+available.
+
+**What was asked:** in live cooking mode, reach the iOS Clock/Timer app through
+a deep link.
+
+**Finding: there is no supported way to do this.** Apple publishes no URL scheme
+for creating a timer in Clock. Undocumented schemes (`clock-alarm://` and
+similar) have circulated, but they are private API in practice — they break
+between iOS versions and are an App Review risk. Do not re-investigate these.
+
+**What remains possible, if a timer is ever wanted again.** The finding rules out
+*that route*, not the feature. `CookModeView` has no timer of any kind today, so
+it would be greenfield either way:
+
+- **`ActivityKit` Live Activity** — timer on the Lock Screen and in the Dynamic
+  Island, which is the behaviour people actually want from a cooking timer.
+  Needs `NSSupportsLiveActivities` in `Info.plist` and a widget extension — a
+  second extension target, for which `JuliaShareExtension` is the template on
+  the project-file side.
+- **`UNUserNotificationCenter` with a time-interval trigger** — the reliable
+  alert, and it fires even if the app is killed. Needed regardless: the Live
+  Activity is presentation, the notification is the guarantee.
+
+Prerequisite either way: `Step` has no duration field, so a timer *per step*
+needs "simmer 20 minutes" parsed out of instruction text, or a duration captured
+during import. Multiple concurrent timers are the interesting design problem,
+since recipes have overlapping steps.
+
 ## Lessons worth not relearning
 
 - **A `ModelContext` does not retain its `ModelContainer`.** A test helper that
