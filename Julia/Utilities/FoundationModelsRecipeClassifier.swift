@@ -36,6 +36,20 @@ struct FoundationModelsRecipeClassifier {
     /// problem and the error is surfaced instead of split further.
     private let minimumChunkSize = 5
 
+    /// The on-device model's context window, covering prompt *and* response.
+    let contextWindowTokens = 4096
+
+    /// How much of the window the pre-flight check will plan for. The estimate
+    /// is crude and generation length varies, so this leaves real headroom
+    /// rather than aiming to fill the window.
+    let safeBudgetFraction = 0.75
+
+    /// Cost of one `{lineNumber, category}` entry plus its JSON scaffolding.
+    private let outputTokensPerLine = 8
+
+    /// Characters of fixed prompt text `classifyChunk` wraps around the lines.
+    private let promptWrapperCharacters = 80
+
     /// Confidence recorded for a line the model classified.
     private let assignedConfidence = 1.0
 
@@ -194,20 +208,55 @@ struct FoundationModelsRecipeClassifier {
     /// Returned line numbers are 1-based relative to `lines`, so the second half
     /// of a split is re-based before being handed back.
     private func classifyChunkSplittingOnOverflow(_ lines: [String]) async throws -> [ClassifiedLine] {
+        // Pre-flight. Splitting a request we can predict will not fit is much
+        // cheaper than discovering it: an overflow is only reported after the
+        // model has generated its way to the end of the window, which took ~100s
+        // the one time it happened in practice.
+        if lines.count > minimumChunkSize, estimatedTokens(for: lines) > safeTokenBudget {
+            return try await splitAndClassify(lines)
+        }
+
         do {
             return try await classifyChunk(lines)
         } catch let error as LanguageModelSession.GenerationError {
+            // The estimate is crude and generation length is not predictable, so
+            // the reactive path stays as the backstop.
             guard case .exceededContextWindowSize = error,
                   lines.count > minimumChunkSize else { throw error }
-
-            let middle = lines.count / 2
-            let first = try await classifyChunkSplittingOnOverflow(Array(lines[..<middle]))
-            let second = try await classifyChunkSplittingOnOverflow(Array(lines[middle...]))
-            return first + second.map {
-                ClassifiedLine(lineNumber: $0.lineNumber + middle, category: $0.category)
-            }
+            return try await splitAndClassify(lines)
         }
     }
+
+    /// Halves `lines`, classifies each half, and re-bases the second half's
+    /// line numbers so they stay relative to `lines`.
+    private func splitAndClassify(_ lines: [String]) async throws -> [ClassifiedLine] {
+        let middle = lines.count / 2
+        let first = try await classifyChunkSplittingOnOverflow(Array(lines[..<middle]))
+        let second = try await classifyChunkSplittingOnOverflow(Array(lines[middle...]))
+        return first + second.map {
+            ClassifiedLine(lineNumber: $0.lineNumber + middle, category: $0.category)
+        }
+    }
+
+    /// Rough token cost of classifying `lines` in one request — prompt and
+    /// response together, since the context window covers both.
+    ///
+    /// `characters / 4` is the usual English approximation. Deliberately
+    /// pessimistic in the details (the numbering prefix is counted, output is
+    /// costed per line) because under-estimating puts us back where we started.
+    func estimatedTokens(for lines: [String]) -> Int {
+        // Measured from the real strings so the estimate cannot drift when the
+        // prompt is edited.
+        let fixedOverhead = (instructions.count + promptWrapperCharacters) / 4
+
+        // +4 for the "12. " prefix classifyChunk adds, +1 for the newline.
+        let inputCharacters = lines.reduce(0) { $0 + $1.count + 5 }
+
+        return fixedOverhead + (inputCharacters / 4) + (lines.count * outputTokensPerLine)
+    }
+
+    /// Ceiling for the pre-flight check.
+    var safeTokenBudget: Int { Int(Double(contextWindowTokens) * safeBudgetFraction) }
 
     private func classifyChunk(_ lines: [String]) async throws -> [ClassifiedLine] {
         let numbered = lines.enumerated()

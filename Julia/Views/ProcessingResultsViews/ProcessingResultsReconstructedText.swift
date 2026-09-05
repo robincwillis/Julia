@@ -8,7 +8,6 @@
 import SwiftUI
 
 // Create a typealias for the result structure to avoid ambiguity
-typealias ProcessingTextResult = TextReconstructorResult
 
 struct ProcessingResultsReconstructedText: View {
   let reconstructedText: ProcessingTextResult

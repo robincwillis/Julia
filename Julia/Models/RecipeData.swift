@@ -181,37 +181,39 @@ struct RecipeData: Equatable {
     return recipe
   }
 
+  // Time-string patterns. Compiled once as statics rather than force-tried on
+  // every call: these are literals that cannot fail at runtime, so `try!` was
+  // both a needless crash risk and needless work per invocation.
+  private static let hourPattern = try? NSRegularExpression(
+    pattern: "(\\d+)\\s*h(our)?s?", options: .caseInsensitive
+  )
+  private static let minutePattern = try? NSRegularExpression(
+    pattern: "(\\d+)\\s*m(in(ute)?s?)?", options: .caseInsensitive
+  )
+  private static let numberPattern = try? NSRegularExpression(
+    pattern: "(\\d+)", options: []
+  )
+
+  /// First capture group of `pattern` in `text`, as an Int.
+  private func firstNumber(_ pattern: NSRegularExpression?, in text: String) -> Int? {
+    guard let pattern else { return nil }
+    let range = NSRange(location: 0, length: text.utf16.count)
+    guard let match = pattern.matches(in: text, options: [], range: range).first,
+          let captured = Range(match.range(at: 1), in: text)
+    else { return nil }
+    return Int(text[captured])
+  }
+
   // Helper method to parse time strings like "1 hour 15 minutes" or "45 min"
   private func parseTimeString(_ timeString: String) -> (Int, Int) {
-    var hours = 0
-    var minutes = 0
-    
-    // Look for hours
-    let hourPattern = try! NSRegularExpression(pattern: "(\\d+)\\s*h(our)?s?", options: .caseInsensitive)
-    let hourMatches = hourPattern.matches(in: timeString, options: [], range: NSRange(location: 0, length: timeString.utf16.count))
-    
-    if let match = hourMatches.first, let range = Range(match.range(at: 1), in: timeString) {
-      hours = Int(timeString[range]) ?? 0
-    }
-    
-    // Look for minutes
-    let minutePattern = try! NSRegularExpression(pattern: "(\\d+)\\s*m(in(ute)?s?)?", options: .caseInsensitive)
-    let minuteMatches = minutePattern.matches(in: timeString, options: [], range: NSRange(location: 0, length: timeString.utf16.count))
-    
-    if let match = minuteMatches.first, let range = Range(match.range(at: 1), in: timeString) {
-      minutes = Int(timeString[range]) ?? 0
-    }
-    
-    // If no specific pattern found but it's just a number, assume minutes
+    let hours = firstNumber(Self.hourPattern, in: timeString) ?? 0
+    var minutes = firstNumber(Self.minutePattern, in: timeString) ?? 0
+
+    // No unit found, but a bare number — assume minutes.
     if hours == 0 && minutes == 0 {
-      let numberPattern = try! NSRegularExpression(pattern: "(\\d+)", options: [])
-      let numberMatches = numberPattern.matches(in: timeString, options: [], range: NSRange(location: 0, length: timeString.utf16.count))
-      
-      if let match = numberMatches.first, let range = Range(match.range(at: 1), in: timeString) {
-        minutes = Int(timeString[range]) ?? 0
-      }
+      minutes = firstNumber(Self.numberPattern, in: timeString) ?? 0
     }
-    
+
     return (hours, minutes)
   }
 }

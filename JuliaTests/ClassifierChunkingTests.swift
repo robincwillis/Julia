@@ -117,6 +117,46 @@ struct ClassifierChunkingTests {
         }
     }
 
+    // MARK: - Pre-flight token estimation
+
+    @Test("A default-sized window is comfortably inside the safe budget")
+    func defaultWindowFitsBudget() {
+        // A 40-line window of typical recipe lines should not trip the
+        // pre-flight split — if it does, every import pays for extra requests.
+        let typical = (0..<classifier.chunkSize).map { _ in
+            "2 tablespoons extra virgin olive oil, plus more for drizzling"
+        }
+        let estimate = classifier.estimatedTokens(for: typical)
+        #expect(estimate < classifier.safeTokenBudget,
+                "a normal window estimates \(estimate) against a budget of \(classifier.safeTokenBudget)")
+    }
+
+    @Test("The old 150-line chunk is correctly predicted not to fit")
+    func oversizedChunkExceedsBudget() {
+        // 150 lines was the setting that caused the overflow bug. The estimator
+        // exists to catch exactly this before spending a request on it.
+        let oversized = (0..<150).map { _ in "2 tablespoons extra virgin olive oil" }
+        #expect(classifier.estimatedTokens(for: oversized) > classifier.safeTokenBudget)
+    }
+
+    @Test("Estimates grow with input and never fall below the fixed overhead")
+    func estimateIsMonotonic() {
+        let empty = classifier.estimatedTokens(for: [])
+        let few = classifier.estimatedTokens(for: lines(5))
+        let many = classifier.estimatedTokens(for: lines(50))
+
+        #expect(empty > 0, "the instructions alone cost tokens")
+        #expect(few > empty)
+        #expect(many > few)
+    }
+
+    @Test("The safe budget leaves headroom against the real window")
+    func budgetLeavesHeadroom() {
+        #expect(classifier.safeTokenBudget < classifier.contextWindowTokens)
+        #expect(classifier.safeTokenBudget > classifier.contextWindowTokens / 2,
+                "too conservative would split needlessly")
+    }
+
     @Test("No window exceeds the chunk size plus its overlap", arguments: [41, 85, 120, 201, 399])
     func windowsStayWithinBudget(count: Int) {
         let limit = classifier.chunkSize + classifier.chunkOverlap

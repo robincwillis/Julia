@@ -180,9 +180,11 @@ struct IngredientParsingTests {
                 "\(input) scored \(scored.confidence) — would escalate unnecessarily")
     }
 
-    @Test("Parses the heuristic gets wrong score below the threshold", arguments: [
-        "1 1/2 cups flour",         // space-separated mixed number
-        "2 cups (250 g) flour"      // parenthetical absorbed into the name
+    @Test("Parses the heuristic cannot read score below the threshold", arguments: [
+        "Salt and pepper to taste",     // no leading quantity, several words
+        "A handful of basil",           // quantity is a word, not a number
+        "3 large eggs",                 // "large" is not a unit, so it stays in the name
+        "1 lb chicken, 2 breasts"       // trailing digits: a botched quantity, not a note
     ])
     func unconfidentParses(input: String) throws {
         let scored = try #require(
@@ -190,6 +192,66 @@ struct IngredientParsingTests {
         )
         #expect(scored.confidence < IngredientParser.escalationThreshold,
                 "\(input) scored \(scored.confidence) — the model would never be asked")
+    }
+
+    // MARK: Cases the heuristic now handles without the model
+
+    @Test("A space-separated mixed number is one quantity")
+    func spaceSeparatedMixedNumber() throws {
+        let scored = try #require(
+            IngredientParser.scoredParseForTesting(input: "1 1/2 cups flour", location: .recipe)
+        )
+        let quantity = try #require(scored.ingredient.quantity)
+        #expect(abs(quantity - 1.5) < 0.0001, "expected 1.5, got \(quantity)")
+        #expect(scored.ingredient.name == "flour")
+        #expect(scored.ingredient.unit != nil)
+        // Fully accounted for, so no model call needed.
+        #expect(scored.confidence >= IngredientParser.escalationThreshold)
+    }
+
+    @Test("A parenthetical becomes a comment instead of polluting the name")
+    func parentheticalBecomesComment() throws {
+        let scored = try #require(
+            IngredientParser.scoredParseForTesting(input: "2 cups (250 g) flour", location: .recipe)
+        )
+        #expect(scored.ingredient.quantity == 2)
+        #expect(scored.ingredient.name == "flour")
+        #expect(scored.ingredient.comment == "250 g")
+        #expect(scored.confidence >= IngredientParser.escalationThreshold)
+    }
+
+    @Test("A trailing note becomes a comment")
+    func trailingNoteBecomesComment() throws {
+        let scored = try #require(
+            IngredientParser.scoredParseForTesting(input: "2 cups flour, sifted", location: .recipe)
+        )
+        #expect(scored.ingredient.quantity == 2)
+        #expect(scored.ingredient.name == "flour")
+        #expect(scored.ingredient.comment == "sifted")
+    }
+
+    @Test("Both a parenthetical and a trailing note are captured")
+    func parentheticalAndTrailingNote() throws {
+        let scored = try #require(
+            IngredientParser.scoredParseForTesting(
+                input: "2 cups (250 g) flour, sifted", location: .recipe)
+        )
+        #expect(scored.ingredient.name == "flour")
+        let comment = try #require(scored.ingredient.comment)
+        #expect(comment.contains("250 g"))
+        #expect(comment.contains("sifted"))
+    }
+
+    @Test("A whole number is not mistaken for a fraction")
+    func wholeNumberNotAFraction() throws {
+        // "2 cups" must not be read as a mixed number, which would consume the
+        // unit token and leave the name empty.
+        let scored = try #require(
+            IngredientParser.scoredParseForTesting(input: "2 cups flour", location: .recipe)
+        )
+        #expect(scored.ingredient.quantity == 2)
+        #expect(scored.ingredient.name == "flour")
+        #expect(scored.ingredient.unit != nil)
     }
 
     @Test("An unrecognized unit token is scored lower than a recognized one")

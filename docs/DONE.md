@@ -9,6 +9,107 @@ Open work lives in [TODO.md](TODO.md). Findings and their status are in
 
 ---
 
+## 2026-09-04 — Correctness and hygiene
+
+Was "P2 — Dead code and hygiene". All seven items complete.
+
+### Archive the old Core ML pipeline — S
+
+`RecipeClassifier.mlmodel` (368 KB), `IngredientClassifier.mlmodel` (48 KB) and
+the vestigial `RecipeTextClassifier` class moved to `Archive/CoreML-legacy/` and
+removed from the app target's Sources phase. Verified the models no longer
+appear in the built `.app`. Archived rather than deleted: they remain the
+obvious starting point if a real no-AI fallback classifier is ever wanted.
+
+⚠️ **The backlog note was wrong and nearly cost a broken build.** It recorded
+`RecipeTextClassifier.swift` as "36 lines, no references" — true of the *class*,
+but the file also declared **`RecipeLineType`**, which five files use. Archiving
+the file wholesale would have broken the app. The enum moved to
+`Julia/Models/RecipeLineType.swift`, where a model type belongs; only the dead
+class and the unreferenced `RecipeTextLine` were archived.
+
+→ [AUDIT.md §5](AUDIT.md), `Archive/README.md`
+
+### Relabel the inert confidence UI — S
+
+Decided: keep the mechanism, name it honestly. The classifier emits a *binary*
+signal — did the model account for this line — not a graded score, so rendering
+"0.30" as a confidence implied precision that does not exist.
+
+`ProcessingResultsClassifiedText` now reads "Unclassified Only" rather than
+"Skipped Only", shows a "Not classified" badge instead of a numeric column, and
+replaces sort-by-confidence (meaningless across two values) with "Unclassified
+first / Document order", which keeps document order within each group.
+`RecipeProcessor.confidenceThreshold` is documented as the boundary it now is.
+
+→ [AUDIT.md §6](AUDIT.md)
+
+### Remove the crash-on-failure paths — S
+
+`DataController.appContainer` force-tried a *second* on-disk container inside
+the handler for the first one failing — so the usual outcome was a crash moments
+after going to the trouble of reporting the error. Worse, the fallback used a
+different schema (`Ingredient` only), which would have failed on any `Recipe`
+query anyway. It now degrades to an in-memory container over the real schema,
+and only `fatalError`s if even that is impossible.
+
+The three `try! NSRegularExpression` in `RecipeData.parseTimeString` are hoisted
+to `static let` — compiled once instead of on every call, and no force-try on
+literals that cannot fail.
+
+→ [AUDIT.md §8](AUDIT.md)
+
+### Mark `parsely-swiftui/` as a spike — S
+
+Decided: keep the code, stop it reading as live. `parsely-swiftui/README.md`
+records that it is in no target, that `RecipeWebScraper` supersedes it, and
+where to look instead. Confirmed zero references in `project.pbxproj`.
+
+→ [AUDIT.md §7](AUDIT.md)
+
+### Improve the heuristic parser — M
+
+`legacyParse` is the only ingredient parser on a device without Apple
+Intelligence, and it was strictly positional. It now peels off non-name content
+*before* tokenizing:
+
+- **Parentheticals become comments.** `2 cups (250 g) flour` → quantity 2, unit
+  cup, name "flour", comment "250 g". Previously the name was "(250 g) flour".
+- **Trailing notes become comments.** `2 cups flour, sifted` → comment "sifted".
+  Only when the note contains no digits — `1 lb chicken, 2 breasts` is more
+  likely a botched quantity than a note, so it is left for the model.
+- **Space-separated mixed numbers are one quantity.** `1 1/2 cups flour` → 1.5,
+  not quantity 1 with a name of "1/2 cups flour". Guarded so a whole number is
+  never mistaken for a fraction, which would consume the unit token.
+
+Consequence worth noting: both cases the confidence gate was built to escalate
+now parse fully and score 1.0, so they **stop costing model calls**. The
+escalation tests were updated to cover inputs the heuristic genuinely cannot
+read — `Salt and pepper to taste`, `A handful of basil`, `3 large eggs`.
+
+### Estimate tokens before calling — M
+
+`estimatedTokens(for:)` costs a request before making it — instructions measured
+from the real string so it cannot drift, plus input at `characters / 4` with the
+numbering prefix counted, plus output at 8 tokens per line. Requests estimated
+above 75% of the 4,096-token window split proactively via `splitAndClassify`
+rather than discovering overflow after the model has generated its way to the
+end of the window, which took ~100s the one time it happened.
+
+The reactive `.exceededContextWindowSize` path stays as the backstop, since the
+estimate is crude and generation length is not predictable. Tests pin that a
+normal 40-line window fits comfortably and that the old 150-line chunk is
+correctly predicted not to.
+
+### Tidy leftovers — S
+
+`JuliaTests/TestResult.swift` deleted — unreferenced since the harness rewrite.
+`ProcessingTextResult` moved out of a *view* file to sit beside the type it
+aliases in `RecipeTextReconstructor.swift`; the pipeline refers to it, so a view
+was the wrong owner.
+
+---
+
 ## 2026-09-04 — P1: import pipeline robustness
 
 Was "P1 — Robustness of the import pipeline". All four items complete.

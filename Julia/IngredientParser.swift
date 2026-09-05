@@ -85,79 +85,155 @@ class IngredientParser {
 
     /// Confidence is derived from *how* the parse resolved, not from any model:
     ///
-    /// - `1.0` single word — no quantity or unit to get wrong
-    /// - `1.0` quantity and a recognized unit both found
-    /// - `1.0` quantity found with no candidate unit token at all ("2 eggs")
-    /// - `0.6` quantity found but the candidate unit token was unrecognized,
-    ///         so it got absorbed into the name ("2 cups (250 g) flour")
-    /// - `0.3` `parseQuantity` failed outright and the whole string became the
-    ///         name ("1 1/2 cups flour", where "1" parses but "1/2" is not a unit)
+    /// - `1.0` the whole string was accounted for — a bare item, or a quantity
+    ///         with a recognized unit, with anything left over captured as a
+    ///         comment rather than dumped in the name
+    /// - `0.6` a quantity was found but the token after it was not a unit, so
+    ///         it stayed in the name
+    /// - `0.3` no quantity found at all; the whole string became the name
     ///
-    /// Any of the above is capped at `0.6` if the resulting *name* still holds
-    /// digits or a parenthetical — see `adjust(_:forName:)`.
-    ///
-    /// Note on the third case: the decision recorded in docs/TODO.md scores
-    /// "quantity found, unit not recognized" at 0.6. That is read here as
-    /// *there was a unit token and we failed to recognize it* — the parenthetical
-    /// "(absorbed into name)". A two-word input has no unit slot to fail at, so
-    /// "2 eggs" scores 1.0 rather than paying for a model call it does not need.
+    /// A two-word input has no unit slot to fail at, so "2 eggs" scores 1.0
+    /// rather than paying for a model call it does not need.
     private static func legacyParseScored(input: String, location: IngredientLocation) -> ScoredParse? {
-        let components = input.split(separator: " ").map { String($0) }
-        guard !components.isEmpty else { return nil }
+        // Peel off the parts that are not quantity/unit/name before tokenizing.
+        // Doing this first is what lets a parenthetical or a trailing note stop
+        // polluting the name — previously "2 cups (250 g) flour" produced a name
+        // of "(250 g) flour".
+        let (withoutParens, parenComment) = extractParenthetical(input)
+        let (core, trailingComment) = extractTrailingComment(withoutParens)
+        let comment = [parenComment, trailingComment]
+            .compactMap { $0 }
+            .filter { !$0.isEmpty }
+            .joined(separator: ", ")
+        let commentOrNil = comment.isEmpty ? nil : comment
+
+        var components = core.split(separator: " ").map(String.init)
+        guard !components.isEmpty else {
+            // Nothing but a comment — keep the original so nothing is lost.
+            return ScoredParse(
+                ingredient: Ingredient(name: input, location: location),
+                confidence: 0.3
+            )
+        }
 
         // Whole string fell through to the name — the heuristic found nothing.
         func unparsed() -> ScoredParse {
-            ScoredParse(ingredient: Ingredient(name: input, location: location), confidence: 0.3)
+            ScoredParse(
+                ingredient: Ingredient(name: input, location: location),
+                confidence: 0.3
+            )
         }
 
-        /// A name that still contains digits or a parenthetical means content
-        /// was left unparsed, even when quantity and unit both resolved.
-        /// Without this, "2 cups (250 g) flour" scores 1.0 on the strength of
-        /// "cups" and never escalates, leaving "(250 g) flour" as the name —
-        /// one of the cases escalation exists to fix.
+        /// A name that still contains digits means content was left unparsed,
+        /// even when quantity and unit both resolved.
         func adjust(_ confidence: Double, forName name: String) -> Double {
             guard confidence > 0.6 else { return confidence }
-            let hasResidue = name.contains(where: \.isNumber)
-                || name.contains("(")
-                || name.contains(")")
-            return hasResidue ? 0.6 : confidence
+            return name.contains(where: \.isNumber) ? 0.6 : confidence
         }
 
-        switch components.count {
-        case 1:
-            return ScoredParse(
-                ingredient: Ingredient(name: components[0], location: location),
-                confidence: adjust(1.0, forName: components[0])
-            )
+        // "1 1/2 cups flour" — a whole number followed by a fraction is one
+        // quantity spelled across two tokens. Very common in recipes, and
+        // previously parsed as quantity 1 with a name of "1/2 cups flour".
+        var quantity = parseQuantity(components[0])
+        if components.count > 1,
+           let whole = Double(components[0]), whole == whole.rounded(),
+           let fraction = slashFraction(components[1]) {
+            quantity = whole + fraction
+            components.remove(at: 1)
+        }
 
-        case 2:
-            guard let quantity = parseQuantity(components[0]) else { return unparsed() }
-            return ScoredParse(
-                ingredient: Ingredient(name: components[1], location: location, quantity: quantity),
-                confidence: adjust(1.0, forName: components[1])
-            )
-
-        default:
-            guard let quantity = parseQuantity(components[0]) else { return unparsed() }
-            let unitToken = components[1].lowercased()
-
-            if MeasurementUnit(from: unitToken) != nil {
-                let name = components.dropFirst(2).joined(separator: " ")
+        guard let quantity else {
+            // No leading quantity. A single token is a plain item; anything
+            // longer is something the heuristic could not read.
+            if components.count == 1 {
                 return ScoredParse(
-                    ingredient: Ingredient(name: name, location: location,
-                                           quantity: quantity, unit: unitToken),
-                    confidence: adjust(1.0, forName: name)
+                    ingredient: Ingredient(name: components[0], location: location,
+                                           comment: commentOrNil),
+                    confidence: 1.0
                 )
             }
+            return unparsed()
+        }
 
-            // Unit token unrecognized, so it stays in the name — the parse is
-            // usable but this is exactly where the heuristic tends to be wrong.
-            let name = components.dropFirst(1).joined(separator: " ")
+        // Quantity with no room for a unit — "2 eggs".
+        guard components.count > 2 else {
+            let name = components.count > 1 ? components[1] : ""
+            guard !name.isEmpty else { return unparsed() }
             return ScoredParse(
-                ingredient: Ingredient(name: name, location: location, quantity: quantity),
-                confidence: 0.6
+                ingredient: Ingredient(name: name, location: location,
+                                       quantity: quantity, comment: commentOrNil),
+                confidence: adjust(1.0, forName: name)
             )
         }
+
+        let unitToken = components[1].lowercased()
+        if MeasurementUnit(from: unitToken) != nil {
+            let name = components.dropFirst(2).joined(separator: " ")
+            return ScoredParse(
+                ingredient: Ingredient(name: name, location: location,
+                                       quantity: quantity, unit: unitToken,
+                                       comment: commentOrNil),
+                confidence: adjust(1.0, forName: name)
+            )
+        }
+
+        // Unit token unrecognized, so it stays in the name — usable, but this is
+        // where the heuristic tends to be wrong, so escalate if we can.
+        let name = components.dropFirst(1).joined(separator: " ")
+        return ScoredParse(
+            ingredient: Ingredient(name: name, location: location,
+                                   quantity: quantity, comment: commentOrNil),
+            confidence: 0.6
+        )
+    }
+
+    // MARK: - Splitting off non-name content
+
+    /// Pulls a single parenthetical out of `input`, returning the remainder and
+    /// its contents. "2 cups (250 g) flour" → ("2 cups flour", "250 g").
+    private static func extractParenthetical(_ input: String) -> (String, String?) {
+        guard let open = input.firstIndex(of: "("),
+              let close = input.firstIndex(of: ")"),
+              open < close
+        else { return (input, nil) }
+
+        let inner = String(input[input.index(after: open)..<close])
+            .trimmingCharacters(in: .whitespaces)
+        var remainder = input
+        remainder.removeSubrange(open...close)
+        // Collapse the double space the removal leaves behind.
+        let cleaned = remainder
+            .replacingOccurrences(of: "  ", with: " ")
+            .trimmingCharacters(in: .whitespaces)
+        return (cleaned, inner.isEmpty ? nil : inner)
+    }
+
+    /// Splits a trailing ", note" off the end. "3 large eggs, room temperature"
+    /// → ("3 large eggs", "room temperature").
+    ///
+    /// Only the last comma is considered, and only when what follows contains no
+    /// digits — "1 lb chicken, 2 breasts" is more likely a botched quantity than
+    /// a note, and is better left for the model.
+    private static func extractTrailingComment(_ input: String) -> (String, String?) {
+        guard let comma = input.lastIndex(of: ",") else { return (input, nil) }
+        let note = String(input[input.index(after: comma)...])
+            .trimmingCharacters(in: .whitespaces)
+        guard !note.isEmpty, !note.contains(where: \.isNumber) else { return (input, nil) }
+        let head = String(input[input.startIndex..<comma]).trimmingCharacters(in: .whitespaces)
+        guard !head.isEmpty else { return (input, nil) }
+        return (head, note)
+    }
+
+    /// "1/2" → 0.5. Nil for anything that is not a simple slash fraction, so a
+    /// whole number is not mistaken for one.
+    private static func slashFraction(_ input: String) -> Double? {
+        let parts = input.split(separator: "/")
+        guard parts.count == 2,
+              let numerator = Double(parts[0]),
+              let denominator = Double(parts[1]),
+              denominator != 0
+        else { return nil }
+        return numerator / denominator
     }
 
     // MARK: - Quantity Parsing

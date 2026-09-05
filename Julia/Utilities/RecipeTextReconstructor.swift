@@ -8,6 +8,12 @@ struct TextReconstructorResult {
   var artifacts: [String]
 }
 
+/// Pipeline-facing name for the same type. Declared here beside the type it
+/// aliases rather than in a view file, which is where it used to live — the
+/// pipeline (`RecipeProcessor`, `RecipeData`) refers to it, so a view was the
+/// wrong owner.
+typealias ProcessingTextResult = TextReconstructorResult
+
 class RecipeTextReconstructor {
   // Main function to reconstruct recipe text from an array of lines
   static func reconstructText(from lines: [String]) -> TextReconstructorResult {

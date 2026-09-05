@@ -15,7 +15,12 @@ import FoundationModels
 @Observable
 @MainActor
 class RecipeProcessor {
-  // Set confidence threshold for classification
+  /// Boundary between a line the classifier accounted for and one it omitted.
+  ///
+  /// `FoundationModelsRecipeClassifier` emits a binary signal — 1.0 when the
+  /// model categorised a line, 0.3 when it did not and `buildResult` defaulted
+  /// it to `.unknown` — so this separates those two rather than grading a
+  /// genuine per-line confidence.
   static let confidenceThreshold: Double = 0.65
 
   // Consolidated state

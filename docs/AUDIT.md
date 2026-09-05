@@ -128,7 +128,7 @@ model calls there would double the AI cost per import and race the dedupe.
 scored below 0.7, so a clean "2 cups flour" costs no model call. See
 [TODO.md](TODO.md).
 
-## 5. Dead Core ML pipeline still shipping — **OPEN**
+## 5. Dead Core ML pipeline still shipping — **FIXED**
 
 The Foundation Models migration left the old pipeline in place but unreferenced:
 
@@ -141,10 +141,15 @@ The Foundation Models migration left the old pipeline in place but unreferenced:
 Both `.mlmodel` files are still in the app target's **Sources** phase, so they
 are compiled and shipped — ~416 KB of bundle for code that nothing calls.
 
-Deliberately left in place: they are the most plausible fix for §1. Decide §1
-first, then either re-wire them or delete all three.
+**Fixed 2026-09-04.** Moved to `Archive/CoreML-legacy/` and out of the app
+target's Sources phase, so the ~416 KB no longer ships. Archived rather than
+deleted — still the obvious starting point for a real no-AI fallback.
 
-## 6. Confidence UI is now inert — **PARTLY FIXED**
+⚠️ `RecipeTextClassifier.swift` also declared `RecipeLineType`, used by five
+files, so this was not a straight move: the enum now lives in
+`Julia/Models/RecipeLineType.swift`. See [DONE.md](DONE.md).
+
+## 6. Confidence UI is now inert — **FIXED**
 
 `ProcessingResultsClassifiedText` colours lines and offers a "skipped only"
 filter based on `confidence < RecipeProcessor.confidenceThreshold` (0.65). But
@@ -163,20 +168,24 @@ So every line reads as maximum confidence, the colouring never varies, and the
 a real signal to emit: a line the model *did* classify records 1.0, while a line
 it omitted — defaulted to `.unknown` by `buildResult` — records **0.3**, below
 the 0.65 threshold. So the colouring and the "skipped only" filter now surface
-something meaningful: the lines the model failed to account for. Still open is
-whether a genuine per-line confidence is wanted beyond that binary.
+something meaningful: the lines the model failed to account for.
 
-## 7. `parsely-swiftui/` is not in the build — **OPEN**
+**Closed 2026-09-04.** Decided against inventing a graded score. The UI now
+names the binary signal honestly — "Unclassified Only", a "Not classified"
+badge, and "Unclassified first" ordering — with the misleading numeric column
+removed. See [DONE.md](DONE.md).
+
+## 7. `parsely-swiftui/` is not in the build — **FIXED**
 
 A 9-file, ~976-line SwiftPM package (`Package.swift`, `RecipeScraper`, a full
 set of views) sits at the repo root and is referenced **nowhere** in
 `Julia.xcodeproj`. The app's actual scraper is `RecipeWebScraper` in
 `Julia/Utilities/RecipeWebExtractor.swift`.
 
-If it is a spike, move it out of the repo or note its status in the README —
-right now it reads as live code and duplicates the scraper concept.
+**Fixed 2026-09-04.** `parsely-swiftui/README.md` marks it a spike, records
+that it is in no target, and points at `RecipeWebScraper` instead. Code kept.
 
-## 8. Crash-on-failure paths — **OPEN**
+## 8. Crash-on-failure paths — **FIXED**
 
 ```swift
 // Julia/Utilities/DataController.swift:79 — inside the error handler for a failed container
@@ -187,10 +196,11 @@ This runs *after* container creation has already failed, and force-tries a
 second one; when that fails the app crashes instead of surfacing the error it
 just went to the trouble of posting a notification about.
 
-Also three `try! NSRegularExpression` in `Julia/Models/RecipeData.swift`
-(lines 190, 198, 207). These are static patterns so they cannot realistically
-fail, but `static let` compiled once is both safer and cheaper than
-force-trying on every call.
+Also three `try! NSRegularExpression` in `Julia/Models/RecipeData.swift`.
+
+**Fixed 2026-09-04.** The container now degrades to an in-memory store over the
+real schema instead of force-trying a second on-disk one with a different
+schema; the regexes are `static let`, compiled once. See [DONE.md](DONE.md).
 
 ## 9. Colour strategy is split — **OPEN**
 

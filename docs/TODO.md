@@ -16,69 +16,9 @@ list at "P2".
 
 ---
 
-## Correctness and hygiene
-
-Was P2. Nothing here is user-visible breakage; the top item is the only one
-with a real decision attached.
-
-- [ ] **Archive the old Core ML pipeline (don't delete)** — S
-  **Decided 2026-09-03.** The no-AI decision went with detect-and-communicate,
-  so these are wired to nothing — but keep them.
-  `RecipeTextClassifier.swift` (36 lines, no references),
-  `RecipeClassifier.mlmodel` (368 KB) and `IngredientClassifier.mlmodel`
-  (48 KB) are unreferenced yet still in the app target's Sources phase, so
-  ~416 KB ships as dead weight. Move them out of the build phase (an
-  `Archive/` folder excluded from the target) so the weight stops shipping but
-  the code stays available if a fallback classifier is ever revisited.
-  → [AUDIT.md §5](AUDIT.md)
-
-- [ ] **Fix or remove the inert confidence UI** — S
-  `ProcessingResultsClassifiedText` colours lines and filters "skipped only" on
-  `confidence < 0.65`. Partly resolved already: lines the model omitted now
-  record 0.3 against 1.0 for classified ones, so the filter finally surfaces
-  something real. What remains is deciding whether a genuine per-line
-  confidence is wanted beyond that binary, or whether the column should go.
-  → [AUDIT.md §6](AUDIT.md)
-
-- [ ] **Remove the crash-on-failure paths** — S
-  `DataController.swift:79` force-tries a second `ModelContainer` inside the
-  handler for a failed one, so it crashes instead of surfacing the error it just
-  posted a notification about. Plus three `try! NSRegularExpression` in
-  `RecipeData.swift` (190, 198, 207) — static patterns, so hoist to `static let`.
-  → [AUDIT.md §8](AUDIT.md)
-
-- [ ] **Decide what `parsely-swiftui/` is** — S
-  9 files, ~976 lines, referenced nowhere in `Julia.xcodeproj`. Reads as live
-  code and duplicates the scraper concept. Move it out or note its status.
-  → [AUDIT.md §7](AUDIT.md)
-
-- [ ] **Improve the heuristic parser for devices without Apple Intelligence** — M
-  **Downgraded and re-scoped 2026-09-04.** The two cases that originally
-  motivated this — `1 1/2 cups flour` and `2 cups (250 g) flour` — are now
-  exactly what the confidence gate escalates to the model, so the original
-  reason is spent.
-
-  What remains is a different job: `legacyParse` is the *only* ingredient parser
-  on a device without Apple Intelligence, and it is positional
-  (`split(separator: " ")`), so a quantity anywhere but position 0 is never
-  found. That makes this part of the no-AI story rather than parser polish.
-  → [AUDIT.md §1](AUDIT.md)
-
-- [ ] **Estimate tokens before calling, instead of discovering overflow** — M
-  **Downgraded 2026-09-04.** `chars / 4` is crude but enough to split
-  proactively rather than discovering overflow after ~100s. Still worth having,
-  but the risk it guards shrank: a 40-line chunk now sits at ~24% of budget
-  rather than ~42%, so overflow needs the model to over-generate roughly 4×,
-  and halve-and-retry already catches that.
-
-- [ ] **Tidy leftovers** — S
-  `JuliaTests/TestResult.swift` is unreferenced since the harness rewrite.
-  `ProcessingTextResult` is a pipeline-wide typealias declared in a *view* file
-  (`ProcessingResultsReconstructedText.swift:11`).
-
 ## Test coverage
 
-Was P4. The first item is the highest-value work on this list.
+Was P4. Now the top of the list — the first item is the highest-value work here.
 
 - [ ] **Bring the existing test assets over from the other machine** — M
   A library of recipe images and some text files sits on another computer, in

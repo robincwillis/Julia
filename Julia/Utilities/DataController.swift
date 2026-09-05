@@ -74,9 +74,27 @@ class DataController {
         name: NSNotification.Name("ModelContainerError"),
         object: error
       )
-      // Crash in development, create empty container in production
+      // Crash in development so a schema mistake is caught immediately.
       assertionFailure("Failed to create app container: \(error.localizedDescription)")
-      return try! ModelContainer(for: Ingredient.self)
+
+      // In production, degrade instead of crashing: an in-memory container over
+      // the same schema keeps the app usable and read-consistent for the
+      // session, and the notification above drives the user-facing alert.
+      //
+      // Previously this force-tried a *second* on-disk container — inside the
+      // handler for the first one failing — so the usual outcome was a crash
+      // moments after going to the trouble of reporting the error. It also used
+      // a different schema (Ingredient only), which would have failed on any
+      // Recipe query anyway.
+      if let fallback = try? ModelContainer(
+        for: appSchema,
+        configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+      ) {
+        return fallback
+      }
+
+      // Nothing left to try: the schema itself cannot be realised.
+      fatalError("Failed to create any container for the app schema: \(error.localizedDescription)")
     }
   }()
   

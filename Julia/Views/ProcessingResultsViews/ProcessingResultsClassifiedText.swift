@@ -13,13 +13,24 @@ struct ProcessingResultsClassifiedText: View {
 
   @State private var hasUnsavedChanges = false
   @State private var filterType: RecipeLineType? = nil
-  @State private var showSkippedOnly: Bool = false
-  @State private var sortByConfidence: Bool = true
+  @State private var showUnclassifiedOnly: Bool = false
+  @State private var unclassifiedFirst: Bool = true
+
+  /// Whether the model actually accounted for this line.
+  ///
+  /// The classifier emits a binary signal, not a graded score: 1.0 for a line
+  /// it categorised, and a low value for one it omitted, which `buildResult`
+  /// then defaults to `.unknown`. So this reads as "was this classified",
+  /// and the raw number is deliberately not shown — rendering 0.30 as a
+  /// confidence implies precision that does not exist.
+  private func wasClassified(_ confidence: Double) -> Bool {
+    confidence >= RecipeProcessor.confidenceThreshold
+  }
   
   var body: some View {
     VStack {
       HStack {
-        Toggle("Skipped Only", isOn: $showSkippedOnly)
+        Toggle("Unclassified Only", isOn: $showUnclassifiedOnly)
           .toggleStyle(.button)
           .background(Color.app.white)
           .cornerRadius(6)
@@ -41,9 +52,9 @@ struct ProcessingResultsClassifiedText: View {
         }
         .font(.caption)
         
-        Button(sortByConfidence ? "Sort: Confidence" : "Sort: Order") {
+        Button(unclassifiedFirst ? "Unclassified first" : "Document order") {
           withAnimation {
-            sortByConfidence.toggle()
+            unclassifiedFirst.toggle()
           }
         }
         .font(.caption)
@@ -55,14 +66,19 @@ struct ProcessingResultsClassifiedText: View {
         let filteredLines = recipeData.classifiedLines.enumerated().filter { index, item in
           let (_, type, confidence) = item
           let typeMatch = filterType == nil || type == filterType
-          let confidenceMatch = !showSkippedOnly || confidence < RecipeProcessor.confidenceThreshold
-          return typeMatch && confidenceMatch
+          let classifiedMatch = !showUnclassifiedOnly || !wasClassified(confidence)
+          return typeMatch && classifiedMatch
         }.sorted { a, b in
-          if sortByConfidence {
-            return a.element.2 > b.element.2 // Sort by confidence descending
-          } else {
-            return a.offset < b.offset // Sort by original order
+          guard unclassifiedFirst else {
+            return a.offset < b.offset
           }
+          // Surface the lines needing attention, keeping document order within
+          // each group. Sorting by the raw value would be meaningless — there
+          // are only two.
+          let aNeedsAttention = !wasClassified(a.element.2)
+          let bNeedsAttention = !wasClassified(b.element.2)
+          if aNeedsAttention != bNeedsAttention { return aNeedsAttention }
+          return a.offset < b.offset
         }
         
         if filteredLines.isEmpty {
@@ -71,13 +87,13 @@ struct ProcessingResultsClassifiedText: View {
             .frame(maxWidth: .infinity, alignment: .center)
             .padding()
         } else {
-          Section("Classified Lines (\(filteredLines.count) of \(recipeData.classifiedLines.count))") {
+          Section("Lines (\(filteredLines.count) of \(recipeData.classifiedLines.count))") {
             ForEach(filteredLines, id: \.offset) { index, lineData in
               let (text, type, confidence) = lineData
               VStack(alignment: .leading) {
                 Text(text)
                   .font(.body)
-                  .foregroundColor(confidence >= RecipeProcessor.confidenceThreshold ? .primary : .secondary)
+                  .foregroundColor(wasClassified(confidence) ? Color.app.textPrimary : .secondary)
                 
                 HStack {
                   Label(type.rawValue.capitalized, systemImage: typeIcon(for: type))
@@ -85,13 +101,15 @@ struct ProcessingResultsClassifiedText: View {
                   
                   Spacer()
                   
-                  Text("Confidence: \(String(format: "%.2f", confidence))")
-                    .font(.caption2)
-                    .foregroundColor(confidence >= RecipeProcessor.confidenceThreshold ? .green : .red)
+                  if !wasClassified(confidence) {
+                    Label("Not classified", systemImage: "exclamationmark.circle")
+                      .font(.caption2)
+                      .foregroundColor(.orange)
+                  }
                 }
                 .font(.caption)
                 
-                if confidence < RecipeProcessor.confidenceThreshold {
+                if !wasClassified(confidence) {
                   HStack {
                     Button("Add as Ingredient") {
                       recipeData.ingredients.append(text)
