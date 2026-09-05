@@ -37,7 +37,7 @@ tagging back into Figma as text labels.
 
 ## Figma recreations
 
-Thirteen of these screens have been rebuilt as native Figma frames, gathered in a
+Sixteen of these screens have been rebuilt as native Figma frames, gathered in a
 `Design Mocks` frame. They live in a **copy** of the Julia file inside the
 Addition org — `iMoHTDAGPZi6VkRgUEf9vG` — because the original sits in a
 Starter-plan team, where the Figma MCP allowance is 20 calls per month. See
@@ -59,6 +59,9 @@ and naming those frames follow, and for the open items still to settle.
 | IMG_0499 | `1143:2` | `.plain` List on `bgPrimary` |
 | IMG_0482 | `1159:2` | full screen, drawer expanded + dim overlay |
 | IMG_0498 | `1173:14` | `.plain` List on `bgPrimary`, Pantry tab |
+| IMG_0473 | `1199:2` | `.plain` List empty state, Groceries tab (Dark) |
+| IMG_0488 | `1196:142` | `.sheet` + `Form`, Recipe tab, keyboard up (Dark) |
+| IMG_0487 | `1201:2` | `.sheet` + `Form`, Reconstructed tab + tab bar (Dark) |
 
 Presentation context turned out to matter more than the view name. Four distinct
 species so far: modal detent sheet, `FloatingBottomSheet` (bottom-anchored card,
@@ -66,8 +69,11 @@ all corners rounded, 5% scrim), edge drawer (pushes rather than covers, no scrim
 at all), and plain full-screen. IMG_0508's and IMG_0501's differ from the modal
 sheets in surface geometry, scrim and layer order alike.
 
-Still to build: **IMG_0487/0488** ProcessingResults and **IMG_0473**
-EmptyIngredientsView. Everything else in the grid
+**All distinct layouts are now built.** What remains in the grid is variants —
+dark twins, different states, the same list in its other tab — which come from
+component variants and a mode swap, not fresh builds. `1196:2` is a worked
+example: the dark Recipes screen, generated from the light one by switching the
+variable mode, with zero new artwork. Everything else in the grid
 is a variant of a built screen — a dark twin, a different state, or the same list
 in its other tab — and belongs to the component pass, not a fresh build.
 

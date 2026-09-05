@@ -327,9 +327,13 @@ Toolbar button label colour comes from the **source**: Edit Recipe's `Done` is
    ~1pt, not interior curves. `clone()` from a sibling frame where one already
    exists rather than redrawing. Replace with real assets if components must be
    pixel-true.
-5. **Glass now has three recipes and several variants in the file** (see
-   correction 4). `1029:31`'s `Done` still carries v1's wrong dark value.
-   Deprioritised by the user.
+5. **Glass is ground-relative and now has FIVE recipes** — over
+   `sysGroupedBg` (lighter than ground), over `sysBg`/white (flat `#F5F5F5`),
+   on a drawer row (`#000000 @ 4%` + blur), over dark `backdrop`
+   (`#314048`, *darker* than ground, + `#4B708B` rim), and over dark
+   `bgPrimary` (`#000000 @ 19%` + `#FFFFFF @ 10%` rim). There is no single
+   glass token; it is a function of what sits behind it. Deprioritised by the
+   user, but this is why.
 6. **Dark-token verification so far** (from `1159:2`, the only dark screen built
    since the collection existed): `ios/secondaryLabel` `#EBEBF5 @ 60%` **holds**;
    `ios/sysBg` `#000000` **holds**; `ios/card` `#1C1C1E` **holds**;
@@ -347,12 +351,11 @@ Toolbar button label colour comes from the **source**: Edit Recipe's `Done` is
    substring verbatim) and its chip 2 text `baking` from "bak".
 9. **⚠️ Two measurable errors are now in two frames each, inherited by cloning.**
    Fix at the single point where the sub-component is created, not per frame:
-   - `Tab bar`: **the two references disagree and this is NOT settled.** IMG_0499
-     was read as showing the white capsule at 775.3–834.7 (h 59.4) against the
-     built 770–840 (h 70), i.e. a 5pt pad baked into the fill. But IMG_0498
-     measures the capsule genuinely at **770–840 (h 70)** with the blue pill
-     inset 5.33 — which supports the built frames. Re-measure both captures
-     before "fixing" anything. Tab-item centres are correct throughout.
+   - `Tab bar`: **SETTLED — there was no error.** The `775.3–834.7 / h 59.4`
+     read off IMG_0499 was a mis-attributed landmark: those are the **blue pill
+     and FAB band**, not the white capsule. Three captures now agree the capsule
+     is **770–839.3 (h ~69.3)** with the pill inset ~5.33. The built frames were
+     right; nothing to fix.
    - `Field · Search recipes`: h 43 at y 117, where IMG_0499 measures h 38.7 at
      y 120. Cloned into `1143:2`.
    - `1125:2`'s tab-bar capsule also has no shadow; both references show a soft one.
@@ -360,9 +363,10 @@ Toolbar button label colour comes from the **source**: Edit Recipe's `Done` is
    60 × 60 r 30 unfilled, selected filled `ios/systemBlue` with a glyph plus a
    label. **⚠️ Its metrics differ between captures:** IMG_0499 gives
    136 × 50 r 25 with a 22px glyph and a 17pt label; IMG_0498 gives
-   143.3 × 59.3 r 29.7 with a 20px glyph and a ~13pt label. 13/22 Semibold is
-   not in the type ramp. Establish which is current before componentising —
-   these may be captures of two different builds of the app.
+   143.3–146 × 58.7–59.3 r ~29.5 with a 20px glyph and a ~14pt label.
+   **Source settles it: `.system(size: 14, weight: .medium)`** — so the ramp
+   needs **14 / 18 Medium**, and the house's 13 Semibold (used in the built
+   frames for clone consistency) is ~2pt narrow. Fix at componentising.
 11. **`brand/dot` vs `brand/primary` now collide on two frames** (IMG_0500 and
    IMG_0499): chips and labels use `primary`, the FAB and its glow use `dot`.
    The FAB glow is also the library's only brand-coloured shadow
