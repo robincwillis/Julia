@@ -91,7 +91,7 @@ struct RecipeEditIngredientsSection: View {
             deleteSection(at: sectionIndex)
           }) {
             Image(systemName: "trash")
-              .foregroundColor(.red)
+              .foregroundColor(Color.app.danger)
               .font(.caption)
           }
         }

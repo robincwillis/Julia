@@ -18,7 +18,7 @@ struct RecipeIngredientsSection: View {
     VStack(alignment: .leading, spacing: 8) {
       Text("Ingredients")
         .font(.headline)
-        .foregroundColor(.primary)
+        .foregroundColor(Color.app.textPrimary)
         .padding(.bottom, 8)
       
       if recipe.ingredients.isEmpty && recipe.sections.isEmpty {

@@ -196,7 +196,7 @@ struct TimingRow: View {
               editingId = nil
             }) {
               Text("Clear")
-                .foregroundColor(.red)
+                .foregroundColor(Color.app.danger)
             }
             .padding(.horizontal, 4)
             .buttonStyle(BorderlessButtonStyle())

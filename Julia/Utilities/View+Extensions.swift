@@ -78,7 +78,7 @@ extension ToolbarContent {
       HStack(spacing: 12) {
           
         Button("Clear") {}
-          .foregroundColor(.red)
+          .foregroundColor(Color.app.danger)
           .padding(.horizontal, 12)
           .padding(.vertical, 6)
           

@@ -127,18 +127,18 @@ struct SettingsDrawer: View {
               Button(action: { showClearDataConfirmation = true }) {
                 HStack {
                   Image(systemName: "trash")
-                    .foregroundColor(.red)
+                    .foregroundColor(Color.app.danger)
                     .frame(width: 24)
                   Text("Clear All Data")
                     .font(.headline)
-                  
+
                   if isClearingData {
                     Spacer()
                     ProgressView()
                       .scaleEffect(0.7)
                   }
                 }
-                .foregroundColor(.red)
+                .foregroundColor(Color.app.danger)
                 .padding(.vertical, 8)
               }
               .disabled(isExporting || isImporting || isLoadingSampleData || isClearingData)
@@ -196,7 +196,7 @@ struct SettingsDrawer: View {
                 
                 Text(progressText)
                   .font(.subheadline)
-                  .foregroundColor(.primary)
+                  .foregroundColor(Color.app.textPrimary)
               }
               .padding(16)
               .background(Color.app.white)

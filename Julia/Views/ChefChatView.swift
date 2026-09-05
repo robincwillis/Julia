@@ -347,7 +347,7 @@ struct ChefChatView: View {
                 Text(label)
                     .font(.subheadline)
             }
-            .foregroundStyle(.primary)
+            .foregroundStyle(Color.app.textPrimary)
             .padding(.horizontal, 14)
             .padding(.vertical, 8)
             .background(.fill.secondary, in: Capsule())
@@ -595,7 +595,7 @@ private struct MessageBubble: View {
                         .padding(.horizontal, 14)
                         .padding(.vertical, 10)
                         .background(bubbleBackground, in: BubbleShape(role: message.role))
-                        .foregroundStyle(message.role == .user ? .white : .primary)
+                        .foregroundStyle(message.role == .user ? .white : Color.app.textPrimary)
                 }
             }
 
