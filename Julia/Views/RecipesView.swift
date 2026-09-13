@@ -157,7 +157,7 @@ struct RecipesView: View {
         showAddSheet.toggle()
       } label: {
         Image(systemName: "plus")
-          .font(.system(size: 15, weight: .light))
+          .font(.system(size: 17, weight: .regular))
           .foregroundStyle(Color.app.primary)
           .opacity(isSearchPresented ? 0 : 1)
           .animation(.easeInOut(duration: 0.2), value: isSearchPresented)

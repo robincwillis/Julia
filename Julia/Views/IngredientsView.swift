@@ -87,7 +87,7 @@ struct IngredientsView: View {
               showAddSheet()
             } label: {
               Image(systemName: "plus")
-                .font(.system(size: 15, weight: .light))
+                .font(.system(size: 17, weight: .regular))
                 .foregroundColor(Color.app.primary)
             }
             .circleToolbarButtonStyle()
