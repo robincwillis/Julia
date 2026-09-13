@@ -220,7 +220,7 @@ struct ChefChatView: View {
 
             GlowingIcon(
                 systemName: "bubble.left.fill",
-                size: 48,
+                size: 36,
                 primaryColor: Color.app.primary,
                 glowColor: Color.app.primary
             )

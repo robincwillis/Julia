@@ -19,7 +19,7 @@ struct GlowingIcon: View {
     @State private var offsetY: CGFloat = 0
     @State private var radiusVariation: CGFloat = 1.0
     
-    let timer = Timer.publish(every: 0.1, on: .main, in: .common).autoconnect()
+    let timer = Timer.publish(every: 1.2, on: .main, in: .common).autoconnect()
     
     // Initialize with defaults or custom values
     init(
@@ -40,23 +40,23 @@ struct GlowingIcon: View {
         .foregroundColor(primaryColor)
         .shadow(
           color: glowColor.opacity(glowAmount),
-          radius: 10 * radiusVariation,
+          radius: 18 * radiusVariation,
           x: offsetX,
           y: offsetY
         )
         .shadow(
           color: primaryColor.opacity(glowAmount * 0.7),
-          radius: 15 * radiusVariation,
+          radius: 28 * radiusVariation,
           x: offsetX * 0.7,
           y: offsetY * 0.7
         )
         .onReceive(timer) { _ in
           // Create subtle random variations
-          withAnimation(.easeInOut(duration: 0.8)) {
-            glowAmount = CGFloat.random(in: 0.4...0.8)
+          withAnimation(.easeInOut(duration: 1.8)) {
+            glowAmount = CGFloat.random(in: 0.35...0.55)
             offsetX = CGFloat.random(in: -2...2)
             offsetY = CGFloat.random(in: -2...2)
-            radiusVariation = CGFloat.random(in: 0.85...1.15)
+            radiusVariation = CGFloat.random(in: 0.9...1.1)
           }
         }
     }
