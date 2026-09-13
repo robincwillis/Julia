@@ -311,7 +311,7 @@ struct ChefChatView: View {
                 .font(.system(size: 17, weight: .medium))
                 .foregroundStyle(Color.app.primary)
                 .frame(width: 44, height: 44)
-                .background(Color.app.backgroundCard, in: Circle())
+                .background(Color.app.offWhite200, in: Circle())
         }
         .opacity(isFABExpanded ? 1 : 0)
         .offset(x: isFABExpanded ? 0 : 32)
@@ -422,7 +422,7 @@ struct ChefChatView: View {
             .lineLimit(1...5)
             .padding(.horizontal, 16)
             .padding(.vertical, 18)
-            .background(Color.app.backgroundCard, in: RoundedRectangle(cornerRadius: 30))
+            .background(Color.app.offWhite200, in: RoundedRectangle(cornerRadius: 30))
             .frame(minHeight: 60)
             .disabled(!isAvailable)
 
