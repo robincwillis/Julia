@@ -25,7 +25,7 @@ struct Dot: View {
   let xMarkDelay: Double = 0.05
   let openCircleSize: CGFloat = 60
 
-  private let buttonColor = Color(red: 1.0, green: 0.30, blue: 0.15)
+  private let buttonColor = Color.app.primary
 
   var body: some View {
     ZStack {
@@ -41,7 +41,7 @@ struct Dot: View {
       // X Mark
       if animationState == .open {
         Image(systemName: "xmark")
-          .font(.system(size: openCircleSize * 0.5, weight: .bold)) // Made bolder
+          .font(.system(size: 18, weight: .medium))
           .foregroundColor(Color.app.textOnPrimary)
           .scaleEffect(xMarkScale)
           .opacity(animationState == .open ? 1 : 0)

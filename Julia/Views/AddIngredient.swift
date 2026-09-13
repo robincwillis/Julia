@@ -40,7 +40,7 @@ struct AddIngredient: View {
               .padding(.vertical, 6)
               .padding(.horizontal, 12)
               .background(Color.app.primary)
-              .foregroundColor(.white)
+              .foregroundStyle(Color.app.white)
               .clipShape(Capsule())
           }
           .disabled(!isInputValid)
@@ -54,8 +54,8 @@ struct AddIngredient: View {
             Label("Close", systemImage: "xmark")
               .padding(.vertical, 6)
               .padding(.horizontal, 12)
-              .background(.tertiary)
-              .foregroundColor(Color.app.primary)
+              .background(Color.app.backgroundCard)
+              .foregroundStyle(Color.app.primary)
               .clipShape(Capsule())
             
           }
@@ -68,7 +68,7 @@ struct AddIngredient: View {
       TextField("Ingredient", text: $ingredientInput)
         .font(.system(size: 32, weight: .medium))
         .foregroundColor(Color.app.textPrimary)
-        .tint(.blue)
+        .tint(Color.app.primary)
         .multilineTextAlignment(.center)
         .disableAutocorrection(true)
         .textInputAutocapitalization(.sentences)

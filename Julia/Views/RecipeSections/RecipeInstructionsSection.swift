@@ -17,7 +17,7 @@ struct RecipeInstructionsSection: View {
         .padding(.bottom, 8)
       if recipe.instructions.isEmpty {
         Text("No instructions available")
-          .foregroundColor(Color.app.textLabel)
+          .foregroundColor(Color.app.labelPrimary)
           .padding(.vertical, 8)
       } else {
         VStack(alignment: .leading, spacing: 12) {

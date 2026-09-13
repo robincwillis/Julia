@@ -37,7 +37,7 @@ tagging back into Figma as text labels.
 
 ## Figma recreations
 
-Sixteen of these screens have been rebuilt as native Figma frames, gathered in a
+Every distinct capture — twenty-four screens — have been rebuilt as native Figma frames, gathered in a
 `Design Mocks` frame. They live in a **copy** of the Julia file inside the
 Addition org — `iMoHTDAGPZi6VkRgUEf9vG` — because the original sits in a
 Starter-plan team, where the Figma MCP allowance is 20 calls per month. See
@@ -62,6 +62,14 @@ and naming those frames follow, and for the open items still to settle.
 | IMG_0473 | `1199:2` | `.plain` List empty state, Groceries tab (Dark) |
 | IMG_0488 | `1196:142` | `.sheet` + `Form`, Recipe tab, keyboard up (Dark) |
 | IMG_0487 | `1201:2` | `.sheet` + `Form`, Reconstructed tab + tab bar (Dark) |
+| IMG_0491 | `1211:2` | `FloatingBottomSheet`, name focused (Dark) |
+| IMG_0492 | `1215:2` | `FloatingBottomSheet`, controls expanded (Dark) |
+| IMG_0490 | `1217:2` | `.plain` List + tag filter bar (Dark) |
+| IMG_0481 | `1218:81` | full screen, drawer collapsed (Dark) |
+| IMG_0480 | `1224:2` | `.sheet` + inset-grouped List (Dark) |
+| IMG_0493 | `1224:73` | `fullScreenCover`, populated conversation (Dark) |
+| IMG_0489 | `1225:2` | plain `ScrollView` (Dark) |
+| IMG_0486 | `1236:8` | plain `ScrollView` + ⋯ menu (Dark) |
 
 Presentation context turned out to matter more than the view name. Four distinct
 species so far: modal detent sheet, `FloatingBottomSheet` (bottom-anchored card,
@@ -69,11 +77,11 @@ all corners rounded, 5% scrim), edge drawer (pushes rather than covers, no scrim
 at all), and plain full-screen. IMG_0508's and IMG_0501's differ from the modal
 sheets in surface geometry, scrim and layer order alike.
 
-**All distinct layouts are now built.** What remains in the grid is variants —
-dark twins, different states, the same list in its other tab — which come from
-component variants and a mode swap, not fresh builds. `1196:2` is a worked
-example: the dark Recipes screen, generated from the light one by switching the
-variable mode, with zero new artwork. Everything else in the grid
+**Every capture in the grid is now built**, light and dark, each from its own
+reference rather than derived. `1196:2` is kept deliberately as the odd one out:
+a pure mode-swap prediction of the dark Recipes screen with zero new artwork.
+Diffing it against `1217:2`, which was built from the real capture, is how the
+token model was validated — see `palette-audit.md`. Everything else in the grid
 is a variant of a built screen — a dark twin, a different state, or the same list
 in its other tab — and belongs to the component pass, not a fresh build.
 
@@ -87,8 +95,16 @@ in its other tab — and belongs to the component pass, not a fresh build.
 - IMG_0487 and IMG_0488 are the same `ProcessingResults` sheet on two different
   tabs, captured a few seconds apart (5:02). The tab bar is hidden in IMG_0488
   because the keyboard is up.
-- IMG_0481/IMG_0482 and IMG_0489/IMG_0486 are pairs of the same view with a
-  drawer or menu opened, not distinct screens.
+- IMG_0481/IMG_0482 are the same view and the same recipe with the drawer
+  collapsed vs expanded — a true state pair.
+- **IMG_0489 and IMG_0486 are NOT a pair.** Both are `RecipeDetails`, but they
+  are different recipes with different structure: 0489 is *Shrimp Scampi with
+  Pasta* (4-line summary, an **adjusted** servings card reading "3 of 6", a
+  three-column scrolling timings card, and a flat 9-row ingredient list), 0486
+  is *French Onion Galette* (3-line summary, two cards, two uppercase
+  sub-sections, rows with grey trailing notes, ⋯ menu open). They should not be
+  componentised as one screen ± a menu. They also disagree on the card row's
+  horizontal padding — 16 vs 11.3 — most likely two builds of the app.
 - IMG_0485 is the **Edit Recipe** screen, not recipe detail. There is no
   `EditRecipe.swift`: edit mode is the `editModeContent` branch of
   `RecipeDetails.swift` (a `Form` of the six `RecipeEdit*Section` views), gated

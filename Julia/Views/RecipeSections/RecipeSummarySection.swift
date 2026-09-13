@@ -73,7 +73,7 @@ struct TimingsCard: View {
 
             Text(timing.type)
               .font(.headline)
-              .foregroundColor(Color.app.textLabel)
+              .foregroundColor(Color.app.labelPrimary)
           }
         }
         .padding()
@@ -98,7 +98,7 @@ struct TimingsCard: View {
 
                   Text(timing.type)
                     .font(.headline)
-                    .foregroundColor(Color.app.textLabel)
+                    .foregroundColor(Color.app.labelPrimary)
                 }
               }
             }
@@ -139,7 +139,7 @@ struct RecipeSummarySection: View {
               width: hasTimings && singleTiming ?
               geometry.size.width * 0.5 : nil
             )
-            .background(Color.app.offWhite200)
+            .background(Color.app.backgroundCard)
             .cornerRadius(24)
           }
 
@@ -152,7 +152,7 @@ struct RecipeSummarySection: View {
               width: hasServings && singleTiming ?
               geometry.size.width * 0.5 : nil
             )
-            .background(Color.app.offWhite200)
+            .background(Color.app.backgroundCard)
             .cornerRadius(24)
           }
         }
@@ -189,7 +189,7 @@ struct ServingAdjusterSheet: View {
           Image(systemName: "minus")
             .font(.title3.weight(.medium))
             .frame(width: 44, height: 44)
-            .background(Color.app.offWhite200)
+            .background(Color.app.backgroundCard)
             .clipShape(Circle())
         }
         .buttonStyle(.plain)
@@ -206,7 +206,7 @@ struct ServingAdjusterSheet: View {
           Image(systemName: "plus")
             .font(.title3.weight(.medium))
             .frame(width: 44, height: 44)
-            .background(Color.app.offWhite200)
+            .background(Color.app.backgroundCard)
             .clipShape(Circle())
         }
         .buttonStyle(.plain)

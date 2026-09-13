@@ -121,12 +121,10 @@ struct CookModeView: View {
         dismiss()
       } label: {
         Image(systemName: "xmark")
-          .font(.system(size: 13, weight: .semibold))
-          .foregroundStyle(Color.app.textPrimary)
-          .frame(width: 32, height: 32)
-          .background(Color(UIColor.secondarySystemBackground))
-          .clipShape(Circle())
+          .font(.system(size: 13, weight: .medium))
+          .foregroundStyle(Color.app.primary)
       }
+      .circleToolbarButtonStyle()
       .buttonStyle(.plain)
 
       Spacer()
@@ -145,26 +143,22 @@ struct CookModeView: View {
         Button {
           showCompleteConfirmation = true
         } label: {
-          Image(systemName: "checkmark.circle")
-            .font(.system(size: 13, weight: .semibold))
+          Image(systemName: "checkmark")
+            .font(.system(size: 13, weight: .medium))
             .foregroundStyle(Color.app.primary)
-            .frame(width: 32, height: 32)
-            .background(Color(UIColor.secondarySystemBackground))
-            .clipShape(Circle())
         }
+        .circleToolbarButtonStyle()
         .buttonStyle(.plain)
         .accessibilityLabel("Complete recipe")
 
         Button {
           showChefChat = true
         } label: {
-          Image(systemName: "fork.knife.circle")
-            .font(.system(size: 13, weight: .semibold))
+          Image(systemName: "fork.knife")
+            .font(.system(size: 15, weight: .regular))
             .foregroundStyle(Color.app.primary)
-            .frame(width: 32, height: 32)
-            .background(Color(UIColor.secondarySystemBackground))
-            .clipShape(Circle())
         }
+        .circleToolbarButtonStyle()
         .buttonStyle(.plain)
         .accessibilityLabel("Ask Julia about this recipe")
       }
@@ -273,7 +267,7 @@ struct CookModeView: View {
     }
     .background(
       RoundedRectangle(cornerRadius: 24)
-        .fill(Color(UIColor.systemBackground))
+        .fill(Color.app.backgroundSheet)
         .shadow(color: .black.opacity(0.07), radius: 24, x: 0, y: -6)
         .ignoresSafeArea(edges: .bottom)
     )
@@ -360,7 +354,7 @@ private struct StepCardView: View {
         // Step number bubble
         ZStack {
           Circle()
-            .fill(Color.app.primary)
+            .fill(Color.app.secondary)
             .frame(width: 52, height: 52)
           Text("\(stepNumber)")
             .font(.title2.bold())
@@ -376,7 +370,7 @@ private struct StepCardView: View {
 
         Spacer(minLength: 0)
       }
-      .padding(.horizontal, 32)
+      .padding(.horizontal, 20)
       .padding(.top, 36)
       .padding(.bottom, 24)
     }

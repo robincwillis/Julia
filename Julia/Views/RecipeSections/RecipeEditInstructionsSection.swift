@@ -20,7 +20,7 @@ struct RecipeEditInstructionsSection: View {
     Section(header: Text("Instructions")) {
       if instructions.isEmpty {
         Text("No instructions added")
-          .foregroundColor(Color.app.textLabel)
+          .foregroundColor(Color.app.labelPrimary)
       } else {
         let sortedInstructions: [Step] = instructions.sorted { $0.position < $1.position }
 
@@ -50,6 +50,7 @@ struct RecipeEditInstructionsSection: View {
         
         Button(action: addNewInstruction) {
           Image(systemName: "plus.circle.fill")
+            .foregroundStyle(Color.app.primary)
         }
         .disabled(newStepText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
       }

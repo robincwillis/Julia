@@ -25,8 +25,8 @@ struct GlowingIcon: View {
     init(
       systemName: String,
       size: CGFloat = 50,
-      primaryColor: Color = .orange,
-      glowColor: Color = .red
+      primaryColor: Color = Color.app.primary,
+      glowColor: Color = Color.app.primary
     ) {
       self.systemName = systemName
       self.size = size

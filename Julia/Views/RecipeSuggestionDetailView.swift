@@ -10,10 +10,12 @@ import SwiftData
 /// lets the user add them to grocery, and fetches FM substitution suggestions.
 struct RecipeSuggestionDetailView: View {
     @Environment(\.modelContext) private var context
+    @Environment(\.dismiss) private var dismiss
     let match: RecipeMatch
     var viewModel: RecipeSuggestionsViewModel
 
     @State private var selectedMissing: Set<String> = []
+    @State private var navigateToRecipe = false
 
     var substitutions: SubstitutionSuggestions? {
         viewModel.substitutionsByRecipeId[match.recipe.id]
@@ -31,12 +33,16 @@ struct RecipeSuggestionDetailView: View {
                         Spacer()
                         Text(String(format: "%.0f%%", match.coveragePercent * 100))
                             .font(.title2)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(Color.app.primary)
                     }
                     GeometryReader { geo in
                         ZStack(alignment: .leading) {
-                            Capsule().fill(Color.secondary.opacity(0.2)).frame(height: 8)
-                            Capsule().fill(coverageColor).frame(width: geo.size.width * match.coveragePercent, height: 8)
+                            Capsule()
+                                .fill(Color(UIColor.tertiarySystemFill))
+                                .frame(height: 8)
+                            Capsule()
+                                .fill(Color.app.primary)
+                                .frame(width: geo.size.width * match.coveragePercent, height: 8)
                         }
                     }
                     .frame(height: 8)
@@ -48,13 +54,16 @@ struct RecipeSuggestionDetailView: View {
             if !match.missingIngredients.isEmpty {
                 Section {
                     ForEach(match.missingIngredients, id: \.self) { ingredient in
-                        Toggle(ingredient, isOn: Binding(
+                        Toggle(isOn: Binding(
                             get: { selectedMissing.contains(ingredient) },
                             set: { isOn in
                                 if isOn { selectedMissing.insert(ingredient) }
                                 else { selectedMissing.remove(ingredient) }
                             }
-                        ))
+                        )) {
+                            Text(ingredient)
+                                .foregroundStyle(Color.app.textPrimary)
+                        }
                         .toggleStyle(iOSCheckboxToggleStyle())
                     }
                 } header: {
@@ -70,8 +79,8 @@ struct RecipeSuggestionDetailView: View {
                 }
             }
 
-            // Substitution suggestions
-            Section {
+            // Substitutions
+            Section("Substitutions") {
                 if viewModel.isFetchingSubstitutions {
                     HStack {
                         ProgressView()
@@ -88,6 +97,7 @@ struct RecipeSuggestionDetailView: View {
                                     .font(.caption)
                                 Text(sub.missingIngredient)
                                     .fontWeight(.medium)
+                                    .foregroundStyle(Color.app.textPrimary)
                             }
                             Text("Use: " + sub.substitutes.joined(separator: " or "))
                                 .font(.subheadline)
@@ -105,37 +115,72 @@ struct RecipeSuggestionDetailView: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 } else if !match.missingIngredients.isEmpty {
-                    Button {
+                    actionButton(
+                        title: "Suggest Substitutions",
+                        icon: "wand.and.stars",
+                        color: Color.app.primary
+                    ) {
                         Task { await viewModel.fetchSubstitutions(for: match) }
-                    } label: {
-                        Label("Suggest Substitutions", systemImage: "wand.and.stars")
                     }
                 }
-            } header: {
-                Text("Substitutions")
             }
 
-            // Link to recipe
+            // View full recipe
             Section {
-                NavigationLink("View Full Recipe") {
-                    RecipeDetails(recipe: match.recipe)
+                actionButton(
+                    title: "View Full Recipe",
+                    icon: "arrow.right",
+                    color: Color.app.secondary
+                ) {
+                    navigateToRecipe = true
                 }
             }
         }
         .listStyle(.insetGrouped)
+        .scrollContentBackground(.hidden)
+        .background(Color.app.backgroundSheet)
         .navigationTitle(match.recipe.title)
         .navigationBarTitleDisplayMode(.inline)
+        .navigationBarBackButtonHidden(true)
+        .navigationDestination(isPresented: $navigateToRecipe) {
+            RecipeDetails(recipe: match.recipe)
+        }
+        .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button {
+                    dismiss()
+                } label: {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundStyle(Color.app.primary)
+                }
+                .circleToolbarButtonStyle()
+                .buttonStyle(.plain)
+            }
+            .hidesSharedGlassBackground()
+        }
+    }
+
+    // MARK: - Subviews
+
+    private func actionButton(
+        title: String,
+        icon: String,
+        color: Color,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            HStack {
+                Text(title)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                Image(systemName: icon)
+            }
+            .foregroundStyle(color)
+        }
+        .buttonStyle(.plain)
     }
 
     // MARK: - Private
-
-    private var coverageColor: Color {
-        switch match.coveragePercent {
-        case 0.8...: return .green
-        case 0.5..<0.8: return .orange
-        default: return .red
-        }
-    }
 
     private func addSelectedToGrocery() {
         for name in selectedMissing {

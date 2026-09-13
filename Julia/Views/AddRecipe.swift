@@ -154,7 +154,7 @@ struct AddRecipe: View {
                       existingRecipe.servings = nil
                     }
                   }
-                  .foregroundColor(Color.app.danger)
+                  .foregroundStyle(Color.app.secondary)
                 }
 
                 Spacer()
@@ -165,12 +165,14 @@ struct AddRecipe: View {
                       rawText += clipboardString
                     }
                   }
-                  .prominentKeyboardAccessoryStyle(fill: Color.app.primary)
+                  .foregroundStyle(Color.app.secondary)
                 }
 
                 Button("Done") {
                   hideKeyboard()
                 }
+                .foregroundStyle(Color.app.primary)
+                .fontWeight(.medium)
               }
               .keyboardAccessoryBarStyle()
               .padding(.bottom, 24)
@@ -180,21 +182,32 @@ struct AddRecipe: View {
         }
         .toolbar {
           ToolbarItem(placement: .cancellationAction) {
-            Button("Cancel") {
+            Button {
               dismiss()
+            } label: {
+              Image(systemName: "xmark")
+                .font(.system(size: 13, weight: .medium))
+                .foregroundStyle(Color.app.primary)
             }
-            .foregroundStyle(.secondary)
+            .circleToolbarButtonStyle()
+            .buttonStyle(.plain)
           }
+          .hidesSharedGlassBackground()
 
           ToolbarItem(placement: .primaryAction) {
-            Button(recipe == nil ? "Save" : "Update") {
+            Button {
               saveRecipe()
               dismiss()
+            } label: {
+              Image(systemName: "checkmark")
+                .font(.system(size: 13, weight: .medium))
+                .foregroundStyle(title.isEmpty ? Color.app.primary.opacity(0.4) : Color.app.primary)
             }
-            .foregroundStyle(title.isEmpty ? Color.app.primary.opacity(0.4) : Color.app.primary)
+            .circleToolbarButtonStyle()
+            .buttonStyle(.plain)
             .disabled(title.isEmpty)
           }
-          
+          .hidesSharedGlassBackground()
         }
       }
       ingredientEditorSheet

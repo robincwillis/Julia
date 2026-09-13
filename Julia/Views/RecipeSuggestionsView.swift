@@ -6,7 +6,7 @@
 import SwiftUI
 import SwiftData
 
-/// "What can I cook?" — shows saved recipes ranked by pantry coverage.
+/// "What can I cook?" — shows saved recipes ranked by pantry/grocery coverage.
 struct RecipeSuggestionsView: View {
     @Environment(\.modelContext) private var context
     @Environment(\.dismiss) private var dismiss
@@ -15,6 +15,12 @@ struct RecipeSuggestionsView: View {
     @Query private var ingredients: [Ingredient]
 
     @State private var viewModel = RecipeSuggestionsViewModel()
+    @State private var selectedFilter: FilterOption = .pantry
+
+    private enum FilterOption: String, CaseIterable {
+        case pantry = "Pantry"
+        case grocery = "Grocery List"
+    }
 
     var body: some View {
         NavigationStack {
@@ -31,33 +37,53 @@ struct RecipeSuggestionsView: View {
                 } else if viewModel.matches.isEmpty {
                     ContentUnavailableView(
                         "No Matches",
-                        systemImage: "wand.and.stars",
-                        description: Text("Add pantry ingredients to see recipe matches.")
+                        systemImage: "fork.knife",
+                        description: Text("Add \(selectedFilter == .pantry ? "pantry" : "grocery") ingredients to see recipe matches.")
                     )
                 } else {
                     matchList
                 }
             }
+            .background(Color.app.backgroundSheet)
             .navigationTitle("What can I cook?")
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Done") { dismiss() }
-                        .foregroundStyle(.secondary)
+                    Button {
+                        dismiss()
+                    } label: {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundStyle(Color.app.primary)
+                    }
+                    .circleToolbarButtonStyle()
+                    .buttonStyle(.plain)
                 }
+                .hidesSharedGlassBackground()
             }
             .safeAreaInset(edge: .bottom) {
                 filterBar
             }
         }
         .onAppear {
+            // Sync ViewModel to initial filter selection
+            viewModel.includePantry = true
+            viewModel.includeGrocery = false
             viewModel.computeMatches(recipes: recipes, ingredients: ingredients)
+            // Chevron color
+            UITableViewCell.appearance().tintColor = UIColor(
+                red: 197/255, green: 197/255, blue: 199/255, alpha: 1
+            )
         }
         .onChange(of: viewModel.includePantry) { _, _ in
             viewModel.computeMatches(recipes: recipes, ingredients: ingredients)
         }
         .onChange(of: viewModel.includeGrocery) { _, _ in
             viewModel.computeMatches(recipes: recipes, ingredients: ingredients)
+        }
+        .onChange(of: selectedFilter) { _, filter in
+            viewModel.includePantry = (filter == .pantry)
+            viewModel.includeGrocery = (filter == .grocery)
         }
     }
 
@@ -70,26 +96,46 @@ struct RecipeSuggestionsView: View {
             } label: {
                 RecipeMatchRow(match: match)
             }
+            .listRowBackground(Color.app.backgroundSheet)
+            .listRowSeparatorTint(Color(red: 242/255, green: 244/255, blue: 242/255))
         }
-        .listStyle(.insetGrouped)
+        .listStyle(.plain)
+        .scrollContentBackground(.hidden)
     }
 
     private var filterBar: some View {
-        HStack(spacing: 16) {
-            Toggle("Pantry", isOn: $viewModel.includePantry)
-                .toggleStyle(.button)
-                .tint(Color.app.primary)
-            Toggle("Grocery list", isOn: $viewModel.includeGrocery)
-                .toggleStyle(.button)
-                .tint(Color.app.primary)
-            Spacer()
-            Text("\(viewModel.matches.count) recipe\(viewModel.matches.count == 1 ? "" : "s")")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+        segmentedControl
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .background(Color.app.backgroundSheet)
+    }
+
+    private var segmentedControl: some View {
+        HStack(spacing: 0) {
+            ForEach(FilterOption.allCases, id: \.self) { option in
+                Button {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        selectedFilter = option
+                    }
+                } label: {
+                    Text(option.rawValue)
+                        .font(.system(size: 14, weight: selectedFilter == option ? .semibold : .regular))
+                        .foregroundStyle(
+                            selectedFilter == option ? Color.app.primary : Color(UIColor.secondaryLabel)
+                        )
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 9)
+                        .background(
+                            selectedFilter == option ? Color.app.white : Color.clear,
+                            in: Capsule()
+                        )
+                        .padding(3)
+                }
+                .buttonStyle(.plain)
+                .animation(.easeInOut(duration: 0.2), value: selectedFilter)
+            }
         }
-        .padding(.horizontal)
-        .padding(.vertical, 10)
-        .background(.bar)
+        .background(Color(UIColor.systemGray5), in: Capsule())
     }
 }
 
@@ -105,12 +151,13 @@ private struct RecipeMatchRow: View {
                 .lineLimit(1)
 
             HStack(spacing: 8) {
-                // Coverage progress bar
                 GeometryReader { geo in
                     ZStack(alignment: .leading) {
-                        Capsule().fill(Color.secondary.opacity(0.2))
+                        Capsule()
+                            .fill(Color(UIColor.tertiarySystemFill))
                             .frame(height: 6)
-                        Capsule().fill(coverageColor)
+                        Capsule()
+                            .fill(coverageColor)
                             .frame(width: geo.size.width * match.coveragePercent, height: 6)
                     }
                 }
@@ -126,11 +173,7 @@ private struct RecipeMatchRow: View {
     }
 
     private var coverageColor: Color {
-        switch match.coveragePercent {
-        case 0.8...: return .green
-        case 0.5..<0.8: return .orange
-        default: return .red
-        }
+        Color.app.primary
     }
 }
 

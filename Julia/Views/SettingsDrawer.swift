@@ -68,7 +68,7 @@ struct SettingsDrawer: View {
                     .frame(width: 24)
                   Text("Export Recipes")
                     .font(.headline)
-                  
+
                   if isExporting {
                     Spacer()
                     ProgressView()
@@ -78,8 +78,9 @@ struct SettingsDrawer: View {
                 .foregroundColor(Color.app.textPrimary)
                 .padding(.vertical, 8)
               }
+              .buttonStyle(.plain)
               .disabled(isExporting || isImporting || isLoadingSampleData)
-              
+
               // Import button
               Button(action: importData) {
                 HStack {
@@ -88,7 +89,7 @@ struct SettingsDrawer: View {
                     .frame(width: 24)
                   Text("Import Recipes")
                     .font(.headline)
-                  
+
                   if isImporting {
                     Spacer()
                     ProgressView()
@@ -98,8 +99,9 @@ struct SettingsDrawer: View {
                 .foregroundColor(Color.app.textPrimary)
                 .padding(.vertical, 8)
               }
+              .buttonStyle(.plain)
               .disabled(isExporting || isImporting || isLoadingSampleData)
-              
+
               // Load sample data button
               Button(action: { showLoadSampleConfirmation = true }) {
                 HStack {
@@ -108,7 +110,7 @@ struct SettingsDrawer: View {
                     .frame(width: 24)
                   Text("Load Sample Data")
                     .font(.headline)
-                  
+
                   if isLoadingSampleData {
                     Spacer()
                     ProgressView()
@@ -118,11 +120,12 @@ struct SettingsDrawer: View {
                 .foregroundColor(Color.app.textPrimary)
                 .padding(.vertical, 8)
               }
+              .buttonStyle(.plain)
               .disabled(isExporting || isImporting || isLoadingSampleData || isClearingData)
-              
+
               Divider()
                 .padding(.vertical, 4)
-              
+
               // Clear all data button
               Button(action: { showClearDataConfirmation = true }) {
                 HStack {
@@ -141,6 +144,7 @@ struct SettingsDrawer: View {
                 .foregroundColor(Color.app.danger)
                 .padding(.vertical, 8)
               }
+              .buttonStyle(.plain)
               .disabled(isExporting || isImporting || isLoadingSampleData || isClearingData)
             }
             
@@ -158,6 +162,7 @@ struct SettingsDrawer: View {
               }
               .foregroundColor(Color.app.textPrimary)
             }
+            .tint(Color.app.secondary)
             .onChange(of: debugModeState) { oldValue, newValue in
               // Set the user default which will be read by the environment value
               UserDefaults.standard.set(newValue, forKey: "debugMode")
@@ -169,10 +174,10 @@ struct SettingsDrawer: View {
             VStack(alignment: .leading, spacing: 4) {
               Text("Version \(appVersion)")
                 .font(.caption)
-                .foregroundColor(Color.app.grey300)
+                .foregroundColor(Color.app.labelPrimary)
               Text("Build \(buildNumber)")
                 .font(.caption)
-                .foregroundColor(Color.app.grey300)
+                .foregroundColor(Color.app.labelPrimary)
             }
             .padding(.bottom, 48)
           }

@@ -25,7 +25,7 @@ struct EmptyRecipesView: View {
       Text("No Recipes Added")
         .font(.title2)
         .fontWeight(.medium)
-        .foregroundColor(Color.app.textLabel)
+        .foregroundColor(Color.app.labelPrimary)
       
       Button(action: {
         isLoading = true

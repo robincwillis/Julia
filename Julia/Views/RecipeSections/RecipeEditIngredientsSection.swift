@@ -44,6 +44,7 @@ struct RecipeEditIngredientsSection: View {
         editIngredient()
       } label: {
         Label("Add Ingredient", systemImage: "plus")
+          .foregroundStyle(Color.app.primary)
       }
     }
     
@@ -91,7 +92,7 @@ struct RecipeEditIngredientsSection: View {
             deleteSection(at: sectionIndex)
           }) {
             Image(systemName: "trash")
-              .foregroundColor(Color.app.danger)
+              .foregroundColor(Color.app.primary)
               .font(.caption)
           }
         }
@@ -104,6 +105,7 @@ struct RecipeEditIngredientsSection: View {
     Section {
       Button(action: addNewSection) {
         Label("Add Section", systemImage: "plus")
+          .foregroundStyle(Color.app.primary)
       }
     }
   }

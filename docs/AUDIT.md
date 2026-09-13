@@ -202,18 +202,21 @@ Also three `try! NSRegularExpression` in `Julia/Models/RecipeData.swift`.
 real schema instead of force-trying a second on-disk one with a different
 schema; the regexes are `static let`, compiled once. See [DONE.md](DONE.md).
 
-## 9. Colour strategy is split — **OPEN**
+## 9. Colour strategy is split — **PARTIALLY FIXED**
 
 The merge resolved every colour conflict toward `Color.app.*` design tokens, as
-chosen. Two things remain inconsistent, both flagged at merge time:
+chosen. Two things remained inconsistent, flagged at merge time:
 
-- Main introduced hardcoded colours **outside** the conflicts, which the merge
-  left untouched: `Dot.swift:28` `private let buttonColor = Color(red: 1.0, green: 0.30, blue: 0.15)`,
-  plus several `.foregroundStyle(.white)` calls.
+- ~~Main introduced hardcoded colours **outside** the conflicts, which the
+  merge left untouched: `Dot.swift:28`~~ **Fixed 2026-09-12** as part of the
+  design-token overhaul — `Dot.swift:28` now reads `Color.app.primary`. See
+  [design-tokens.md](design-tokens.md). Several `.foregroundStyle(.white)`
+  calls elsewhere are unaudited still.
 - The token choice diverges visually from main's new toolbar styling.
   `NavigationView.swift:300` and `RecipeDetails.editingMenu` use
   `Color.app.white` at 40×40, while main's other toolbar buttons are 30×30
-  `.regularMaterial`. Worth eyeballing in the simulator before deciding.
+  `.regularMaterial`. Worth eyeballing in the simulator before deciding. →
+  [TODO.md](TODO.md) "Reconcile toolbar button styling"
 
 Deciding this properly means picking one rule — e.g. *system semantic colours
 for neutrals, `Color.app.*` for brand* — and applying it everywhere, including

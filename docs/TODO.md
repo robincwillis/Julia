@@ -108,20 +108,45 @@ Was P4. Now the top of the list — the first item is the highest-value work her
 
 Was P3. Yours, and gated on the Figma review.
 
-- [ ] **Review designs in Figma and come back with changes** — M *(Robin)*
+- [ ] **Review designs in Figma, screen by screen** — M *(Robin, in progress)*
   Screenshots taken 2026-09-03; mapping in
   [figma-screenshot-mapping.md](figma-screenshot-mapping.md) and
-  [figma-build-spec.md](figma-build-spec.md). **This gates the two items
-  below** — both are open questions about which visual direction wins, and a
-  review answers them rather than guessing. Worth settling the colour rule as
-  part of it.
+  [figma-build-spec.md](figma-build-spec.md). The color token pass below is
+  the first output of this review; the rest lands as Robin goes screen by
+  screen. **This gates the items below.**
+  → [design-tokens.md](design-tokens.md)
 
-- [ ] **Settle one colour rule and apply it everywhere** — M
-  The merge resolved every conflict to `Color.app.*`, but `main` introduced
-  hardcoded colours outside the conflict regions that were left untouched:
-  `Dot.swift:28` `Color(red: 1.0, green: 0.30, blue: 0.15)`, plus several
-  `.foregroundStyle(.white)`. Suggested rule: system semantic colours for
-  neutrals, `Color.app.*` for brand. → [AUDIT.md §9](AUDIT.md)
+- [x] **Settle one colour rule and apply it — reds** — M, done 2026-09-12
+  Consolidated `brand/primary`/`brand/danger`/`ios/systemRed`/
+  `xcode/AccentColor` to one value (`#FF3900`/`#FF7445`). `danger.colorset`
+  updated; `Dot.swift:28`'s hard-coded `Color(red: 1.0, green: 0.30, blue:
+  0.15)` now reads `Color.app.primary`. → [design-tokens.md](design-tokens.md)
+
+- [ ] **Reassign `background.secondary`'s call sites** — M
+  New Figma tokens split the old `background.secondary` colorset into a true
+  `background-secondary` (recipe details/chat, black in dark mode — decided,
+  not yet applied) and a `backdrop` role now living in the new
+  `background.card` colorset (`backgroundKeyboardToolbar` /
+  `backgroundCard` in `Theme.swift`). The 11 existing
+  `Color.app.backgroundSecondary` call sites need auditing one by one against
+  the screen review to see which they actually mean — only then can
+  `background.secondary` itself move to the new black-in-dark value.
+  → [design-tokens.md](design-tokens.md) flag 5
+
+- [ ] **Move `secondary` off background duty** — S
+  New token notes: `brand/secondary` (`#B3DAD7`) is "not a background color,
+  it's an alternative pop color, wait for special." Currently used as a
+  `.background()` fill in `IngredientEditor.swift:235`,
+  `RecipeEditTagsSection.swift:34`, `RecipeRawTextSection.swift:40`. Robin
+  will pick the replacement per screen during the review rather than a
+  blanket swap. → [design-tokens.md](design-tokens.md) flag 3
+
+- [ ] **Resolve two open semantic questions from the token table** — S
+  (1) `ios/systemBlue`'s note says "same as brand/secondary" but the values
+  are unrelated (blue vs. teal) — role note or copy-paste error? (2)
+  `brand/background-primary` vs. `brand/background-sheet` differ only by a
+  few points in dark mode (`#242424` vs `#1C1C1E`) — intentional depth cue or
+  picker rounding? → [design-tokens.md](design-tokens.md) flags 2 and 6
 
 - [ ] **Reconcile toolbar button styling** — S
   `NavigationView.swift:300` and `RecipeDetails.editingMenu` use

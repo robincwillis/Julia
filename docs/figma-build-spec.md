@@ -267,6 +267,12 @@ Toolbar button label colour comes from the **source**: Edit Recipe's `Done` is
 - No `figma.notify`, `loadAllPagesAsync`, `setPluginData`, `createImageAsync`.
   `console.log` is invisible — `return` everything, ids included.
 - Seat scrolled content by landmark: `content.y = target - landmark.y`.
+- **⚠️ A frame bound to variables MUST carry an explicit mode.** Once fills are
+  bound, colours resolve in whatever mode is active — so a frame named `(Dark)`
+  renders **light** unless you call
+  `setExplicitVariableModeForCollection(collection, darkModeId)` on it. Five
+  dark frames silently flipped to light after the rebind pass before this was
+  caught. Set the mode on every dark frame, and re-check after any clone.
 - **`clone()` sub-components from a sibling frame wherever one exists** — status
   bars, nav bars, list rows, tab bars, SF-Symbol vectors. `1143:2` was built in
   5 Figma calls this way, and shared parts come out byte-identical instead of
@@ -356,8 +362,9 @@ Toolbar button label colour comes from the **source**: Edit Recipe's `Done` is
      and FAB band**, not the white capsule. Three captures now agree the capsule
      is **770–839.3 (h ~69.3)** with the pill inset ~5.33. The built frames were
      right; nothing to fix.
-   - `Field · Search recipes`: h 43 at y 117, where IMG_0499 measures h 38.7 at
-     y 120. Cloned into `1143:2`.
+   - `Field · Search recipes`: **SETTLED in the built frame's favour** — IMG_0490
+     measures h 44 at y 116.7, matching `1143:2`'s h 43 / y 117, not IMG_0499's
+     h 38.7 / y 120. No fix needed.
    - `1125:2`'s tab-bar capsule also has no shadow; both references show a soft one.
 10. **The selected tab item is a different box from its siblings** — unselected
    60 × 60 r 30 unfilled, selected filled `ios/systemBlue` with a glyph plus a

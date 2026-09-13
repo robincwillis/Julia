@@ -37,17 +37,13 @@ struct RecipeTextImportView: View {
                           inputText = inputText + clipboardString
                         }
                       }
-                      .prominentKeyboardAccessoryStyle()
+                      .foregroundStyle(Color.app.secondary)
 
                       Button("Done") {
                         isRecipeTextFieldFocused = false
                       }
-                      .foregroundStyle(Color.app.textPrimary)
+                      .foregroundStyle(Color.app.primary)
                       .fontWeight(.medium)
-                      .padding(.horizontal, 14)
-                      .padding(.vertical, 6)
-                      .background(.fill.secondary)
-                      .clipShape(Capsule())
                     }
                     .keyboardAccessoryBarStyle()
                     .padding(.bottom, 24)
@@ -72,18 +68,30 @@ struct RecipeTextImportView: View {
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {
         ToolbarItem(placement: .cancellationAction) {
-          Button("Cancel") {
+          Button {
             dismiss()
+          } label: {
+            Image(systemName: "xmark")
+              .font(.system(size: 13, weight: .medium))
+              .foregroundStyle(Color.app.primary)
           }
-          .foregroundStyle(.secondary)
+          .circleToolbarButtonStyle()
+          .buttonStyle(.plain)
         }
+        .hidesSharedGlassBackground()
         ToolbarItem(placement: .primaryAction) {
-          Button("Import") {
+          Button {
             processRecipeText()
+          } label: {
+            Image(systemName: "checkmark")
+              .font(.system(size: 13, weight: .medium))
+              .foregroundStyle(inputText.isEmpty ? Color.app.primary.opacity(0.4) : Color.app.primary)
           }
-          .foregroundStyle(inputText.isEmpty ? Color.app.primary.opacity(0.4) : Color.app.primary)
+          .circleToolbarButtonStyle()
+          .buttonStyle(.plain)
           .disabled(inputText.isEmpty)
         }
+        .hidesSharedGlassBackground()
       }
       .onAppear {
         isRecipeTextFieldFocused = true

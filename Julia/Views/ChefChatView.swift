@@ -199,12 +199,10 @@ struct ChefChatView: View {
                 dismiss()
             } label: {
                 Image(systemName: "xmark")
-                    .font(.system(size: 14, weight: .semibold))
+                    .font(.system(size: 13, weight: .medium))
                     .foregroundStyle(Color.app.primary)
-                    .frame(width: 30, height: 30)
-                    .background(.regularMaterial)
-                    .clipShape(Circle())
             }
+            .circleToolbarButtonStyle()
             .buttonStyle(.plain)
 
             Spacer()
@@ -220,11 +218,19 @@ struct ChefChatView: View {
         VStack(spacing: 0) {
             Spacer()
 
+            GlowingIcon(
+                systemName: "bubble.left.fill",
+                size: 48,
+                primaryColor: Color.app.primary,
+                glowColor: Color.app.primary
+            )
+            .padding(.bottom, 20)
+
             Text(capabilityDescription)
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
-                .padding(.horizontal, 40)
+                .padding(.horizontal, 24)
                 .padding(.bottom, 32)
 
             if isAvailable && !hasSeenSuggestions {
@@ -305,7 +311,7 @@ struct ChefChatView: View {
                 .font(.system(size: 17, weight: .medium))
                 .foregroundStyle(Color.app.primary)
                 .frame(width: 44, height: 44)
-                .background(.fill.secondary, in: Circle())
+                .background(Color.app.backgroundCard, in: Circle())
         }
         .opacity(isFABExpanded ? 1 : 0)
         .offset(x: isFABExpanded ? 0 : 32)
@@ -350,7 +356,7 @@ struct ChefChatView: View {
             .foregroundStyle(Color.app.textPrimary)
             .padding(.horizontal, 14)
             .padding(.vertical, 8)
-            .background(.fill.secondary, in: Capsule())
+            .background(Color.app.backgroundCard, in: Capsule())
         }
         .buttonStyle(.plain)
     }
@@ -408,7 +414,7 @@ struct ChefChatView: View {
     private var inputBar: some View {
         HStack(alignment: .center, spacing: 10) {
             TextField(
-                isAvailable ? "Message Julia…" : "Requires Apple Intelligence",
+                isAvailable ? "Ask Julia…" : "Requires Apple Intelligence",
                 text: $inputText,
                 axis: .vertical
             )
@@ -416,7 +422,7 @@ struct ChefChatView: View {
             .lineLimit(1...5)
             .padding(.horizontal, 16)
             .padding(.vertical, 18)
-            .background(.fill.secondary, in: RoundedRectangle(cornerRadius: 30))
+            .background(Color.app.backgroundCard, in: RoundedRectangle(cornerRadius: 30))
             .frame(minHeight: 60)
             .disabled(!isAvailable)
 

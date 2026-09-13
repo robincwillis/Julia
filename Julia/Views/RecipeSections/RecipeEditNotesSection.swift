@@ -33,7 +33,7 @@ struct RecipeEditNotesSection: View {
     Group {
       if notes.isEmpty {
         Text("No notes added")
-          .foregroundColor(Color.app.textLabel)
+          .foregroundColor(Color.app.labelPrimary)
       } else {
         notesContent
       }
@@ -79,6 +79,7 @@ struct RecipeEditNotesSection: View {
       
       Button(action: addNewNote) {
         Image(systemName: "plus.circle.fill")
+          .foregroundStyle(Color.app.primary)
       }
       .disabled(newNoteText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
     }

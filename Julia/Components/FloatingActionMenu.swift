@@ -25,7 +25,6 @@ struct FloatingActionMenu: View {
                         onOpen()
                     }
                     .padding(.trailing, 24)
-                    .padding(.bottom, 5)
             }
         }
         .onChange(of: processingState.isProcessing) { _, v in if v { isLoading = true } }

@@ -13,6 +13,22 @@
 import Foundation
 import FoundationModels
 
+/// The on-device model is not usable right now.
+///
+/// Exists so the up-front availability check fails with an *error* rather than
+/// a bare string. Previously that path called `fail(error:)` directly, which
+/// recorded no underlying error — so the commonest environmental failure of all
+/// was indistinguishable from a pipeline defect.
+enum ModelAvailabilityError: LocalizedError {
+    case unavailable(SystemLanguageModel.Availability.UnavailableReason)
+
+    var errorDescription: String? {
+        switch self {
+        case .unavailable(let reason): return ModelErrorMessage.message(for: reason)
+        }
+    }
+}
+
 enum ModelErrorMessage {
 
     /// User-facing text for an error thrown anywhere in the import pipeline.
@@ -47,6 +63,37 @@ enum ModelErrorMessage {
                  + "Try again once it has finished."
         @unknown default:
             return "Apple Intelligence isn't available on this device right now."
+        }
+    }
+
+    /// Whether `error` means the model declined to answer for reasons outside
+    /// the app's control, rather than a defect in what we asked it.
+    ///
+    /// The distinction matters to the test suite: an unavailable or
+    /// rate-limited model should not read as a broken pipeline. Availability
+    /// reporting `.available` is not a guarantee a request will succeed, so this
+    /// has to be judged from the failure rather than checked up front.
+    ///
+    /// Unrecognised `GenerationError` cases count as environmental. That is a
+    /// deliberate bias: the failure actually observed in practice was an opaque
+    /// `GenerationError error -1` against unchanged code, and the cases that
+    /// indicate *our* mistake are enumerated explicitly below.
+    static func isEnvironmental(_ error: Error) -> Bool {
+        if error is ModelAvailabilityError { return true }
+        if error is FoundationModelsService.FoundationModelsServiceError {
+            return true
+        }
+        guard let generation = error as? LanguageModelSession.GenerationError else {
+            return false
+        }
+        switch generation {
+        case .exceededContextWindowSize,   // our input was too big
+             .guardrailViolation,          // our content
+             .decodingFailure,             // our schema
+             .unsupportedGuide:            // our schema
+            return false
+        default:
+            return true
         }
     }
 

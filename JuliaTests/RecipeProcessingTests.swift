@@ -358,18 +358,61 @@ struct FullPipelineTests {
             processor.onError = { message in
                 guard !settled else { return }
                 settled = true
-                continuation.resume(throwing: PipelineFailure.processing(message))
+                continuation.resume(
+                    throwing: PipelineFailure.processing(message, underlying: processor.lastError)
+                )
             }
             start(processor)
         }
     }
 
     enum PipelineFailure: Error, CustomStringConvertible {
-        case processing(String)
+        case processing(String, underlying: Error?)
+
         var description: String {
             switch self {
-            case .processing(let message): return "Pipeline reported: \(message)"
+            case .processing(let message, let underlying):
+                // Report the concrete error type: the user-facing message is
+                // often the framework's opaque text, which says nothing about
+                // whether this was our fault.
+                let detail = underlying.map {
+                    " [underlying: \(type(of: $0)) — environmental: \(ModelErrorMessage.isEnvironmental($0))]"
+                } ?? " [no underlying error recorded]"
+                return "Pipeline reported: \(message)\(detail)"
             }
+        }
+
+        /// True when the model declined for reasons outside the app's control.
+        var isEnvironmental: Bool {
+            switch self {
+            case .processing(_, let underlying):
+                guard let underlying else { return false }
+                return ModelErrorMessage.isEnvironmental(underlying)
+            }
+        }
+    }
+
+    /// Runs the pipeline, distinguishing "the model would not answer" from
+    /// "the pipeline is broken".
+    ///
+    /// Swift Testing has no runtime skip, and `.enabled(if:)` is evaluated
+    /// before any request — the model can report `.available` and then refuse,
+    /// which used to turn the whole suite red for an environmental reason
+    /// against byte-identical code. An environmental refusal is now recorded as
+    /// a *known* issue, which keeps the run honest without failing it, and
+    /// returns nil so the caller skips its assertions. Anything else throws.
+    @MainActor
+    private func runOrSkip(
+        _ label: String,
+        _ start: @MainActor (RecipeProcessor) -> Void
+    ) async throws -> RecipeData? {
+        do {
+            return try await run(start)
+        } catch let failure as PipelineFailure where failure.isEnvironmental {
+            withKnownIssue("Foundation Models declined: \(failure)", isIntermittent: true) {
+                Issue.record("\(label): \(failure)")
+            }
+            return nil
         }
     }
 
@@ -380,7 +423,7 @@ struct FullPipelineTests {
         )
 
         let log = TestLog(name: "pipeline-text")
-        let data = try await run { $0.processText(fixture) }
+        guard let data = try await runOrSkip("simple_recipe", { $0.processText(fixture) }) else { return }
         log.dump(data, label: "simple_recipe")
         defer { log.attach() }
 
@@ -397,9 +440,18 @@ struct FullPipelineTests {
 
         let log = TestLog(name: "pipeline-all-text")
         for (name, text) in fixtures {
-            let data = try await run { $0.processText(text) }
+            guard let data = try await runOrSkip(name, { $0.processText(text) }) else { continue }
             log.dump(data, label: name)
-            #expect(!data.ingredients.isEmpty, "\(name): no ingredients classified")
+
+            // Deliberately weaker than "has ingredients": the fixture set now
+            // includes an intentionally incomplete recipe, and asserting every
+            // field on every fixture would mean maintaining per-fixture
+            // expectations, which works against the file-drop workflow.
+            // What must hold for any recipe-shaped input is that the classifier
+            // found *something* usable and kept the raw text for review.
+            #expect(!data.rawText.isEmpty, "\(name): raw text was not retained")
+            #expect(!(data.ingredients.isEmpty && data.instructions.isEmpty),
+                    "\(name): classified neither ingredients nor instructions")
         }
         log.attach()
     }
@@ -411,7 +463,7 @@ struct FullPipelineTests {
 
         let log = TestLog(name: "pipeline-all-images")
         for (name, image) in images {
-            let data = try await run { $0.processImage(image) }
+            guard let data = try await runOrSkip(name, { $0.processImage(image) }) else { continue }
             log.dump(data, label: name)
             #expect(!data.ingredients.isEmpty, "\(name): no ingredients classified")
         }

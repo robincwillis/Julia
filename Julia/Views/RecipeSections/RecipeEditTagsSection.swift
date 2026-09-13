@@ -24,14 +24,15 @@ struct RecipeEditTagsSection: View {
               }) {
                 HStack(spacing: 4) {
                   Text(tag)
-                    .font(.subheadline)
+                    .font(.system(size: 13, weight: .medium))
                   Image(systemName: "xmark.circle.fill")
                     .font(.caption)
                 }
+                .foregroundStyle(Color.app.primary)
                 .padding(.vertical, 8)
                 .padding(.leading, 12)
                 .padding(.trailing, 8)
-                .background(Color.app.secondary)
+                .background(Color.app.primary.opacity(0.1))
                 .clipShape(Capsule())
               }
               .buttonStyle(BorderlessButtonStyle())
@@ -54,6 +55,7 @@ struct RecipeEditTagsSection: View {
           }
           Button(action: addTag) {
             Image(systemName: "plus.circle.fill")
+              .foregroundStyle(Color.app.primary)
           }
           .disabled(newTag.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
         }

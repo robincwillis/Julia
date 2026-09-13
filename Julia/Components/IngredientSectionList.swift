@@ -18,7 +18,7 @@ struct IngredientSectionList: View {
           VStack(alignment: .leading, spacing: 8) {
               Text(section.name)
                 .font(.subheadline)
-                .foregroundColor(.secondary)
+                .foregroundStyle(Color.app.textSecondary)
                   
               
               if section.ingredients.isEmpty {

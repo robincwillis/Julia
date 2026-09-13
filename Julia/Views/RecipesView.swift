@@ -16,6 +16,8 @@ struct RecipesView: View {
   @State private var searchText = ""
   @State private var selectedTag: String? = nil
 
+  @State private var isSearchPresented = false
+
   @State private var showSuccessAlert = false
   @State private var showErrorAlert = false
   @State private var errorMessage = ""
@@ -41,41 +43,83 @@ struct RecipesView: View {
   }
 
   var body: some View {
+    Group {
+      if recipes.isEmpty {
+        recipesNavigationStack
+      } else {
+        recipesNavigationStack
+          .searchable(
+            text: $searchText,
+            isPresented: $isSearchPresented,
+            prompt: Text("Search recipes").foregroundStyle(Color.app.textPlaceholder)
+          )
+      }
+    }
+    .tint(Color.app.primary)
+  }
+
+  private var recipesNavigationStack: some View {
     NavigationStack {
       recipesContent
-      .safeAreaInset(edge: .top, spacing: 0) {
-        if !recipes.isEmpty && !allTags.isEmpty {
-          tagFilterBar
+        .safeAreaInset(edge: .top, spacing: 0) {
+          if !recipes.isEmpty {
+            if isSearchPresented {
+              Color.clear.frame(height: 12)
+            } else if !allTags.isEmpty {
+              tagFilterBar
+                .transition(.move(edge: .top).combined(with: .opacity))
+            }
+          }
         }
-      }
-      .searchable(text: $searchText, prompt: "Search recipes")
-      .navigationDestination(for: Recipe.self) { recipe in
-        RecipeDetails(recipe: recipe)
-      }
-      .background(Color.app.backgroundPrimary)
-      .navigationTitle("Recipes")
-      .navigationBarTitleDisplayMode(.inline)
-      .toolbar { recipesToolbar }
-      .sheet(isPresented: $showSuggestions) {
-        RecipeSuggestionsView()
-      }
-      .sheet(isPresented: $showAddSheet) {
-        AddRecipe()
-          .interactiveDismissDisabled()
-          .presentationDetents([.height(240), .large])
-          .presentationBackground(Color.app.backgroundSecondary)
-          .presentationDragIndicator(.hidden)
-      }
-      .alert("Recipes Added", isPresented: $showSuccessAlert) {
-        Button("OK", role: .cancel) { }
-      } message: {
-        Text("Added \(loadedCount) recipes to your collection.")
-      }
-      .alert("Error", isPresented: $showErrorAlert) {
-        Button("OK", role: .cancel) { }
-      } message: {
-        Text(errorMessage)
-      }
+        .animation(.easeInOut(duration: 0.25), value: isSearchPresented)
+        .navigationDestination(for: Recipe.self) { recipe in
+          RecipeDetails(recipe: recipe)
+        }
+        .background(Color.app.backgroundPrimary)
+        .navigationTitle("Recipes")
+        .navigationBarTitleDisplayMode(recipes.isEmpty ? .large : .inline)
+        .toolbar { recipesToolbar }
+        .sheet(isPresented: $showSuggestions) {
+          RecipeSuggestionsView()
+        }
+        .sheet(isPresented: $showAddSheet) {
+          AddRecipe()
+            .interactiveDismissDisabled()
+            .presentationDetents([.height(240), .large])
+            .presentationBackground(Color.app.backgroundSecondary)
+            .presentationDragIndicator(.hidden)
+        }
+        .alert("Recipes Added", isPresented: $showSuccessAlert) {
+          Button("OK", role: .cancel) { }
+        } message: {
+          Text("Added \(loadedCount) recipes to your collection.")
+        }
+        .alert("Error", isPresented: $showErrorAlert) {
+          Button("OK", role: .cancel) { }
+        } message: {
+          Text(errorMessage)
+        }
+        .onAppear {
+          let color = UIColor(Color.app.textPlaceholder)
+
+          // Search icon
+          let config = UIImage.SymbolConfiguration(pointSize: 14, weight: .regular)
+          let icon = UIImage(systemName: "magnifyingglass", withConfiguration: config)?
+            .withTintColor(color, renderingMode: .alwaysOriginal)
+          UISearchBar.appearance().setImage(icon, for: .search, state: .normal)
+
+          // Placeholder text color (SwiftUI prompt foregroundStyle doesn't reach UIKit)
+          UITextField.appearance(whenContainedInInstancesOf: [UISearchBar.self])
+            .attributedPlaceholder = NSAttributedString(
+              string: "Search recipes",
+              attributes: [.foregroundColor: color]
+            )
+
+          // Hide inner clear button — replace its image with empty (clearButtonMode
+          // via appearance proxy doesn't reach UISearchTextField's private subclass)
+          UISearchBar.appearance().setImage(UIImage(), for: .clear, state: .normal)
+          UISearchBar.appearance().setImage(UIImage(), for: .clear, state: .highlighted)
+        }
     }
   }
 
@@ -97,12 +141,13 @@ struct RecipesView: View {
         Button {
           showSuggestions = true
         } label: {
-          Image(systemName: "wand.and.stars")
+          Image(systemName: "fork.knife")
+            .font(.system(size: 15, weight: .regular))
             .foregroundStyle(Color.app.primary)
+            .opacity(isSearchPresented ? 0 : 1)
+            .animation(.easeInOut(duration: 0.2), value: isSearchPresented)
         }
-        .frame(width: 30, height: 30)
-        .background(.regularMaterial)
-        .clipShape(Circle())
+        .circleToolbarButtonStyle()
         .buttonStyle(.plain)
       }
     }
@@ -112,32 +157,44 @@ struct RecipesView: View {
         showAddSheet.toggle()
       } label: {
         Image(systemName: "plus")
+          .font(.system(size: 15, weight: .light))
           .foregroundStyle(Color.app.primary)
+          .opacity(isSearchPresented ? 0 : 1)
+          .animation(.easeInOut(duration: 0.2), value: isSearchPresented)
       }
-      .frame(width: 30, height: 30)
-      .background(.regularMaterial)
-      .clipShape(Circle())
+      .circleToolbarButtonStyle()
       .buttonStyle(.plain)
     }
     .hidesSharedGlassBackground()
   }
 
   private var noResultsView: some View {
-    VStack(spacing: 12) {
-      Image(systemName: "magnifyingglass")
-        .font(.system(size: 44, weight: .ultraLight))
-        .foregroundStyle(.secondary)
+    VStack(spacing: 24) {
+      GlowingIcon(
+        systemName: "magnifyingglass",
+        size: 18,
+        primaryColor: Color.app.primary,
+        glowColor: .orange
+      )
       Text("No recipes found")
-        .font(.headline)
-        .foregroundStyle(.secondary)
+        .font(.title2)
+        .fontWeight(.medium)
+        .foregroundColor(Color.app.labelPrimary)
       if selectedTag != nil || !searchText.isEmpty {
-        Button("Clear filters") {
+        Button {
           searchText = ""
           selectedTag = nil
+        } label: {
+          Text("Clear filters")
+            .padding(.horizontal, 24)
+            .padding(.vertical, 12)
+            .background(Color.app.white)
+            .foregroundColor(Color.app.primary)
+            .cornerRadius(12)
         }
-        .foregroundStyle(Color.app.primary)
       }
     }
+    .padding(.bottom, 100)
     .frame(maxWidth: .infinity, maxHeight: .infinity)
   }
 
@@ -151,7 +208,7 @@ struct RecipesView: View {
             Text(tag)
               .font(.system(size: 13, weight: .medium))
               .foregroundStyle(selectedTag == tag ? .white : Color.app.primary)
-              .padding(.vertical, 6)
+              .padding(.vertical, 8)
               .padding(.horizontal, 12)
               .background(selectedTag == tag ? Color.app.primary : Color.app.primary.opacity(0.1))
               .clipShape(Capsule())
@@ -160,7 +217,8 @@ struct RecipesView: View {
         }
       }
       .padding(.horizontal, 16)
-      .padding(.vertical, 8)
+      //.padding(.top, 4)
+      .padding(.bottom, 12)
     }
     .background(.bar)
   }

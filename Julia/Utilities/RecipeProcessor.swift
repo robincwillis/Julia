@@ -33,6 +33,10 @@ class RecipeProcessor {
   // Recipe auto-saved on import; replaced if the user saves an edited version
   private var autoSavedRecipe: Recipe?
 
+  /// The error behind the most recent failure, if it came from a thrown error.
+  /// Cleared by `start()`.
+  private(set) var lastError: Error?
+
   // Completion handler
   var onCompletion: ((RecipeData) -> Void)?
   var onError: ((String) -> Void)?
@@ -51,6 +55,7 @@ class RecipeProcessor {
     processingState.reset()
     recipeData.reset()
     autoSavedRecipe = nil
+    lastError = nil
     processingState.processingStage = .notStarted
 
     processingState.showProcessingSheet = true
@@ -91,9 +96,9 @@ class RecipeProcessor {
   /// Deliberately NOT applied to URL import: `RecipeWebScraper` prefers JSON-LD
   /// structured data and only falls back to the model, so a well-marked-up
   /// recipe page imports fine without it.
-  private var modelUnavailableMessage: String? {
+  private var modelUnavailableError: ModelAvailabilityError? {
     if case .unavailable(let reason) = SystemLanguageModel.default.availability {
-      return ModelErrorMessage.message(for: reason)
+      return .unavailable(reason)
     }
     return nil
   }
@@ -102,9 +107,11 @@ class RecipeProcessor {
   /// caller should bail out. `start()` first so the status sheet is on screen
   /// to display it.
   private func failIfModelUnavailable() -> Bool {
-    guard let reason = modelUnavailableMessage else { return false }
+    guard let error = modelUnavailableError else { return false }
     start()
-    fail(error: reason)
+    // Through handleError, not fail(), so `lastError` is recorded and callers
+    // can tell this apart from a genuine pipeline failure.
+    handleError(error)
     return true
   }
 
@@ -124,7 +131,7 @@ class RecipeProcessor {
         updateRecipeData(recognizedText, reconstructedText, classifiedText)
         complete()
       } catch {
-        handleError(ModelErrorMessage.friendlyMessage(for: error))
+        handleError(error)
       }
     }
   }
@@ -145,7 +152,7 @@ class RecipeProcessor {
         updateRecipeData(recognizedText, reconstructedText, classifiedText)
         complete()
       } catch {
-        handleError(ModelErrorMessage.friendlyMessage(for: error))
+        handleError(error)
       }
     }
   }
@@ -188,7 +195,7 @@ class RecipeProcessor {
         autoSave()
         complete()
       } catch {
-        handleError(ModelErrorMessage.friendlyMessage(for: error))
+        handleError(error)
       }
     }
   }
@@ -301,6 +308,18 @@ class RecipeProcessor {
   }
 
   // Error handling
+  /// Records the underlying error alongside the user-facing message.
+  ///
+  /// `onError` only carries a `String`, which is all the UI needs but leaves
+  /// callers unable to tell an environmental refusal ("the model would not
+  /// answer") from a defect in what we asked it. Keeping the error itself makes
+  /// that distinction available — the test suite uses it to avoid going red for
+  /// reasons outside the app's control.
+  private func handleError(_ error: Error) {
+    lastError = error
+    handleError(ModelErrorMessage.friendlyMessage(for: error))
+  }
+
   private func handleError(_ message: String) {
     fail(error: message)
   }

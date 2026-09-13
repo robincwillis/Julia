@@ -29,15 +29,27 @@ struct RecipeURLImportView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
-                        .foregroundStyle(.secondary)
+                    Button { dismiss() } label: {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundStyle(Color.app.primary)
+                    }
+                    .circleToolbarButtonStyle()
+                    .buttonStyle(.plain)
                 }
+                .hidesSharedGlassBackground()
                 if !isLoading {
                     ToolbarItem(placement: .primaryAction) {
-                        Button("Import") { startImport() }
-                            .foregroundStyle(urlText.isEmpty ? Color.app.primary.opacity(0.4) : Color.app.primary)
-                            .disabled(urlText.isEmpty)
+                        Button { startImport() } label: {
+                            Image(systemName: "checkmark")
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundStyle(urlText.isEmpty ? Color.app.primary.opacity(0.4) : Color.app.primary)
+                        }
+                        .circleToolbarButtonStyle()
+                        .buttonStyle(.plain)
+                        .disabled(urlText.isEmpty)
                     }
+                    .hidesSharedGlassBackground()
                 }
             }
         }
@@ -81,11 +93,7 @@ struct RecipeURLImportView: View {
                             urlText = clipboardString
                         }
                     }
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 6)
-                    .background(.blue)
-                    .clipShape(Capsule())
+                    .foregroundStyle(Color.app.secondary)
                 }
                 .padding(.bottom, 8)
             }

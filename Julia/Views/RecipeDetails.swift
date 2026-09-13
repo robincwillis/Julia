@@ -106,7 +106,7 @@ struct RecipeDetails: View {
               Button("Clear") {
                 recipe.servings = nil
               }
-              .foregroundColor(Color.app.danger)
+              .foregroundStyle(Color.app.secondary)
             }
 
             Spacer()
@@ -114,12 +114,8 @@ struct RecipeDetails: View {
             Button("Done") {
               hideKeyboard()
             }
-            .foregroundStyle(Color.app.textPrimary)
+            .foregroundStyle(Color.app.primary)
             .fontWeight(.medium)
-            .padding(.horizontal, 14)
-            .padding(.vertical, 6)
-            .background(.fill.secondary)
-            .clipShape(Capsule())
           }
           .keyboardAccessoryBarStyle()
           .padding(.bottom, 24)
@@ -221,14 +217,12 @@ struct RecipeDetails: View {
       Image(systemName: "ellipsis")
         .font(.system(size: 14))
         .foregroundColor(Color.app.primary)
-        .frame(width: 40, height: 40)
-        .background(Color.app.white)
-        .clipShape(Circle())
         .animation(.snappy, value: !selectedIngredients.isEmpty)
         .transition(.opacity)
     }
+    .circleToolbarButtonStyle(background: Color.app.backgroundPrimary)
   }
-  
+
   private var ingredientEditorSheet: some View {
     FloatingBottomSheet(
       isPresented: $showIngredientEditor,
@@ -248,24 +242,32 @@ struct RecipeDetails: View {
   private var mainToolbarItems: some ToolbarContent {
     ToolbarItem(placement: .primaryAction) {
       if isEditing {
-        Button("Done") {
+        Button {
           editMode?.wrappedValue = .inactive
+        } label: {
+          Image(systemName: "checkmark")
+            .font(.system(size: 13, weight: .medium))
+            .foregroundStyle(Color.app.primary)
         }
-        .foregroundStyle(Color.app.primary)
+        .circleToolbarButtonStyle(background: Color.app.backgroundPrimary)
+        .buttonStyle(.plain)
       } else if !recipe.instructions.isEmpty {
         Button {
           showCookMode = true
         } label: {
           Image(systemName: "play.fill")
-            .foregroundStyle(Color.app.primary)
+            .font(.system(size: 13, weight: .medium))
+            .foregroundStyle(Color.white)
         }
-        .frame(width: 30, height: 30)
-        .background(.regularMaterial)
+        .frame(width: 44, height: 44)
+        .background(Color.app.primary)
         .clipShape(Circle())
+        .shadow(color: Color.app.primary.opacity(0.3), radius: 4, x: 0, y: 2)
         .buttonStyle(.plain)
         .accessibilityLabel("Start cooking")
       }
     }
+    .hidesSharedGlassBackground()
 
     ToolbarItem(placement: .navigationBarTrailing) {
       if isEditing {
@@ -291,11 +293,8 @@ struct RecipeDetails: View {
           Image(systemName: "ellipsis")
             .font(.system(size: 14))
             .foregroundColor(Color.app.primary)
-            .padding(12)
-            .frame(width: 30, height: 30)
-            .background(.regularMaterial)
-            .clipShape(Circle())
         }
+        .circleToolbarButtonStyle(background: Color.app.backgroundPrimary)
       }
     }
     .hidesSharedGlassBackground()
@@ -303,28 +302,26 @@ struct RecipeDetails: View {
 
   private var editingMenu: some View {
     Menu {
-          Button("Show Raw Text", systemImage: "text.quote") {
-            showRawTextSheet = true
-          }
-          .tint(Color.app.primary)
-          Button("Show Source", systemImage: "text.page.badge.magnifyingglass") {
-            showSourceSheet = true
-          }
-          .tint(Color.app.primary)
-          Button("Delete Recipe", systemImage: "trash", role: .destructive) {
-            showDeleteConfirmation = true
-          }
-          .tint(Color.app.danger)
+      Button("Show Raw Text", systemImage: "text.quote") {
+        showRawTextSheet = true
+      }
+      .tint(Color.app.primary)
+      Button("Show Source", systemImage: "text.page.badge.magnifyingglass") {
+        showSourceSheet = true
+      }
+      .tint(Color.app.primary)
+      Button("Delete Recipe", systemImage: "trash", role: .destructive) {
+        showDeleteConfirmation = true
+      }
+      .tint(Color.app.danger)
     } label: {
       Image(systemName: "ellipsis")
         .font(.system(size: 14))
         .foregroundColor(Color.app.primary)
-        .frame(width: 40, height: 40)
-        .background(Color.app.white)
-        .clipShape(Circle())
         .animation(.snappy, value: isEditing)
         .transition(.opacity)
     }
+    .circleToolbarButtonStyle(background: Color.app.backgroundPrimary)
   }
 
   private var rawTextSheet: some View {

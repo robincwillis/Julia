@@ -72,7 +72,7 @@ struct ProcessingResults: View {
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {
         ToolbarItem(placement: .cancellationAction) {
-          Button(isSaved ? "Done" : "Cancel") {
+          Button {
             if isSaved {
               dismiss()
             } else if !recipeData.title.isEmpty || !recipeData.ingredients.isEmpty || !recipeData.instructions.isEmpty {
@@ -80,13 +80,19 @@ struct ProcessingResults: View {
             } else {
               dismiss()
             }
+          } label: {
+            Image(systemName: "xmark")
+              .font(.system(size: 13, weight: .medium))
+              .foregroundStyle(Color.app.primary)
           }
-          .foregroundStyle(isSaved ? Color.app.primary : .secondary)
+          .circleToolbarButtonStyle()
+          .buttonStyle(.plain)
         }
+        .hidesSharedGlassBackground()
 
         ToolbarItem(placement: .primaryAction) {
           if !recipeData.title.isEmpty || !recipeData.ingredients.isEmpty || !recipeData.instructions.isEmpty {
-            Button(isSaved ? "Saved ✓" : (isSaving ? "Saving…" : "Save")) {
+            Button {
               // Saving can take a few seconds: ingredients the heuristic parser
               // is unsure of are escalated to Foundation Models one at a time.
               // Without this flag the button looks inert for the duration.
@@ -96,11 +102,17 @@ struct ProcessingResults: View {
                 isSaving = false
                 if didSave { isSaved = true }
               }
+            } label: {
+              Image(systemName: "checkmark")
+                .font(.system(size: 13, weight: .medium))
+                .foregroundStyle((isSaved || isSaving) ? Color.app.primary.opacity(0.4) : Color.app.primary)
             }
-            .foregroundStyle(isSaved || isSaving ? .secondary : Color.app.primary)
+            .circleToolbarButtonStyle()
+            .buttonStyle(.plain)
             .disabled(isSaved || isSaving)
           }
         }
+        .hidesSharedGlassBackground()
       }
     }
     .alert("Unsaved Recipe", isPresented: $showDismissAlert) {

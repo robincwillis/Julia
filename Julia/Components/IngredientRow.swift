@@ -15,11 +15,11 @@ struct iOSCheckboxToggleStyle: ToggleStyle {
     }, label: {
       HStack {
         RoundedRectangle(cornerRadius: 6)
-          .fill(configuration.isOn ? Color.blue : Color.app.offWhite400)  // Blue when checked, gray otherwise
+          .fill(configuration.isOn ? Color.app.secondary : Color.app.offWhite400)
           .frame(width: 24, height: 24)
           .overlay(
             Image(systemName: "checkmark")
-              .foregroundColor(.white)
+              .foregroundStyle(Color.app.white)
               .opacity(configuration.isOn ? 1 : 0)
           )
         configuration.label
@@ -66,7 +66,7 @@ struct IngredientLabel: View {
   private var ingredientDetailsView: some View {
     Group {
       if let comment = ingredient.comment {
-        Text("\(Text(formattedIngredientName).font(.body).foregroundColor(Color.app.textSecondary))\(Text(" \(comment)").font(.subheadline).foregroundColor(Color.app.grey300))")
+        Text("\(Text(formattedIngredientName).font(.body).foregroundColor(Color.app.textSecondary))\(Text(" \(comment)").font(.subheadline).foregroundColor(Color.app.labelPrimary))")
       } else {
         Text(formattedIngredientName)
           .font(.body)

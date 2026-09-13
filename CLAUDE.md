@@ -28,6 +28,10 @@ iOS 26 is required — the import pipeline depends on Foundation Models.
 - `docs/figma-build-spec.md` — tokens, type ramp, geometry and naming for
   recreating screens in Figma. **Read before touching the Figma file or
   starting the design system.**
+- `docs/design-tokens.md` — the current Figma `Julia` color token table
+  (semantic names, light/dark hex, source notes), mapped against
+  `Assets.xcassets`/`Theme.swift`, with open questions and a rollout plan.
+  **Read before changing any color token during the UI overhaul.**
 
 ## Architecture Overview
 

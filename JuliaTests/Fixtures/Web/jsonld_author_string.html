@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Charred Cabbage with Anchovy Butter — Fixture Weekly</title>
+  <!-- Covers the JSON-LD branches the other fixtures do not:
+       - "author" as a plain string rather than an object or an array
+       - "@type" as an array that happens to contain Recipe
+       - recipeInstructions nested inside HowToSection/itemListElement
+       - recipeYield as a bare integer -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": ["Recipe"],
+    "name": "Charred Cabbage with Anchovy Butter",
+    "description": "A whole cabbage, roasted hard, with a salty butter that melts into every layer.",
+    "author": "Fixture Weekly Test Kitchen",
+    "prepTime": "PT10M",
+    "cookTime": "PT50M",
+    "recipeYield": 4,
+    "recipeIngredient": [
+      "1 large green cabbage",
+      "100 g salted butter, softened",
+      "6 anchovy fillets in oil, drained",
+      "1 clove garlic, grated",
+      "1 tablespoon lemon juice",
+      "Black pepper"
+    ],
+    "recipeInstructions": [
+      {
+        "@type": "HowToSection",
+        "name": "Roast the cabbage",
+        "itemListElement": [
+          { "@type": "HowToStep", "text": "Heat the oven to 220C." },
+          { "@type": "HowToStep", "text": "Quarter the cabbage through the core and set the wedges cut side down on a tray." },
+          { "@type": "HowToStep", "text": "Roast 45 to 50 minutes, until the edges are properly blackened." }
+        ]
+      },
+      {
+        "@type": "HowToSection",
+        "name": "Make the butter",
+        "itemListElement": [
+          { "@type": "HowToStep", "text": "Mash the anchovies into the butter with the garlic and lemon juice." },
+          { "@type": "HowToStep", "text": "Spoon it over the hot cabbage so it melts down into the leaves." }
+        ]
+      }
+    ]
+  }
+  </script>
+</head>
+<body>
+  <h1>Charred Cabbage with Anchovy Butter</h1>
+</body>
+</html>

@@ -87,26 +87,25 @@ struct IngredientsView: View {
               showAddSheet()
             } label: {
               Image(systemName: "plus")
+                .font(.system(size: 15, weight: .light))
                 .foregroundColor(Color.app.primary)
             }
-            .frame(width: 30, height: 30)
-            .background(Color.app.white)
-            .clipShape(Circle())
+            .circleToolbarButtonStyle()
             .buttonStyle(.plain)
-            
+
             if hasSelection {
               Menu {
                 Button("Move to \(location.destination.title)", systemImage: "folder", action: {
                   moveIngredients(from: selectedIndexSet)
                 })
                 .tint(Color.app.primary)
-                
+
                 Button("Select All", systemImage: "checklist.checked", action: selectAll)
                   .tint(Color.app.primary)
-                
+
                 Button("Clear Selection", systemImage: "xmark.circle", action: clearSelection)
                   .tint(Color.app.primary)
-                
+
                 Button("Remove Ingredients", systemImage: "trash", role: .destructive, action: {
                   removeIngredients(from: selectedIndexSet)
                 })
@@ -115,7 +114,7 @@ struct IngredientsView: View {
                   clearAllIngredients()
                 })
                 .tint(Color.app.danger)
-                
+
               } label: {
                 Image(systemName: "ellipsis")
                   .font(.system(size: 14))
@@ -123,9 +122,7 @@ struct IngredientsView: View {
                   .animation(.snappy, value: hasSelection)
                   .transition(.opacity)
               }
-              .frame(width: 30, height: 30)
-              .background(.regularMaterial)
-              .clipShape(Circle())
+              .circleToolbarButtonStyle()
               .buttonStyle(.plain)
             }
           }

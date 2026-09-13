@@ -125,6 +125,7 @@ struct IngredientEditor: View {
         }) {
           Image(systemName: isNameFieldFocused ? "arrow.down" : "arrow.up")
             .font(.title2)
+            .foregroundColor(Color.app.primary)
         }
         .disabled(!canSave)
         Spacer()
@@ -153,7 +154,7 @@ struct IngredientEditor: View {
           }) {
             Text(measurementLabel)
               .font(.system(size: 18, weight: .medium))
-              .foregroundColor(.blue)
+              .foregroundStyle(Color.app.primary)
               .padding(.horizontal, 8)
               .frame(maxWidth: .infinity, alignment: .center)
           }
@@ -171,7 +172,7 @@ struct IngredientEditor: View {
             )
           )
           .foregroundColor(Color.app.textPrimary)
-          .tint(.blue)
+          .tint(Color.app.primary)
           .multilineTextAlignment(.center)
           .lineLimit(1)
           .submitLabel(.done)
@@ -205,7 +206,7 @@ struct IngredientEditor: View {
                       .font(.system(size: 12))
                       .frame(height: 36)
                       .frame(minWidth: 80)
-                      .background(self.unit == unitOption ? Color.blue : Color.app.offWhite200)
+                      .background(self.unit == unitOption ? Color.app.secondary : Color.app.backgroundCard)
                       .foregroundColor(self.unit == unitOption ? .white : Color.app.textPrimary)
                       .cornerRadius(12)
                       .fontWeight(self.unit == unitOption ? .bold : .regular)
@@ -232,8 +233,8 @@ struct IngredientEditor: View {
                     .padding(6)
                     .frame(minHeight: 40)
                     .frame(maxWidth: .infinity)
-                    .background(Color.app.secondary)
-                    .foregroundColor(Color.app.textPrimary)
+                    .background(Color.orange)
+                    .foregroundColor(.white)
                     .cornerRadius(12)
                 }
               }
@@ -264,8 +265,8 @@ struct IngredientEditor: View {
                         .padding(6)
                         .frame(minHeight: 40)
                         .frame(maxWidth: .infinity)
-                        .background(Color(.systemBlue))
-                        .foregroundColor(.white)
+                        .background(Color.app.secondary)
+                        .foregroundStyle(.white)
                         .cornerRadius(12)
                         .fontWeight(.medium)
                     }

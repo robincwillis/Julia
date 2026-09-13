@@ -1,0 +1,28 @@
+# Source pages for the Web fixtures.
+#
+# The suite tests JSON-LD extraction against saved HTML, not live requests, so
+# it stays deterministic and offline. This file records where each fixture came
+# from and lets them be re-captured in one command when a site changes markup:
+#
+#     JuliaTests/Fixtures/Web/refresh.sh
+#
+# Format: <fixture-name> <url>
+# Lines starting with # are ignored. Fixture names must be unique across all of
+# Fixtures/, since resources are flattened into the test bundle.
+#
+# Pages whose recipe data is rendered client-side have no JSON-LD and do not
+# belong here — they exercise the Apple Intelligence fallback, not this path.
+#
+# The four fixtures currently in the repo are hand-authored rather than
+# captured, so they have no URL. They exist to pin specific JSON-LD shapes:
+#
+#   jsonld_direct         @type: Recipe, author object, HowToStep instructions,
+#                         recipeYield string, whitespace-only ingredient
+#   jsonld_graph          Recipe nested in @graph, author array-of-objects,
+#                         plain-string instructions, recipeYield array
+#   jsonld_author_string  author plain string, @type array,
+#                         HowToSection/itemListElement, recipeYield integer
+#   layer_cake_multichunk (Text/) 46 lines, forces more than one chunk
+#
+# Add real captures below. Aim for variety in JSON-LD shape, since that is what
+# the parser branches on.

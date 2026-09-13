@@ -19,7 +19,7 @@ struct RecipeEditSourceSection: View {
       // Source Title
       HStack {
         Text("Title")
-          .foregroundColor(Color.app.textLabel)
+          .foregroundColor(Color.app.labelPrimary)
         Spacer()
         TextField("Optional", text: $sourceTitle)
           .foregroundColor(Color.app.textPrimary)
@@ -30,7 +30,7 @@ struct RecipeEditSourceSection: View {
       // author
       HStack {
         Text("Author")
-          .foregroundColor(Color.app.textLabel)
+          .foregroundColor(Color.app.labelPrimary)
         Spacer()
         TextField("Optional", text: $author)
           .foregroundColor(Color.app.textPrimary)
@@ -41,7 +41,7 @@ struct RecipeEditSourceSection: View {
       // Website
       HStack {
         Text("Website")
-          .foregroundColor(Color.app.textLabel)
+          .foregroundColor(Color.app.labelPrimary)
         Spacer()
         TextField("Optional", text: $website)
           .foregroundColor(Color.app.textPrimary)
@@ -54,7 +54,7 @@ struct RecipeEditSourceSection: View {
 
       HStack {
         Text("Type")
-          .foregroundColor(Color.app.textLabel)
+          .foregroundColor(Color.app.labelPrimary)
         Spacer()
         Menu {
           Picker("Type", selection: $sourceType) {

@@ -15,6 +15,18 @@ extension View {
 }
 
 extension View {
+  /// Circle button used in navigation bar toolbars. 44 pt, configurable fill,
+  /// soft shadow — no glass effect. Defaults to white background.
+  func circleToolbarButtonStyle(background: Color = Color.app.white) -> some View {
+    self
+      .frame(width: 44, height: 44)
+      .background(background)
+      .clipShape(Circle())
+      .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
+  }
+}
+
+extension View {
   /// Styles a primary keyboard accessory action as a solid prominent capsule.
   /// Styled manually rather than via buttonStyle: built-in button styles
   /// (borderedProminent, glassProminent) don't render their fills reliably

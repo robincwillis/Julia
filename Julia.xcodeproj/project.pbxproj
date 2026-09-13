@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		5AE1C0DE0000000000000031 /* RecipeLineType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5AE1C0DE0000000000000030 /* RecipeLineType.swift */; };
 		52010E4F2D7FD362007C4889 /* RecipeTextReconstructor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52010E4E2D7FD362007C4889 /* RecipeTextReconstructor.swift */; };
 		52010E642D809EBA007C4889 /* RecipeWebExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52010E632D809EBA007C4889 /* RecipeWebExtractor.swift */; };
 		520DE6A22C33208B00CAF570 /* NavigationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 520DE6A12C33208B00CAF570 /* NavigationView.swift */; };
@@ -113,6 +112,7 @@
 		5AE1C0DE0000000000000012 /* SharedImportInbox.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5AE1C0DE000000000000000E /* SharedImportInbox.swift */; };
 		5AE1C0DE0000000000000014 /* JuliaShareExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 5AE1C0DE0000000000000002 /* JuliaShareExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		5AE1C0DE0000000000000021 /* ModelErrorMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5AE1C0DE0000000000000020 /* ModelErrorMessage.swift */; };
+		5AE1C0DE0000000000000031 /* RecipeLineType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5AE1C0DE0000000000000030 /* RecipeLineType.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -147,7 +147,6 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		5AE1C0DE0000000000000030 /* RecipeLineType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeLineType.swift; sourceTree = "<group>"; };
 		52010E4E2D7FD362007C4889 /* RecipeTextReconstructor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeTextReconstructor.swift; sourceTree = "<group>"; };
 		52010E632D809EBA007C4889 /* RecipeWebExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeWebExtractor.swift; sourceTree = "<group>"; };
 		520DE69E2C330F9600CAF570 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
@@ -254,6 +253,7 @@
 		5AE1C0DE000000000000000D /* Julia.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Julia.entitlements; sourceTree = "<group>"; };
 		5AE1C0DE000000000000000E /* SharedImportInbox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedImportInbox.swift; sourceTree = "<group>"; };
 		5AE1C0DE0000000000000020 /* ModelErrorMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelErrorMessage.swift; sourceTree = "<group>"; };
+		5AE1C0DE0000000000000030 /* RecipeLineType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeLineType.swift; sourceTree = "<group>"; };
 		AA100001BB000001CC000001 /* ReceiptData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiptData.swift; sourceTree = "<group>"; };
 		AA100003BB000001CC000001 /* RecipeClassificationResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeClassificationResult.swift; sourceTree = "<group>"; };
 		AA100005BB000001CC000001 /* FoundationModelsIngredientParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoundationModelsIngredientParser.swift; sourceTree = "<group>"; };

@@ -85,7 +85,7 @@ struct RecipeEditSummarySection: View {
       HStack {
         Text("Servings")
           .font(.body)
-          .foregroundColor(Color.app.textLabel)
+          .foregroundColor(Color.app.labelPrimary)
         
         Spacer()
         TextField("Optional", text: servingsTextBinding)
