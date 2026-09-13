@@ -17,12 +17,12 @@ if it's been a while — this is a snapshot, not a live mirror.
 |---|---|---|---|---|---|
 | `brand/primary` | 🟧 | `#FF3900` | 🟧 | `#FF7445` | merge dot and any other red colors |
 | `xcode/primary-disabled` | 🟧 | `#F9AA93` | 🟫 | `#9C6454` | |
-| `brand/secondary` | 🟦 | `#007AFF` | 🟦 | `#45AAFF` | secondary color is **not** a background color, it's an alternative pop color — wait for special |
+| `brand/secondary` | 🟦 | `#9FC9F6` | 🟦 | `#5C7A99` | secondary color is **not** a background color, it's an alternative pop color — wait for special |
 | `xcode/secondary-disabled` | 🟦 | `#D8E2E4` | 🟦 | `#5D6D70` | |
 | `brand/danger` | 🟥 | `#FF3B30` | 🟧 | `#FF7445` | same as brand/primary |
 | `ios/systemRed` | 🟥 | `#FF3B30` | 🟧 | `#FF7445` | same as brand/primary |
 | `xcode/AccentColor` | 🟥 | `#FF3B30` | 🟧 | `#FF7445` | same as brand/primary |
-| `ios/systemBlue` | 🟦 | `#007AFF` | 🟦 | `#45AAFF` | same as brand/secondary |
+| `ios/systemBlue` | 🟦 | `#007AFF` | 🟦 | `#45AAFF` | not the same as brand/secondary — see flag 2 |
 | `ios/systemGreen` | 🟩 | `#34C759` | 🟩 | `#30D158` | default |
 | `ios/systemOrange` | 🟨 | `#FAAE00` | 🟨 | `#FAAE00` | custom orange, same color in light and dark mode |
 
@@ -87,7 +87,7 @@ substantially more semantic tokens than currently exist as colorsets.
 |---|---|---|---|---|
 | `primary` | `#FF3900` / `#FF7445` | `.primary` | `brand/primary` | **unchanged** |
 | `primary.disabled` | `#F9AA93` / `#9C6454` | `.primaryDisabled` | `xcode/primary-disabled` | **unchanged** |
-| `secondary` | `#007AFF` / `#45AAFF` | `.secondary` | `brand/secondary` | **value changes** from `#B3DAD7`/`#718F8D` (see flag 2) |
+| `secondary` | `#9FC9F6` / `#5C7A99` | `.secondary` | `brand/secondary` | **value changes** from `#B3DAD7`/`#718F8D` (see flag 2) |
 | `secondary.disabled` | `#D8E2E4` / `#5D6D70` | `.secondaryDisabled` | `xcode/secondary-disabled` | **unchanged** |
 | `danger` | `#800020` / `#DC143C` | `.danger` | `brand/danger` | **value changes** to `#FF3B30` / `#FF7445` (see flags) |
 | `AccentColor` | `#FF3900` / `#FF7445` | (Xcode asset, no Swift alias) | `xcode/AccentColor` | **value changes** to `#FF3B30` / `#FF7445` (see flags) |
@@ -124,18 +124,20 @@ substantially more semantic tokens than currently exist as colorsets.
 
 2. **`ios/systemBlue` "same as brand/secondary."** ~~`systemBlue` is
    `#007AFF`/`#45AAFF` (blue); `brand/secondary` is `#B3DAD7`/`#718F8D`
-   (teal) — not the same color by any reading.~~ **Resolved 2026-09-13:**
-   the teal value was a transcription error in this table — confirmed with
-   Robin that `brand/secondary` is `#007AFF`/`#45AAFF`, identical to
-   `ios/systemBlue`, exactly as the note originally said. Applied:
-   `secondary.colorset` now carries `#007AFF`/`#45AAFF` (was
-   `#B3DAD7`/`#718F8D`). This also retroactively corrects the 2026-09-13
-   migration that had replaced hard-coded `.blue`/`systemBlue` literals with
-   `Color.app.secondary` across the tab bar active pill, the ingredient
-   editor's number pad 0 button, the instructions step-number badge, the Ask
-   Julia user chat bubble, the receipt scanner's nav bar tint, and
-   `prominentKeyboardAccessoryStyle`'s default fill — those call sites now
-   render the correct blue without further changes.
+   (teal) — not the same color by any reading.~~ The teal value was
+   confirmed a transcription error, but the first fix (2026-09-13, early) —
+   setting `brand/secondary` to `#007AFF`/`#45AAFF` on the theory that the
+   note meant "identical to systemBlue" — was also wrong. **Resolved
+   2026-09-13, final:** Robin supplied reference screenshots of the actual
+   swatch (light and dark); sampled pixel color is `#9FC9F6` (light) /
+   `#5C7A99` (dark) — a lighter, more muted blue than `systemBlue`, not
+   identical to it after all. Applied: `secondary.colorset` now carries
+   `#9FC9F6`/`#5C7A99`. Every `Color.app.secondary` call site — including
+   the systemBlue-literal migration earlier the same day (tab bar active
+   pill, ingredient editor's number pad 0 button, instructions step-number
+   badge, Ask Julia user chat bubble, receipt scanner nav bar tint,
+   `prominentKeyboardAccessoryStyle`'s default fill) — renders this value
+   without further code changes.
 
 3. **`brand/secondary` is declared not a background color** ("wait for
    special"), but it's currently used as a `.background()` fill in three
@@ -194,10 +196,12 @@ substantially more semantic tokens than currently exist as colorsets.
 
 ## Applied 2026-09-13
 
-- `secondary.colorset` → `#007AFF`/`#45AAFF` (was `#B3DAD7`/`#718F8D`) — see
-  flag 2. Every `Color.app.secondary` call site, including the systemBlue
-  literals migrated to it earlier the same day, now renders the corrected
-  blue automatically.
+- `secondary.colorset` → `#9FC9F6`/`#5C7A99` (was `#B3DAD7`/`#718F8D`, via a
+  brief intermediate `#007AFF`/`#45AAFF`) — see flag 2. Sourced by sampling
+  Robin's reference screenshots of the actual swatch, not from the
+  `ios/systemBlue` note. Every `Color.app.secondary` call site, including
+  the systemBlue literals migrated to it earlier the same day, now renders
+  this value automatically.
 
 ## Still open / deferred
 

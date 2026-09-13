@@ -277,7 +277,7 @@ implementation accident.
 1. Should `text.primary` be `#1C1C1C` or true black? Both ship today.
 2. Is `background.secondary`'s blue-grey `#DDE2E1` / `#374750` intentional
    brand, or an artefact? It is the most distinctive neutral in the app.
-3. Do the tag chips (`secondary` `#007AFF`, corrected 2026-09-13 from a
+3. Do the tag chips (`secondary` `#9FC9F6`, corrected 2026-09-13 from a
    mistranscribed teal — see design-tokens.md flag 2) belong to the palette,
    or should they use an accent tint like the filter chips do?
 4. Should the app keep using iOS system colours (`systemBlue` for the tab bar,

@@ -134,7 +134,7 @@ Was P3. Yours, and gated on the Figma review.
   → [design-tokens.md](design-tokens.md) flag 5
 
 - [ ] **Move `secondary` off background duty** — S
-  New token notes: `brand/secondary` (`#007AFF`, corrected 2026-09-13 from a
+  New token notes: `brand/secondary` (`#9FC9F6`, corrected 2026-09-13 from a
   mistranscribed teal) is "not a background color, it's an alternative pop
   color, wait for special." Currently used as a `.background()`/`.fill()`
   fill well beyond the original 3 call sites — the 2026-09-13 systemBlue
@@ -146,9 +146,11 @@ Was P3. Yours, and gated on the Figma review.
   blanket swap. → [design-tokens.md](design-tokens.md) flag 3
 
 - [x] **`ios/systemBlue` "same as brand/secondary" note** — resolved
-  2026-09-13: the teal hex was a transcription error; `brand/secondary` is
-  actually `#007AFF`/`#45AAFF`, identical to `ios/systemBlue`.
-  `secondary.colorset` updated. → [design-tokens.md](design-tokens.md) flag 2
+  2026-09-13: the teal hex was a transcription error, but `brand/secondary`
+  turned out not to be identical to `ios/systemBlue` either — Robin's
+  reference screenshots sample to `#9FC9F6`/`#5C7A99`, a lighter, more muted
+  blue. `secondary.colorset` updated to that value.
+  → [design-tokens.md](design-tokens.md) flag 2
 
 - [ ] **Resolve remaining open semantic question from the token table** — S
   `brand/background-primary` vs. `brand/background-sheet` differ only by a
