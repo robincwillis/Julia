@@ -86,7 +86,7 @@ struct RecipeURLImportView: View {
         .scrollContentBackground(.hidden)
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {
-                HStack(spacing: 8) {
+                HStack(spacing: 12) {
                     Spacer()
                     Button("Paste") {
                         if let clipboardString = UIPasteboard.general.string {
@@ -95,8 +95,10 @@ struct RecipeURLImportView: View {
                     }
                     .foregroundStyle(Color.app.secondary)
                 }
-                .padding(.bottom, 8)
+                .keyboardAccessoryBarStyle()
+                .padding(.bottom, 24)
             }
+            .hidesSharedGlassBackground()
         }
     }
 
