@@ -22,7 +22,7 @@ extension View {
       .frame(width: 44, height: 44)
       .background(background)
       .clipShape(Circle())
-      .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
+      .shadow(color: .black.opacity(0.06), radius: 6, x: 0, y: 1)
   }
 }
 
