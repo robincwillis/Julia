@@ -199,10 +199,10 @@ struct ChefChatView: View {
                 dismiss()
             } label: {
                 Image(systemName: "xmark")
-                    .font(.system(size: 13, weight: .medium))
+                    .font(.system(size: 17, weight: .regular))
                     .foregroundStyle(Color.app.primary)
             }
-            .circleToolbarButtonStyle()
+            .circleToolbarButtonStyle(background: Color.app.backgroundSecondary)
             .buttonStyle(.plain)
 
             Spacer()
