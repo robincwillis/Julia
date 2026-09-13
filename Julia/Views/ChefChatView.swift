@@ -610,7 +610,7 @@ private struct MessageBubble: View {
     }
 
     private var bubbleBackground: some ShapeStyle {
-        message.role == .user ? AnyShapeStyle(.blue) : AnyShapeStyle(.fill.secondary)
+        message.role == .user ? AnyShapeStyle(Color.app.secondary) : AnyShapeStyle(.fill.secondary)
     }
 }
 

@@ -291,7 +291,7 @@ struct IngredientEditor: View {
                     .padding(6)
                     .frame(minHeight: 40)
                     .frame(maxWidth: .infinity)
-                    .background(Color(.systemBlue))
+                    .background(Color.app.secondary)
                     .foregroundColor(.white)
                     .cornerRadius(12)
                 }

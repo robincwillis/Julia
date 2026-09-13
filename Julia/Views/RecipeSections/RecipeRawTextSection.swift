@@ -34,7 +34,7 @@ struct RecipeRawTextSection: View {
         } label: {
           Label("Copy", systemImage: "square.on.square")
         }
-        .foregroundColor(.blue)
+        .foregroundColor(.white)
         .padding(.horizontal, 12)
         .padding(.vertical, 6)
         .background(Color.app.secondary)

@@ -36,7 +36,7 @@ struct ReceiptScannerView: UIViewControllerRepresentable {
         context.coordinator.scanner = scanner
 
         let nav = UINavigationController(rootViewController: scanner)
-        nav.navigationBar.tintColor = UIColor.systemBlue
+        nav.navigationBar.tintColor = UIColor(Color.app.secondary)
 
         // Add Done button
         let doneButton = UIBarButtonItem(

@@ -402,17 +402,17 @@ extension NavigationView{
       Image(systemName: imageName)
         .resizable()
         .renderingMode(.template)
-        .foregroundStyle(isActive ? .white : .blue)
+        .foregroundStyle(isActive ? .white : Color.app.secondary)
         .frame(width: 20, height: 20)
       if isActive {
         Text(title)
           .font(.system(size: 14, weight: .medium))
-          .foregroundStyle(isActive ? .white : .blue)
+          .foregroundStyle(isActive ? .white : Color.app.secondary)
       }
       Spacer()
     }
     .frame(width: isActive ? nil : 60, height: 60)
-    .background(isActive ? .blue : .clear)
+    .background(isActive ? Color.app.secondary : .clear)
     .clipShape(.rect(cornerRadius: 30))
   }
 }

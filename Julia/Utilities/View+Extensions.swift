@@ -31,7 +31,7 @@ extension View {
   /// Styled manually rather than via buttonStyle: built-in button styles
   /// (borderedProminent, glassProminent) don't render their fills reliably
   /// inside keyboard toolbars.
-  func prominentKeyboardAccessoryStyle(fill: Color = .blue) -> some View {
+  func prominentKeyboardAccessoryStyle(fill: Color = Color.app.secondary) -> some View {
     self
       .foregroundStyle(Color.white)
       .padding(.horizontal, 6)

@@ -26,7 +26,7 @@ struct RecipeInstructionsSection: View {
               // Step number - Primary button style
               ZStack {
                 Circle()
-                  .fill(.blue)
+                  .fill(Color.app.secondary)
                   .frame(width: 30, height: 30)
                 Text("\(index + 1)")
                   .font(.subheadline)
