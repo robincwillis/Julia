@@ -134,19 +134,26 @@ Was P3. Yours, and gated on the Figma review.
   → [design-tokens.md](design-tokens.md) flag 5
 
 - [ ] **Move `secondary` off background duty** — S
-  New token notes: `brand/secondary` (`#B3DAD7`) is "not a background color,
-  it's an alternative pop color, wait for special." Currently used as a
-  `.background()` fill in `IngredientEditor.swift:235`,
+  New token notes: `brand/secondary` (`#007AFF`, corrected 2026-09-13 from a
+  mistranscribed teal) is "not a background color, it's an alternative pop
+  color, wait for special." Currently used as a `.background()`/`.fill()`
+  fill well beyond the original 3 call sites — the 2026-09-13 systemBlue
+  migration added the tab bar active pill, the ingredient editor's number
+  pad 0 button, the instructions step-number badge, and the Ask Julia user
+  chat bubble on top of the pre-existing `IngredientEditor.swift:235`,
   `RecipeEditTagsSection.swift:34`, `RecipeRawTextSection.swift:40`. Robin
   will pick the replacement per screen during the review rather than a
   blanket swap. → [design-tokens.md](design-tokens.md) flag 3
 
-- [ ] **Resolve two open semantic questions from the token table** — S
-  (1) `ios/systemBlue`'s note says "same as brand/secondary" but the values
-  are unrelated (blue vs. teal) — role note or copy-paste error? (2)
+- [x] **`ios/systemBlue` "same as brand/secondary" note** — resolved
+  2026-09-13: the teal hex was a transcription error; `brand/secondary` is
+  actually `#007AFF`/`#45AAFF`, identical to `ios/systemBlue`.
+  `secondary.colorset` updated. → [design-tokens.md](design-tokens.md) flag 2
+
+- [ ] **Resolve remaining open semantic question from the token table** — S
   `brand/background-primary` vs. `brand/background-sheet` differ only by a
   few points in dark mode (`#242424` vs `#1C1C1E`) — intentional depth cue or
-  picker rounding? → [design-tokens.md](design-tokens.md) flags 2 and 6
+  picker rounding? → [design-tokens.md](design-tokens.md) flag 6
 
 - [ ] **Reconcile toolbar button styling** — S
   `NavigationView.swift:300` and `RecipeDetails.editingMenu` use

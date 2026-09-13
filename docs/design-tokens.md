@@ -17,7 +17,7 @@ if it's been a while — this is a snapshot, not a live mirror.
 |---|---|---|---|---|---|
 | `brand/primary` | 🟧 | `#FF3900` | 🟧 | `#FF7445` | merge dot and any other red colors |
 | `xcode/primary-disabled` | 🟧 | `#F9AA93` | 🟫 | `#9C6454` | |
-| `brand/secondary` | 🟦 | `#B3DAD7` | 🟦 | `#718F8D` | secondary color is **not** a background color, it's an alternative pop color — wait for special |
+| `brand/secondary` | 🟦 | `#007AFF` | 🟦 | `#45AAFF` | secondary color is **not** a background color, it's an alternative pop color — wait for special |
 | `xcode/secondary-disabled` | 🟦 | `#D8E2E4` | 🟦 | `#5D6D70` | |
 | `brand/danger` | 🟥 | `#FF3B30` | 🟧 | `#FF7445` | same as brand/primary |
 | `ios/systemRed` | 🟥 | `#FF3B30` | 🟧 | `#FF7445` | same as brand/primary |
@@ -87,7 +87,7 @@ substantially more semantic tokens than currently exist as colorsets.
 |---|---|---|---|---|
 | `primary` | `#FF3900` / `#FF7445` | `.primary` | `brand/primary` | **unchanged** |
 | `primary.disabled` | `#F9AA93` / `#9C6454` | `.primaryDisabled` | `xcode/primary-disabled` | **unchanged** |
-| `secondary` | `#B3DAD7` / `#718F8D` | `.secondary` | `brand/secondary` | **unchanged value** — but new note restricts its use (see flags) |
+| `secondary` | `#007AFF` / `#45AAFF` | `.secondary` | `brand/secondary` | **value changes** from `#B3DAD7`/`#718F8D` (see flag 2) |
 | `secondary.disabled` | `#D8E2E4` / `#5D6D70` | `.secondaryDisabled` | `xcode/secondary-disabled` | **unchanged** |
 | `danger` | `#800020` / `#DC143C` | `.danger` | `brand/danger` | **value changes** to `#FF3B30` / `#FF7445` (see flags) |
 | `AccentColor` | `#FF3900` / `#FF7445` | (Xcode asset, no Swift alias) | `xcode/AccentColor` | **value changes** to `#FF3B30` / `#FF7445` (see flags) |
@@ -122,13 +122,20 @@ substantially more semantic tokens than currently exist as colorsets.
    matched (`#FF3900`/`#FF7445` — no change needed); `Dot.swift`'s hard-coded
    third variant (`#FF4D26`) now reads `Color.app.primary`.
 
-2. **`ios/systemBlue` "same as brand/secondary."** `systemBlue` is
+2. **`ios/systemBlue` "same as brand/secondary."** ~~`systemBlue` is
    `#007AFF`/`#45AAFF` (blue); `brand/secondary` is `#B3DAD7`/`#718F8D`
-   (teal) — not the same color by any reading. **Still open** — need to know
-   whether the note means "fills the same *role*" rather than "same value,"
-   or should be dropped. No code changes made for this one; `ios/systemBlue`
-   isn't back by an app colorset today (SwiftUI `.blue`), so nothing to
-   migrate yet regardless.
+   (teal) — not the same color by any reading.~~ **Resolved 2026-09-13:**
+   the teal value was a transcription error in this table — confirmed with
+   Robin that `brand/secondary` is `#007AFF`/`#45AAFF`, identical to
+   `ios/systemBlue`, exactly as the note originally said. Applied:
+   `secondary.colorset` now carries `#007AFF`/`#45AAFF` (was
+   `#B3DAD7`/`#718F8D`). This also retroactively corrects the 2026-09-13
+   migration that had replaced hard-coded `.blue`/`systemBlue` literals with
+   `Color.app.secondary` across the tab bar active pill, the ingredient
+   editor's number pad 0 button, the instructions step-number badge, the Ask
+   Julia user chat bubble, the receipt scanner's nav bar tint, and
+   `prominentKeyboardAccessoryStyle`'s default fill — those call sites now
+   render the correct blue without further changes.
 
 3. **`brand/secondary` is declared not a background color** ("wait for
    special"), but it's currently used as a `.background()` fill in three
@@ -185,10 +192,16 @@ substantially more semantic tokens than currently exist as colorsets.
   `backgroundCard` (new `background.card` colorset, `#DDE2E1`/`#374750`)
 - New colorsets: `background.card`, `text.placeholder`
 
+## Applied 2026-09-13
+
+- `secondary.colorset` → `#007AFF`/`#45AAFF` (was `#B3DAD7`/`#718F8D`) — see
+  flag 2. Every `Color.app.secondary` call site, including the systemBlue
+  literals migrated to it earlier the same day, now renders the corrected
+  blue automatically.
+
 ## Still open / deferred
 
-- Flag 2 (systemBlue note) and flag 6 (background-primary vs. -sheet):
-  unresolved, no code impact yet.
+- Flag 6 (background-primary vs. -sheet): unresolved, no code impact yet.
 - Flag 3: `secondary`'s 3 background call sites — deferred to the
   screen-by-screen review, tracked in `docs/TODO.md`.
 - Flag 5's second half: reassigning the 11 existing `backgroundSecondary`
