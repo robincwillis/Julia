@@ -56,14 +56,18 @@ struct RecipeTextImportView: View {
             Button {
               processRecipeText()
             } label: {
-              Label("Import", systemImage: "sparkles")
-                .disabled(inputText.isEmpty)
+              HStack(spacing: 4) {
+                Text("Import")
+                Image(systemName: "sparkles")
+              }
             }
+            .foregroundStyle(inputText.isEmpty ? Color.app.primary.opacity(0.4) : Color.app.primary)
+            .disabled(inputText.isEmpty)
           }
         }
         .scrollContentBackground(.hidden)
       }
-      .background(Color.app.backgroundSecondary)
+      .background(Color.app.backgroundSecondary.ignoresSafeArea(.keyboard))
       .navigationTitle("Import Recipe")
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {
@@ -85,9 +89,11 @@ struct RecipeTextImportView: View {
           } label: {
             Image(systemName: "checkmark")
               .font(.system(size: 13, weight: .medium))
-              .foregroundStyle(inputText.isEmpty ? Color.app.primary.opacity(0.4) : Color.app.primary)
+              .foregroundStyle(.white)
+              .frame(width: 44, height: 44)
+              .background(inputText.isEmpty ? Color.app.primary.opacity(0.35) : Color.app.primary, in: Circle())
+              .shadow(color: inputText.isEmpty ? .clear : Color.app.primary.opacity(0.3), radius: 4, x: 0, y: 2)
           }
-          .circleToolbarButtonStyle()
           .buttonStyle(.plain)
           .disabled(inputText.isEmpty)
         }

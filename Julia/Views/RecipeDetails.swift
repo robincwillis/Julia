@@ -220,7 +220,7 @@ struct RecipeDetails: View {
         .animation(.snappy, value: !selectedIngredients.isEmpty)
         .transition(.opacity)
     }
-    .circleToolbarButtonStyle(background: Color.app.backgroundPrimary)
+    .circleToolbarButtonStyle(background: Color.app.backgroundSheet)
   }
 
   private var ingredientEditorSheet: some View {
@@ -240,6 +240,17 @@ struct RecipeDetails: View {
   
   @ToolbarContentBuilder
   private var mainToolbarItems: some ToolbarContent {
+    ToolbarItem(placement: .navigationBarLeading) {
+      Button { dismiss() } label: {
+        Image(systemName: "chevron.left")
+          .font(.system(size: 14, weight: .medium))
+          .foregroundStyle(Color.app.primary)
+      }
+      .circleToolbarButtonStyle(background: Color.app.backgroundSheet)
+      .buttonStyle(.plain)
+    }
+    .hidesSharedGlassBackground()
+
     ToolbarItem(placement: .primaryAction) {
       if isEditing {
         Button {
@@ -249,7 +260,7 @@ struct RecipeDetails: View {
             .font(.system(size: 13, weight: .medium))
             .foregroundStyle(Color.app.primary)
         }
-        .circleToolbarButtonStyle(background: Color.app.backgroundPrimary)
+        .circleToolbarButtonStyle(background: Color.app.backgroundSheet)
         .buttonStyle(.plain)
       } else if !recipe.instructions.isEmpty {
         Button {
@@ -294,7 +305,7 @@ struct RecipeDetails: View {
             .font(.system(size: 14))
             .foregroundColor(Color.app.primary)
         }
-        .circleToolbarButtonStyle(background: Color.app.backgroundPrimary)
+        .circleToolbarButtonStyle(background: Color.app.backgroundSheet)
       }
     }
     .hidesSharedGlassBackground()
@@ -321,7 +332,7 @@ struct RecipeDetails: View {
         .animation(.snappy, value: isEditing)
         .transition(.opacity)
     }
-    .circleToolbarButtonStyle(background: Color.app.backgroundPrimary)
+    .circleToolbarButtonStyle(background: Color.app.backgroundSheet)
   }
 
   private var rawTextSheet: some View {
@@ -361,6 +372,7 @@ struct RecipeDetails: View {
       // Floating ingredient editor
       ingredientEditorSheet
     }
+    .navigationBarBackButtonHidden(true)
     .toolbar { mainToolbarItems }
     .confirmationDialog(
       "Are you sure?",

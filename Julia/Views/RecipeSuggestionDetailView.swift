@@ -66,62 +66,81 @@ struct RecipeSuggestionDetailView: View {
                         }
                         .toggleStyle(iOSCheckboxToggleStyle())
                     }
+                    if !selectedMissing.isEmpty {
+                        Button {
+                            addSelectedToGrocery()
+                        } label: {
+                            let count = selectedMissing.count
+                            Text("Add \(count) Ingredient\(count == 1 ? "" : "s") to Grocery List")
+                                .foregroundStyle(Color.app.primary)
+                        }
+                        .buttonStyle(.plain)
+                    }
                 } header: {
                     Text("Missing (\(match.missingIngredients.count))")
-                } footer: {
-                    if !selectedMissing.isEmpty {
-                        Button("Add \(selectedMissing.count) to Grocery List") {
-                            addSelectedToGrocery()
+                }
+            }
+
+            // Substitutions — only shown when ingredients are missing
+            if !match.missingIngredients.isEmpty {
+                Section("Substitutions") {
+                    if viewModel.isFetchingSubstitutions {
+                        HStack(spacing: 12) {
+                            Loader(isLoading: .constant(true))
+                            Text("Generating suggestions...")
+                                .foregroundStyle(Color.app.primary)
                         }
-                        .font(.subheadline)
-                        .tint(Color.app.primary)
+                    } else if let subs = substitutions {
+                        ForEach(subs.suggestions, id: \.missingIngredient) { sub in
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(sub.missingIngredient.capitalized)
+                                    .fontWeight(.medium)
+                                    .foregroundStyle(Color.app.textPrimary)
+                                HStack(spacing: 6) {
+                                    Image(systemName: "arrow.right")
+                                        .foregroundStyle(.secondary)
+                                        .font(.caption)
+                                    Text(sub.substitutes.joined(separator: " or "))
+                                        .font(.subheadline)
+                                        .foregroundStyle(Color.app.primary)
+                                }
+                                if !sub.note.isEmpty {
+                                    Text(sub.note)
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                            }
+                            .padding(.vertical, 2)
+                        }
+                    } else if let error = viewModel.substitutionError {
+                        Text(error)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    } else {
+                        actionButton(
+                            title: "Get Suggestions",
+                            icon: "wand.and.stars",
+                            color: Color.app.primary
+                        ) {
+                            Task { await viewModel.fetchSubstitutions(for: match) }
+                        }
+                        .listRowBackground(Color.app.white)
                     }
                 }
             }
 
-            // Substitutions
-            Section("Substitutions") {
-                if viewModel.isFetchingSubstitutions {
-                    HStack {
-                        ProgressView()
-                        Text("Generating suggestions...")
-                            .foregroundStyle(.secondary)
-                            .padding(.leading, 8)
+            // Ready to Cook — shown when all ingredients are available
+            if match.missingIngredients.isEmpty {
+                Section {
+                    VStack(spacing: 12) {
+                        GlowingIcon(systemName: "fork.knife", size: 44)
+                        Text("Ready to Cook")
+                            .font(.headline)
+                            .foregroundStyle(Color.app.textPrimary)
                     }
-                } else if let subs = substitutions {
-                    ForEach(subs.suggestions, id: \.missingIngredient) { sub in
-                        VStack(alignment: .leading, spacing: 4) {
-                            HStack {
-                                Image(systemName: "arrow.triangle.2.circlepath")
-                                    .foregroundStyle(.secondary)
-                                    .font(.caption)
-                                Text(sub.missingIngredient)
-                                    .fontWeight(.medium)
-                                    .foregroundStyle(Color.app.textPrimary)
-                            }
-                            Text("Use: " + sub.substitutes.joined(separator: " or "))
-                                .font(.subheadline)
-                                .foregroundStyle(Color.app.primary)
-                            if !sub.note.isEmpty {
-                                Text(sub.note)
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                            }
-                        }
-                        .padding(.vertical, 2)
-                    }
-                } else if let error = viewModel.substitutionError {
-                    Text(error)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                } else if !match.missingIngredients.isEmpty {
-                    actionButton(
-                        title: "Suggest Substitutions",
-                        icon: "wand.and.stars",
-                        color: Color.app.primary
-                    ) {
-                        Task { await viewModel.fetchSubstitutions(for: match) }
-                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 32)
+                    .listRowBackground(Color.app.white)
                 }
             }
 
@@ -134,6 +153,7 @@ struct RecipeSuggestionDetailView: View {
                 ) {
                     navigateToRecipe = true
                 }
+                .listRowBackground(Color.app.white)
             }
         }
         .listStyle(.insetGrouped)
@@ -144,6 +164,7 @@ struct RecipeSuggestionDetailView: View {
         .navigationBarBackButtonHidden(true)
         .navigationDestination(isPresented: $navigateToRecipe) {
             RecipeDetails(recipe: match.recipe)
+                .background(Color.app.backgroundPrimary)
         }
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {

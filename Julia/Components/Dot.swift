@@ -41,7 +41,7 @@ struct Dot: View {
       // X Mark
       if animationState == .open {
         Image(systemName: "xmark")
-          .font(.system(size: 18, weight: .medium))
+          .font(.system(size: 22, weight: .medium))
           .foregroundColor(Color.app.textOnPrimary)
           .scaleEffect(xMarkScale)
           .opacity(animationState == .open ? 1 : 0)

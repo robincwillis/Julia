@@ -49,6 +49,7 @@ struct SettingsDrawer: View {
         ZStack {
           // Background
           Color.app.white
+            .ignoresSafeArea(edges: .bottom)
           
           VStack(alignment: .leading, spacing: 24) {
             // Logo
@@ -162,7 +163,7 @@ struct SettingsDrawer: View {
               }
               .foregroundColor(Color.app.textPrimary)
             }
-            .tint(Color.app.secondary)
+            .toggleStyle(BrandSwitchToggleStyle())
             .onChange(of: debugModeState) { oldValue, newValue in
               // Set the user default which will be read by the environment value
               UserDefaults.standard.set(newValue, forKey: "debugMode")
@@ -451,6 +452,33 @@ struct SettingsDrawer: View {
         isClearingData = false
       }
     }
+  }
+}
+
+private struct BrandSwitchToggleStyle: ToggleStyle {
+  func makeBody(configuration: Configuration) -> some View {
+    Button {
+      withAnimation(.spring(response: 0.2, dampingFraction: 0.8)) {
+        configuration.isOn.toggle()
+      }
+    } label: {
+      HStack {
+        configuration.label
+        Spacer()
+        Capsule()
+          .fill(configuration.isOn ? Color.app.secondary : Color(UIColor.systemGray4))
+          .frame(width: 51, height: 31)
+          .overlay(
+            Circle()
+              .fill(.white)
+              .frame(width: 27, height: 27)
+              .shadow(color: .black.opacity(0.15), radius: 2, x: 0, y: 1)
+              .offset(x: configuration.isOn ? 10 : -10)
+              .animation(.spring(response: 0.2, dampingFraction: 0.8), value: configuration.isOn)
+          )
+      }
+    }
+    .buttonStyle(.plain)
   }
 }
 

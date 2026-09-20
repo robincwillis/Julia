@@ -97,7 +97,7 @@ struct RecipeSuggestionsView: View {
                 RecipeMatchRow(match: match)
             }
             .listRowBackground(Color.app.backgroundSheet)
-            .listRowSeparatorTint(Color(red: 242/255, green: 244/255, blue: 242/255))
+            .listRowSeparatorTint(Color(UIColor.separator))
         }
         .listStyle(.plain)
         .scrollContentBackground(.hidden)

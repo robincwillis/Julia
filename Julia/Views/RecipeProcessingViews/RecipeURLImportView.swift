@@ -24,7 +24,7 @@ struct RecipeURLImportView: View {
                     }
                 }
             }
-            .background(Color.app.backgroundSecondary)
+            .background(Color.app.backgroundSecondary.ignoresSafeArea(.keyboard))
             .navigationTitle("Import Recipe")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -43,9 +43,11 @@ struct RecipeURLImportView: View {
                         Button { startImport() } label: {
                             Image(systemName: "checkmark")
                                 .font(.system(size: 13, weight: .medium))
-                                .foregroundStyle(urlText.isEmpty ? Color.app.primary.opacity(0.4) : Color.app.primary)
+                                .foregroundStyle(.white)
+                                .frame(width: 44, height: 44)
+                                .background(urlText.isEmpty ? Color.app.primary.opacity(0.35) : Color.app.primary, in: Circle())
+                                .shadow(color: urlText.isEmpty ? .clear : Color.app.primary.opacity(0.3), radius: 4, x: 0, y: 2)
                         }
-                        .circleToolbarButtonStyle()
                         .buttonStyle(.plain)
                         .disabled(urlText.isEmpty)
                     }
@@ -77,7 +79,10 @@ struct RecipeURLImportView: View {
                     .onSubmit { isUrlTextFieldFocused = false }
 
                 Button(action: startImport) {
-                    Label("Import", systemImage: "sparkles")
+                    HStack(spacing: 4) {
+                        Text("Import")
+                        Image(systemName: "sparkles")
+                    }
                 }
                 .foregroundStyle(urlText.isEmpty ? Color.app.primary.opacity(0.4) : Color.app.primary)
                 .disabled(urlText.isEmpty)

@@ -204,13 +204,13 @@ struct IngredientEditor: View {
                     Text(unitOption.displayName)
                       .padding(6)
                       .font(.system(size: 12))
-                      .frame(height: 36)
-                      .frame(minWidth: 80)
+                      .frame(maxWidth: .infinity, minHeight: 36)
                       .background(self.unit == unitOption ? Color.app.secondary : Color.app.backgroundCard)
                       .foregroundColor(self.unit == unitOption ? .white : Color.app.textPrimary)
                       .cornerRadius(12)
                       .fontWeight(self.unit == unitOption ? .bold : .regular)
                   }
+                  .containerRelativeFrame(.horizontal, count: 4, spacing: 8)
                 }
               }
             }

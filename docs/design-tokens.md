@@ -17,8 +17,8 @@ if it's been a while — this is a snapshot, not a live mirror.
 |---|---|---|---|---|---|
 | `brand/primary` | 🟧 | `#FF3900` | 🟧 | `#FF7445` | merge dot and any other red colors |
 | `xcode/primary-disabled` | 🟧 | `#F9AA93` | 🟫 | `#9C6454` | |
-| `brand/secondary` | 🟦 | `#9FC9F6` | 🟦 | `#5C7A99` | secondary color is **not** a background color, it's an alternative pop color — wait for special |
-| `xcode/secondary-disabled` | 🟦 | `#D8E2E4` | 🟦 | `#5D6D70` | |
+| `brand/secondary` | 🟦 | `#9FC9F6` | 🟦 | `#45AAFF` | secondary color is **not** a background color, it's an alternative pop color — wait for special |
+| `xcode/secondary-disabled` | 🟦 | `#D8E2E4` | 🟦 | `#547B9C` | |
 | `brand/danger` | 🟥 | `#FF3B30` | 🟧 | `#FF7445` | same as brand/primary |
 | `ios/systemRed` | 🟥 | `#FF3B30` | 🟧 | `#FF7445` | same as brand/primary |
 | `xcode/AccentColor` | 🟥 | `#FF3B30` | 🟧 | `#FF7445` | same as brand/primary |
@@ -55,12 +55,12 @@ ramp — the underlying `Assets.xcassets` colorsets. The `Type` and
 | Token | Light | Light hex | Dark | Dark hex | Source / note |
 |---|---|---|---|---|---|
 | `brand/text-primary` | ⬛ | `#1C1C1C` | ⬜ | `#FFFFFF` | Primary Text |
-| `brand/text-secondary` | 🔲 | `#494949` | 🔲 | `#C4C4C4` | Secondary Text |
+| `brand/text-secondary` | 🔲 | `#494949` | 🔲 | `#BABABA` | Secondary Text |
 | `brand/text-tertiary` | 🔲 | `#494949` | 🔲 | `#C4C4C4` | Tertiary text, believed to be used in ingredients list items |
 | `brand/label-primary` | 🔲 | `#8D8C8B` | 🔲 | `#A7A6A5` | primary label color for forms |
-| `brand/label-secondary` | 🔲 | `#3C3C43 @ 60%` | 🔲 | `#EBEBF5 @ 60%` | secondary label color for forms — translucent, composites over its surface (`ios/secondaryLabel`) |
-| `brand/text-disabled` | 🔲 | `#494949` | 🔲 | `#C4C4C4` | anytime text or input text is disabled |
-| `brand/text-placeholder` | 🔲 | `#C5C5C7` | 🔲 | `#48484A` | input placeholder text (`ios/placeholderText`) |
+| `brand/label-secondary` | 🔲 | `#8D8C8B` | 🔲 | `#8D8C8B` | secondary label color for forms — flat solid color (same in both modes) |
+| `brand/text-disabled` | 🔲 | `#494949` | 🔲 | `#7A7671` | anytime text or input text is disabled |
+| `brand/text-placeholder` | 🔲 | `#C5C5C7` | 🔲 | `#7A7671` | input placeholder text |
 
 ## Background
 
@@ -70,9 +70,9 @@ ramp — the underlying `Assets.xcassets` colorsets. The `Type` and
 | `brand/background-secondary` | 🔲 | `#DDE2E1` | ⬛ | `#000000` | secondary background color, used for recipe details and chat |
 | `brand/background-sheet` | 🔲 | `#EFEFEF` | ⬛ | `#1C1C1E` | background color for sheets and modals |
 | `brand/background-form` | 🔲 | `#EDEDED` | 🔲 | `#3C3C3C` | background color for forms |
-| `brand/background-form-field` | 🔲 | `#DDDAD1` | 🔲 | `#504F4B` | background color for form fields |
-| `brand/background-keyboard-toolbar` | 🔲 | `#DDE2E1` | 🔲 | `#374750` | background color for keyboard accessory toolbar |
-| `brand/background-card` | 🔲 | `#DDE2E1` | 🔲 | `#374750` | used for inline cards, like timings and servings in the recipe details |
+| `brand/background-form-field` | 🔲 | `#DDDAD1` | 🔲 | `#2C2C2E` | background color for form fields |
+| `brand/background-keyboard-toolbar` | 🔲 | `#DDE2E1` | ⬛ | `#1C1C1E` | background color for keyboard accessory toolbar |
+| `brand/background-card` | 🔲 | `#DDE2E1` | ⬛ | `#1C1C1E` | used for inline cards, like timings and servings in the recipe details |
 
 ---
 
@@ -87,8 +87,8 @@ substantially more semantic tokens than currently exist as colorsets.
 |---|---|---|---|---|
 | `primary` | `#FF3900` / `#FF7445` | `.primary` | `brand/primary` | **unchanged** |
 | `primary.disabled` | `#F9AA93` / `#9C6454` | `.primaryDisabled` | `xcode/primary-disabled` | **unchanged** |
-| `secondary` | `#9FC9F6` / `#5C7A99` | `.secondary` | `brand/secondary` | **value changes** from `#B3DAD7`/`#718F8D` (see flag 2) |
-| `secondary.disabled` | `#D8E2E4` / `#5D6D70` | `.secondaryDisabled` | `xcode/secondary-disabled` | **unchanged** |
+| `secondary` | `#9FC9F6` / `#45AAFF` | `.secondary` | `brand/secondary` | dark updated from `#5C7A99` → `#45AAFF` (2026-09-15) |
+| `secondary.disabled` | `#D8E2E4` / `#547B9C` | `.secondaryDisabled` | `xcode/secondary-disabled` | dark updated from `#5D6D70` → `#547B9C` (2026-09-15) |
 | `danger` | `#800020` / `#DC143C` | `.danger` | `brand/danger` | **value changes** to `#FF3B30` / `#FF7445` (see flags) |
 | `AccentColor` | `#FF3900` / `#FF7445` | (Xcode asset, no Swift alias) | `xcode/AccentColor` | **value changes** to `#FF3B30` / `#FF7445` (see flags) |
 | `white` | `#FFFFFF` / `#000000` | `.white` | `brand/white` / `xcode/white` | **unchanged** |
@@ -98,7 +98,7 @@ substantially more semantic tokens than currently exist as colorsets.
 | `background.primary` | `#EFEFEF` / `#242424` | `.backgroundPrimary` | `brand/background-primary` | **unchanged** |
 | `background.secondary` | `#DDE2E1` / `#374750` | `.backgroundSecondary` | `brand/background-secondary` **or** `brand/background-keyboard-toolbar` / `brand/background-card` | **ambiguous — see flags**, the new table splits this one colorset into three tokens with two different dark values |
 | `offwhite.200` | `#EDEDED` / `#3C3C3C` | `.offWhite200` | `brand/background-form` | rename only |
-| `offwhite.400` | `#DDDAD1` / `#504F4B` | `.offWhite400` | `brand/background-form-field` | rename only |
+| `offwhite.400` | `#DDDAD1` / `#2C2C2E` | `.offWhite400` | `brand/background-form-field` | dark updated from `#504F4B` → `#2C2C2E` (2026-09-15) |
 
 **Net new tokens with no current colorset**, needed to fully adopt the table:
 
@@ -193,6 +193,24 @@ substantially more semantic tokens than currently exist as colorsets.
   rather than freezing a flat hex), `backgroundKeyboardToolbar` /
   `backgroundCard` (new `background.card` colorset, `#DDE2E1`/`#374750`)
 - New colorsets: `background.card`, `text.placeholder`
+
+## Applied 2026-09-15 (type tokens)
+
+- `text.secondary.colorset` created → `#494949` / `#BABABA`; `Theme.swift` `textSecondary` points here (was `grey.400`)
+- `text.disabled.colorset` created → `#494949` / `#7A7671`; `textDisabled` points here (was `grey.400`)
+- `label.secondary.colorset` created → `#8D8C8B` / `#8D8C8B` (same both modes); `labelSecondary` points here (was `Color(uiColor: .secondaryLabel)`)
+- `text.placeholder.colorset` dark → `#7A7671` (was `#48484A`)
+- `textTertiary` stays on `grey.400` → dark `#C4C4C4` unchanged
+- Flag #4 (text-secondary / text-tertiary / text-disabled all identical) **resolved**: tokens now have distinct dark values
+
+## Applied 2026-09-15 (background tokens)
+
+- `secondary.colorset` dark → `#45AAFF` (was `#5C7A99`) — brighter blue for dark mode legibility
+- `secondary.disabled.colorset` dark → `#547B9C` (was `#5D6D70`)
+- `background.card.colorset` dark → `#1C1C1E` (was `#374750`) — now matches `background.sheet` in dark mode; `backgroundCard` and `backgroundKeyboardToolbar` both reference this colorset
+- `offwhite.400.colorset` dark → `#2C2C2E` (was `#504F4B`) — `backgroundFormField` / `offWhite400`
+
+No Swift or colorset name changes — all call sites pick up new values automatically.
 
 ## Applied 2026-09-13
 

@@ -21,25 +21,21 @@ struct ServingsCard: View {
 
   var body: some View {
     Button(action: { onTap?() }) {
-      VStack(spacing: 6) {
-        Image(systemName: "person.2.fill")
-          .font(.title2)
-          .foregroundStyle(Color.app.primary)
-        Text("\(displayServings)")
-          .font(.headline)
-          .foregroundStyle(Color.app.textPrimary)
-        if isScaled {
-          Text("of \(servings)")
-            .font(.caption2)
-            .foregroundStyle(.secondary)
-        } else {
-          Text("servings")
-            .font(.caption2)
-            .foregroundStyle(.secondary)
+      VStack(alignment: .leading, spacing: 4) {
+        HStack(spacing: 6) {
+          Image(systemName: "person.2.fill")
+            .font(.headline)
+            .foregroundStyle(Color.app.primary)
+          Text("\(displayServings)")
+            .font(.headline)
+            .foregroundStyle(Color.app.textPrimary)
         }
+        Text(isScaled ? "of \(servings)" : "servings")
+          .font(.caption2)
+          .foregroundStyle(.secondary)
       }
-      .padding()
-      .frame(minWidth: 80, minHeight: 80)
+      .padding(.horizontal, 16)
+      .padding(.vertical, 12)
     }
     .buttonStyle(.plain)
     .overlay(alignment: .topTrailing) {
@@ -55,60 +51,49 @@ struct ServingsCard: View {
 
 struct TimingsCard: View {
   let timings: [Timing]
-  let allowExpand: Bool
 
   var body: some View {
-    VStack(alignment: .leading) {
-      // If only one timing, use a centered HStack without ScrollView
-      if timings.count == 1, let timing = timings.first {
-        VStack(spacing: 6) {
+    if timings.count == 1, let timing = timings.first {
+      VStack(alignment: .leading, spacing: 4) {
+        HStack(spacing: 6) {
           Image(systemName: "timer")
-            .font(.title2)
+            .font(.headline)
             .foregroundColor(Color.app.primary)
-
-          HStack(spacing: 4) {
-            Text(timing.displayShort)
-              .font(.headline)
-              .foregroundColor(Color.app.textPrimary)
-
-            Text(timing.type)
-              .font(.headline)
-              .foregroundColor(Color.app.labelPrimary)
-          }
+          Text(timing.displayShort)
+            .font(.headline)
+            .foregroundColor(Color.app.textPrimary)
         }
-        .padding()
-        .frame(maxWidth: .infinity, alignment: .center)
-      } else {
-        // Multiple timings - use ScrollView with leading alignment
-        ScrollView(.horizontal, showsIndicators: false) {
-          HStack(spacing: 24) {
-            ForEach(timings) { timing in
-              HStack(alignment: .firstTextBaseline) {
+        Text(timing.type)
+          .font(.caption2)
+          .foregroundColor(Color.app.labelPrimary)
+      }
+      .padding(.horizontal, 16)
+      .padding(.vertical, 12)
+      .frame(maxWidth: .infinity, alignment: .leading)
+    } else {
+      ScrollView(.horizontal, showsIndicators: false) {
+        HStack(spacing: 16) {
+          ForEach(timings) { timing in
+            VStack(alignment: .leading, spacing: 4) {
+              HStack(spacing: 6) {
                 Image(systemName: "timer")
-                  .font(.title2)
+                  .font(.headline)
                   .foregroundColor(Color.app.primary)
-                  .alignmentGuide(.firstTextBaseline) { d in
-                    d[.bottom] - 8
-                  }
-
-                VStack(alignment: .leading, spacing: 4) {
-                  Text(timing.displayShort)
-                    .font(.headline)
-                    .foregroundColor(Color.app.textPrimary)
-
-                  Text(timing.type)
-                    .font(.headline)
-                    .foregroundColor(Color.app.labelPrimary)
-                }
+                Text(timing.displayShort)
+                  .font(.headline)
+                  .foregroundColor(Color.app.textPrimary)
               }
+              Text(timing.type)
+                .font(.caption2)
+                .foregroundColor(Color.app.labelPrimary)
             }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .containerRelativeFrame(.horizontal, count: 2, spacing: 16)
           }
-          .padding()
         }
       }
     }
-    .frame(minHeight: 80)
-    .frame(maxWidth: allowExpand ? .infinity : nil, alignment: .leading)
   }
 }
 
@@ -124,41 +109,31 @@ struct RecipeSummarySection: View {
     }
     let hasServings = recipe.servings != nil
     let hasTimings = !recipe.timings.isEmpty
-    let singleTiming = recipe.timings.count == 1
+    let multipleTimings = recipe.timings.count > 1
 
-    if (hasServings || hasTimings) {
-      GeometryReader { geometry in
-        HStack(spacing: 12) {
-          if hasServings {
-            ServingsCard(
-              servings: recipe.servings!,
-              adjustedServings: adjustedServings,
-              onTap: onTapServings
-            )
-            .frame(
-              width: hasTimings && singleTiming ?
-              geometry.size.width * 0.5 : nil
-            )
-            .background(Color.app.backgroundCard)
-            .cornerRadius(24)
-          }
-
-          if hasTimings {
-            TimingsCard(
-              timings: recipe.timings,
-              allowExpand: !hasServings || !singleTiming
-            )
-            .frame(
-              width: hasServings && singleTiming ?
-              geometry.size.width * 0.5 : nil
-            )
-            .background(Color.app.backgroundCard)
-            .cornerRadius(24)
-          }
+    if hasServings || hasTimings {
+      HStack(spacing: 12) {
+        if hasServings {
+          ServingsCard(
+            servings: recipe.servings!,
+            adjustedServings: adjustedServings,
+            onTap: onTapServings
+          )
+          .background(Color.app.backgroundInput)
+          .cornerRadius(16)
+          // Expand to fill 50% when paired with a single timing; stay compact otherwise
+          .frame(maxWidth: (hasTimings && !multipleTimings) ? .infinity : nil, minHeight: 64)
         }
-        .frame(maxWidth: geometry.size.width)
+
+        if hasTimings {
+          TimingsCard(timings: recipe.timings)
+            .background(Color.app.backgroundInput)
+            .cornerRadius(16)
+            .frame(maxWidth: .infinity, minHeight: 64)
+        }
       }
-      .frame(height: 80)
+      // Left-align the HStack so a lone card doesn't centre-stretch
+      .frame(maxWidth: .infinity, alignment: .leading)
     }
   }
 }

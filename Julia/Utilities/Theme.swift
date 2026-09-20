@@ -24,6 +24,7 @@ struct AppTheme {
   enum Colors {
     // MARK: - Off White Shades
     static let offWhite200 = Color("offwhite.200")
+    static let offWhite300 = Color("offwhite.300")  // L #E9E9E5 / D #4C4B47 — checkbox unchecked bg
     static let offWhite400 = Color("offwhite.400")
     // Semantic aliases for the off-white ramp (brand/background-form tokens)
     static let backgroundForm = Color("offwhite.200")
@@ -47,23 +48,16 @@ struct AppTheme {
     static let backgroundSheet = Color("background.sheet")
     static let backgroundKeyboardToolbar = Color("background.card")
     static let backgroundCard = Color("background.card")
+    static let backgroundInput = Color("background.input")  // L #F5F5F5 / D #1C1C1E — chat close btn, import btns, input field
 
     // Text Colors
     static let textPrimary = Color("text.primary")
-    static let textSecondary = Color("grey.400")
-    // Same asset as textSecondary for now — Figma's brand/text-tertiary and
-    // brand/text-disabled are still identical to brand/text-secondary as of
-    // the 2026-09-12 token table (docs/design-tokens.md flag #4). Kept as
-    // distinct names so call sites read semantically and can diverge later
-    // without another rename.
-    static let textTertiary = Color("grey.400")
-    static let textDisabled = Color("grey.400")
-    static let textPlaceholder = Color("text.placeholder")
+    static let textSecondary = Color("text.secondary")   // L #494949 / D #BABABA
+    static let textTertiary = Color("grey.400")           // L #494949 / D #C4C4C4
+    static let textDisabled = Color("text.disabled")      // L #494949 / D #7A7671
+    static let textPlaceholder = Color("text.placeholder") // L #C5C5C7 / D #7A7671
     static let labelPrimary = Color("grey.300")
-    // ios/secondaryLabel is translucent (#3C3C43 @ 60% / #EBEBF5 @ 60%) and
-    // composites over its surface — that's exactly UIKit's dynamic
-    // .secondaryLabel, so use it directly rather than freezing a flat hex.
-    static let labelSecondary = Color(uiColor: .secondaryLabel)
+    static let labelSecondary = Color("label.secondary")  // L #8D8C8B / D #8D8C8B
 
     // Misc Colors
     static let textOnPrimary = Color.white

@@ -124,33 +124,21 @@ struct CookModeView: View {
           .font(.system(size: 13, weight: .medium))
           .foregroundStyle(Color.app.primary)
       }
-      .circleToolbarButtonStyle()
+      .circleToolbarButtonStyle(background: Color.app.backgroundPrimary)
       .buttonStyle(.plain)
 
       Spacer()
 
-      if !steps.isEmpty {
-        Text("Step \(currentStep + 1) of \(steps.count)")
-          .font(.subheadline)
-          .foregroundStyle(.secondary)
-          .contentTransition(.numericText())
-          .animation(.snappy, value: currentStep)
-      }
+      Text(recipe.title)
+        .font(.subheadline)
+        .fontWeight(.medium)
+        .foregroundStyle(Color.app.textPrimary)
+        .lineLimit(1)
+        .truncationMode(.tail)
 
       Spacer()
 
       HStack(spacing: 8) {
-        Button {
-          showCompleteConfirmation = true
-        } label: {
-          Image(systemName: "checkmark")
-            .font(.system(size: 13, weight: .medium))
-            .foregroundStyle(Color.app.primary)
-        }
-        .circleToolbarButtonStyle()
-        .buttonStyle(.plain)
-        .accessibilityLabel("Complete recipe")
-
         Button {
           showChefChat = true
         } label: {
@@ -158,9 +146,23 @@ struct CookModeView: View {
             .font(.system(size: 15, weight: .regular))
             .foregroundStyle(Color.app.primary)
         }
-        .circleToolbarButtonStyle()
+        .circleToolbarButtonStyle(background: Color.app.backgroundPrimary)
         .buttonStyle(.plain)
         .accessibilityLabel("Ask Julia about this recipe")
+
+        Button {
+          showCompleteConfirmation = true
+        } label: {
+          Image(systemName: "checkmark")
+            .font(.system(size: 13, weight: .medium))
+            .foregroundStyle(.white)
+        }
+        .frame(width: 44, height: 44)
+        .background(Color.app.primary)
+        .clipShape(Circle())
+        .shadow(color: Color.app.primary.opacity(0.3), radius: 4, x: 0, y: 2)
+        .buttonStyle(.plain)
+        .accessibilityLabel("Complete recipe")
       }
     }
     .padding(.horizontal, 20)

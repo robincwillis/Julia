@@ -202,7 +202,7 @@ struct ChefChatView: View {
                     .font(.system(size: 17, weight: .regular))
                     .foregroundStyle(Color.app.primary)
             }
-            .circleToolbarButtonStyle(background: Color.app.backgroundSecondary)
+            .circleToolbarButtonStyle(background: Color.app.backgroundInput)
             .buttonStyle(.plain)
 
             Spacer()
@@ -220,7 +220,7 @@ struct ChefChatView: View {
 
             GlowingIcon(
                 systemName: "bubble.left.fill",
-                size: 36,
+                size: 28,
                 primaryColor: Color.app.primary,
                 glowColor: Color.app.primary
             )
@@ -230,7 +230,7 @@ struct ChefChatView: View {
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
-                .padding(.horizontal, 24)
+                .padding(.horizontal, 48)
                 .padding(.bottom, 32)
 
             if isAvailable && !hasSeenSuggestions {
@@ -239,8 +239,10 @@ struct ChefChatView: View {
             }
 
             Spacer()
-            // Reserve space so content isn't behind the FAB
-            Spacer(minLength: 120)
+            // Reserve space so content isn't behind the FAB (only needed when FAB is shown)
+            if showImportOptions {
+                Spacer(minLength: 120)
+            }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
@@ -311,7 +313,7 @@ struct ChefChatView: View {
                 .font(.system(size: 17, weight: .medium))
                 .foregroundStyle(Color.app.primary)
                 .frame(width: 44, height: 44)
-                .background(Color.app.offWhite200, in: Circle())
+                .background(Color.app.backgroundInput, in: Circle())
         }
         .opacity(isFABExpanded ? 1 : 0)
         .offset(x: isFABExpanded ? 0 : 32)
@@ -376,6 +378,19 @@ struct ChefChatView: View {
                             isStreaming: isStreaming && message.id == messages.last?.id
                         )
                     }
+
+                    // Standalone loader — floats on the background while waiting for first token
+                    if isStreaming,
+                       messages.last?.role == .assistant,
+                       messages.last?.text.isEmpty == true {
+                        HStack {
+                            ChatTypingDot()
+                            Spacer(minLength: 48)
+                        }
+                        .padding(.horizontal)
+                        .transition(.scale(scale: 0.3, anchor: .leading).combined(with: .opacity))
+                    }
+
                     Color.clear
                         .frame(height: 1)
                         .id("bottom")
@@ -412,7 +427,7 @@ struct ChefChatView: View {
     // MARK: - Input Bar
 
     private var inputBar: some View {
-        HStack(alignment: .center, spacing: 10) {
+        HStack(alignment: .bottom, spacing: 10) {
             TextField(
                 isAvailable ? "Ask Julia…" : "Requires Apple Intelligence",
                 text: $inputText,
@@ -422,11 +437,11 @@ struct ChefChatView: View {
             .lineLimit(1...5)
             .padding(.horizontal, 16)
             .padding(.vertical, 18)
-            .background(Color.app.offWhite200, in: RoundedRectangle(cornerRadius: 30))
+            .background(Color.app.backgroundInput, in: RoundedRectangle(cornerRadius: 30))
             .frame(minHeight: 60)
             .disabled(!isAvailable)
 
-            // Single CTA: Dot (import) when idle, arrow when typing, stop when streaming
+            // Single CTA: Dot (import) when idle & unfocused, arrow when focused or typing, stop when streaming
             ZStack {
                 if isStreaming {
                     Button(action: stopStreaming) {
@@ -436,7 +451,7 @@ struct ChefChatView: View {
                     }
                     .buttonStyle(.plain)
                     .transition(.scale(scale: 0.6).combined(with: .opacity))
-                } else if showImportOptions && inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                } else if showImportOptions && inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !isInputFocused {
                     Dot(isLoading: $isFABLoading, isExpanded: $isFABExpanded)
                         .onTapGesture {
                             guard !isFABLoading else { return }
@@ -447,11 +462,12 @@ struct ChefChatView: View {
                         .transition(.scale(scale: 0.6).combined(with: .opacity))
                 } else {
                     Button(action: sendMessage) {
-                        Image(systemName: "arrow.up.circle.fill")
-                            .font(.system(size: 44))
-                            .foregroundStyle(canSend ? Color.app.primary : Color.secondary.opacity(0.3))
-                            .shadow(color: canSend ? Color.app.primary.opacity(0.5) : .clear, radius: 8, x: 0, y: 3)
-                            .shadow(color: canSend ? Color.app.primary.opacity(0.2) : .clear, radius: 16, x: 0, y: 5)
+                        Image(systemName: "arrow.up")
+                            .font(.system(size: 15, weight: .medium))
+                            .foregroundStyle(.white)
+                            .frame(width: 44, height: 44)
+                            .background(canSend ? Color.app.primary : Color.app.primary.opacity(0.35), in: Circle())
+                            .shadow(color: canSend ? Color.app.primary.opacity(0.3) : .clear, radius: 4, x: 0, y: 2)
                     }
                     .disabled(!canSend)
                     .buttonStyle(.plain)
@@ -460,6 +476,7 @@ struct ChefChatView: View {
             }
             .frame(width: 60, height: 60)
             .animation(.spring(response: 0.3, dampingFraction: 0.75), value: inputText.isEmpty)
+            .animation(.spring(response: 0.3, dampingFraction: 0.75), value: isInputFocused)
             .animation(.spring(response: 0.3, dampingFraction: 0.75), value: isStreaming)
         }
         .padding(.horizontal, 16)
@@ -556,26 +573,41 @@ struct ChefChatView: View {
         isInputFocused = false
         inputText = ""
         messages.append(ChatMessage(role: .user, text: text))
-        messages.append(ChatMessage(role: .assistant, text: ""))
+        withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+            messages.append(ChatMessage(role: .assistant, text: ""))
+            isStreaming = true
+        }
         let replyIndex = messages.count - 1
-        isStreaming = true
 
         streamingTask = Task {
             do {
                 let stream = session.streamResponse(to: text)
                 for try await partial in stream {
-                    messages[replyIndex].text = partial.content
+                    if messages[replyIndex].text.isEmpty {
+                        // First token: animate the loader out and the bubble in
+                        withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                            messages[replyIndex].text = partial.content
+                        }
+                    } else {
+                        messages[replyIndex].text = partial.content
+                    }
                 }
             } catch {
-                messages[replyIndex].text = error.localizedDescription
+                withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                    messages[replyIndex].text = error.localizedDescription
+                }
             }
-            isStreaming = false
+            withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                isStreaming = false
+            }
         }
     }
 
     private func stopStreaming() {
         streamingTask?.cancel()
-        isStreaming = false
+        withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+            isStreaming = false
+        }
     }
 }
 
@@ -590,18 +622,15 @@ private struct MessageBubble: View {
             if message.role == .user { Spacer(minLength: 48) }
 
             VStack(alignment: message.role == .user ? .trailing : .leading, spacing: 2) {
-                if message.role == .assistant && message.text.isEmpty && isStreaming {
-                    ChatTypingDot()
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 10)
-                        .background(.fill.secondary, in: BubbleShape(role: message.role))
-                } else {
+                // Bubble only shown once there is content — the standalone loader handles the waiting state
+                if !(message.role == .assistant && message.text.isEmpty && isStreaming) {
                     Text(message.role == .assistant ? message.attributedText : AttributedString(message.text))
                         .textSelection(.enabled)
                         .padding(.horizontal, 14)
                         .padding(.vertical, 10)
                         .background(bubbleBackground, in: BubbleShape(role: message.role))
                         .foregroundStyle(message.role == .user ? .white : Color.app.textPrimary)
+                        .transition(.scale(scale: 0.85, anchor: message.role == .user ? .trailing : .leading).combined(with: .opacity))
                 }
             }
 
