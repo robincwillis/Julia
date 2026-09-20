@@ -145,7 +145,7 @@ private struct RecipeMatchRow: View {
     let match: RecipeMatch
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: 12) {
             Text(match.recipe.title)
                 .font(.headline)
                 .lineLimit(1)

@@ -47,19 +47,34 @@ class RecipeSuggestionsViewModel {
         defer { isFetchingSubstitutions = false }
 
         // Limit to the 10 most impactful missing ingredients to stay within token budget
-        let missingList = match.missingIngredients.prefix(10).joined(separator: ", ")
+        let missingIngredients = Array(match.missingIngredients.prefix(10))
+        let missingList = missingIngredients.map { "- \($0)" }.joined(separator: "\n")
         let prompt = """
-        For the recipe "\(match.recipe.title)", suggest practical substitutions for these missing ingredients: \(missingList).
+        For the recipe "\(match.recipe.title)", suggest a practical substitution for each of these \(missingIngredients.count) missing ingredients:
+        \(missingList)
+
         Only suggest substitutes that are common pantry staples most home cooks would have.
+        Return exactly \(missingIngredients.count) suggestion(s) — one per ingredient listed above, no more and no fewer. Each suggestion's missingIngredient must exactly match one listed ingredient, with no repeats.
         """
 
         do {
             let result = try await FoundationModelsService.shared.generate(
                 prompt,
                 type: SubstitutionSuggestions.self,
-                instructions: "You are a helpful culinary assistant. Suggest realistic ingredient substitutions."
+                instructions: "You are a helpful culinary assistant. Suggest realistic ingredient substitutions, one per ingredient given — never pad the list with repeats or invented ingredients."
             )
-            substitutionsByRecipeId[match.recipe.id] = result
+            // The model is non-deterministic and has been observed padding the
+            // list with duplicates even when told not to (e.g. 1 missing
+            // ingredient → 3 identical suggestions). Enforce alignment
+            // client-side: keep only suggestions that match a missing
+            // ingredient, and only the first suggestion per ingredient.
+            var seen = Set<String>()
+            let alignedSuggestions = result.suggestions.filter { suggestion in
+                let key = suggestion.missingIngredient.lowercased()
+                guard missingIngredients.contains(where: { $0.lowercased() == key }) else { return false }
+                return seen.insert(key).inserted
+            }
+            substitutionsByRecipeId[match.recipe.id] = SubstitutionSuggestions(suggestions: alignedSuggestions)
         } catch {
             substitutionError = "Could not generate substitutions: \(error.localizedDescription)"
         }

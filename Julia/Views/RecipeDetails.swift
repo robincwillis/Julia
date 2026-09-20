@@ -176,51 +176,6 @@ struct RecipeDetails: View {
     .navigationTitle(!titleIsVisible ? recipe.title : "")
     .navigationBarTitleDisplayMode(.inline)
     .edgesIgnoringSafeArea(.bottom)
-    .toolbar {
-      if !selectedIngredients.isEmpty {
-        ToolbarItem(placement: .topBarTrailing) {
-          ingredientSelectionMenu
-        }
-        .hidesSharedGlassBackground()
-      }
-    }
-  }
-  
-  private var ingredientSelectionMenu: some View {
-    Menu {
-      Button(action: {
-        addSelectedToLocation(location: .grocery)
-      }) {
-        Label("Add to Groceries", systemImage: "basket.fill")
-      }
-      .tint(Color.app.primary)
-      
-      Button(action: {
-        addSelectedToLocation(location: .pantry)
-      }) {
-        Label("Add to Pantry", systemImage: "cabinet.fill")
-
-      }
-      .tint(Color.app.primary)
-      
-      Button(action: selectAll) {
-        Label("Select All", systemImage: "checklist.checked")
-      }
-      .tint(Color.app.primary)
-      
-      Button(action: clearSelection) {
-        Label("Clear Selection", systemImage: "xmark.circle")
-      }
-      .tint(Color.app.primary)
-      
-    } label: {
-      Image(systemName: "ellipsis")
-        .font(.system(size: 14))
-        .foregroundColor(Color.app.primary)
-        .animation(.snappy, value: !selectedIngredients.isEmpty)
-        .transition(.opacity)
-    }
-    .circleToolbarButtonStyle(background: Color.app.backgroundSheet)
   }
 
   private var ingredientEditorSheet: some View {
@@ -285,6 +240,34 @@ struct RecipeDetails: View {
         editingMenu
       } else {
         Menu {
+          if !selectedIngredients.isEmpty {
+            Button(action: {
+              addSelectedToLocation(location: .grocery)
+            }) {
+              Label("Add to Groceries", systemImage: "basket.fill")
+            }
+            .tint(Color.app.primary)
+
+            Button(action: {
+              addSelectedToLocation(location: .pantry)
+            }) {
+              Label("Add to Pantry", systemImage: "cabinet.fill")
+            }
+            .tint(Color.app.primary)
+
+            Button(action: selectAll) {
+              Label("Select All", systemImage: "checklist.checked")
+            }
+            .tint(Color.app.primary)
+
+            Button(action: clearSelection) {
+              Label("Clear Selection", systemImage: "xmark.circle")
+            }
+            .tint(Color.app.primary)
+
+            Divider()
+          }
+
           Button("Edit Recipe", systemImage: "pencil") {
             editMode?.wrappedValue = .active
           }

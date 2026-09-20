@@ -108,6 +108,12 @@ struct RecipesView: View {
             .withTintColor(color, renderingMode: .alwaysOriginal)
           UISearchBar.appearance().setImage(icon, for: .search, state: .normal)
 
+          // Explicit fill so the field doesn't fall back to the system's glass
+          // material — visible enough in light mode to pass, but reads as no
+          // background at all in dark mode. Dynamic (light/dark) via the
+          // colorset backing this token.
+          UISearchTextField.appearance().backgroundColor = UIColor(Color.app.backgroundInput)
+
           // Placeholder text color (SwiftUI prompt foregroundStyle doesn't reach UIKit)
           UITextField.appearance(whenContainedInInstancesOf: [UISearchBar.self])
             .attributedPlaceholder = NSAttributedString(

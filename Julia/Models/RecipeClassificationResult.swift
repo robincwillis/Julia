@@ -114,7 +114,7 @@ struct ParsedReceiptItem {
 /// Structured output for ingredient substitution recommendations.
 @Generable
 struct SubstitutionSuggestions {
-    @Guide(description: "Substitution suggestions for missing recipe ingredients")
+    @Guide(description: "Exactly one substitution entry per missing ingredient listed in the prompt — matched by name, no duplicates, no invented ingredients")
     var suggestions: [IngredientSubstitution]
 }
 

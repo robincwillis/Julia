@@ -70,14 +70,13 @@ struct RecipeSuggestionDetailView: View {
                         Button {
                             addSelectedToGrocery()
                         } label: {
-                            let count = selectedMissing.count
-                            Text("Add \(count) Ingredient\(count == 1 ? "" : "s") to Grocery List")
+                            Text("Add to Grocery List")
                                 .foregroundStyle(Color.app.primary)
                         }
                         .buttonStyle(.plain)
                     }
                 } header: {
-                    Text("Missing (\(match.missingIngredients.count))")
+                    Text("Missing")
                 }
             }
 
@@ -90,6 +89,7 @@ struct RecipeSuggestionDetailView: View {
                             Text("Generating suggestions...")
                                 .foregroundStyle(Color.app.primary)
                         }
+                        .listRowBackground(Color.app.white)
                     } else if let subs = substitutions {
                         ForEach(subs.suggestions, id: \.missingIngredient) { sub in
                             VStack(alignment: .leading, spacing: 4) {
@@ -97,8 +97,8 @@ struct RecipeSuggestionDetailView: View {
                                     .fontWeight(.medium)
                                     .foregroundStyle(Color.app.textPrimary)
                                 HStack(spacing: 6) {
-                                    Image(systemName: "arrow.right")
-                                        .foregroundStyle(.secondary)
+                                    Image(systemName: "arrow.right.circle.fill")
+                                        .foregroundStyle(Color.app.primary)
                                         .font(.caption)
                                     Text(sub.substitutes.joined(separator: " or "))
                                         .font(.subheadline)
@@ -133,14 +133,13 @@ struct RecipeSuggestionDetailView: View {
             if match.missingIngredients.isEmpty {
                 Section {
                     VStack(spacing: 12) {
-                        GlowingIcon(systemName: "fork.knife", size: 44)
+                        GlowingIcon(systemName: "checkmark.circle.fill", size: 36)
                         Text("Ready to Cook")
                             .font(.headline)
                             .foregroundStyle(Color.app.textPrimary)
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 32)
-                    .listRowBackground(Color.app.white)
                 }
             }
 
