@@ -212,6 +212,24 @@ substantially more semantic tokens than currently exist as colorsets.
 
 No Swift or colorset name changes — all call sites pick up new values automatically.
 
+## Applied 2026-09-20 (checkbox token)
+
+- New `checkbox.unselected.colorset` → `#DDDAD1` (light) / `#4C4B47` (dark);
+  `Theme.swift` `checkboxUnselected` added, `IngredientRow.swift`'s
+  `iOSCheckboxToggleStyle` now points here (was `offWhite300`).
+- Context: the 2026-09-15 background-token pass moved the checkbox's
+  unselected fill from `offwhite.400` to `offwhite.300` to fix low contrast
+  against dark backgrounds. That fixed dark mode but broke light mode —
+  `offwhite.300`'s light value (`#E9E9E5`) sits only ~2% off
+  `background.primary` (`#EFEFEF`), reading as nearly invisible. Neither
+  shared ramp step had a good value for both modes at once, so the checkbox
+  gets its own token: `offwhite.400`'s light value (`#DDDAD1`, good
+  separation from `background.primary`) paired with `offwhite.300`'s dark
+  value (`#4C4B47`, confirmed good separation from dark backgrounds).
+- `offWhite300` stays defined in `Theme.swift` (it's a documented ramp step
+  in `Design/brand-colors.svg`) but is no longer referenced anywhere in app
+  code.
+
 ## Applied 2026-09-13
 
 - `secondary.colorset` → `#9FC9F6`/`#5C7A99` (was `#B3DAD7`/`#718F8D`, via a

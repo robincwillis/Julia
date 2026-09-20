@@ -24,8 +24,14 @@ struct AppTheme {
   enum Colors {
     // MARK: - Off White Shades
     static let offWhite200 = Color("offwhite.200")
-    static let offWhite300 = Color("offwhite.300")  // L #E9E9E5 / D #4C4B47 — checkbox unchecked bg
+    static let offWhite300 = Color("offwhite.300")  // L #E9E9E5 / D #4C4B47
     static let offWhite400 = Color("offwhite.400")
+
+    // Checkbox: light and dark each needed a different step off the shared
+    // offwhite ramp for good contrast (offwhite.300 was too close to
+    // background.primary in light mode; offwhite.400 was too close to the
+    // dark backgrounds). Own colorset carrying the best value per mode.
+    static let checkboxUnselected = Color("checkbox.unselected")  // L #DDDAD1 / D #4C4B47
     // Semantic aliases for the off-white ramp (brand/background-form tokens)
     static let backgroundForm = Color("offwhite.200")
     static let backgroundFormField = Color("offwhite.400")

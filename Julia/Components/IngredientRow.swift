@@ -15,7 +15,7 @@ struct iOSCheckboxToggleStyle: ToggleStyle {
     }, label: {
       HStack {
         RoundedRectangle(cornerRadius: 6)
-          .fill(configuration.isOn ? Color.app.secondary : Color.app.offWhite300)
+          .fill(configuration.isOn ? Color.app.secondary : Color.app.checkboxUnselected)
           .frame(width: 24, height: 24)
           .overlay(
             Image(systemName: "checkmark")
