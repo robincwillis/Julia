@@ -51,7 +51,7 @@ struct RecipesView: View {
           .searchable(
             text: $searchText,
             isPresented: $isSearchPresented,
-            prompt: Text("Search recipes").foregroundStyle(Color.app.textPlaceholder)
+            prompt: "Search recipes"
           )
       }
     }
