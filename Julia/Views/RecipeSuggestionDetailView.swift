@@ -70,7 +70,7 @@ struct RecipeSuggestionDetailView: View {
                         Button {
                             addSelectedToGrocery()
                         } label: {
-                            Text("Add to Grocery List")
+                            Text("Add to Groceries")
                                 .foregroundStyle(Color.app.primary)
                         }
                         .buttonStyle(.plain)

@@ -19,7 +19,7 @@ struct iOSCheckboxToggleStyle: ToggleStyle {
           .frame(width: 24, height: 24)
           .overlay(
             Image(systemName: "checkmark")
-              .foregroundStyle(Color.app.white)
+              .foregroundStyle(.white)
               .opacity(configuration.isOn ? 1 : 0)
           )
         configuration.label
@@ -31,10 +31,12 @@ struct iOSCheckboxToggleStyle: ToggleStyle {
 struct IngredientLabel: View {
   var ingredient: Ingredient
   var multiplier: Double = 1.0
+  var unitSystem: UnitSystem? = nil
 
-  init(_ ingredient: Ingredient, multiplier: Double = 1.0) {
+  init(_ ingredient: Ingredient, multiplier: Double = 1.0, unitSystem: UnitSystem? = nil) {
     self.ingredient = ingredient
     self.multiplier = multiplier
+    self.unitSystem = unitSystem
   }
 
   var body: some View {
@@ -46,16 +48,27 @@ struct IngredientLabel: View {
 
   // MARK: - Helper Views
 
+  // Quantity/unit scaled by servings, then converted to the requested unit
+  // system (display-only — never mutates the stored ingredient).
+  private var displayQuantity: (quantity: Double, unit: MeasurementUnit?)? {
+    guard let quantity = ingredient.quantity else { return nil }
+    let scaled = quantity * multiplier
+    if let unit = ingredient.unit, let targetSystem = unitSystem,
+       let converted = unit.converted(scaled, to: targetSystem) {
+      return (converted.quantity, converted.unit)
+    }
+    return (scaled, ingredient.unit)
+  }
+
   private var quantityView: some View {
     Group {
-      if let quantity = ingredient.quantity {
-        let scaled = quantity * multiplier
-        Text(scaled.toFractionString())
+      if let display = displayQuantity {
+        Text(display.quantity.toFractionString())
           .font(.body)
           .foregroundColor(Color.app.primary)
 
-        if let unit = ingredient.unit, unit.rawValue != "item" {
-          Text(unit.displayName.pluralized(for: scaled))
+        if let unit = display.unit, unit.rawValue != "item" {
+          Text(unit.displayName.pluralized(for: display.quantity))
             .font(.body)
             .foregroundColor(Color.app.primary)
         }
@@ -93,22 +106,25 @@ struct IngredientLabel: View {
 struct IngredientRow: View {
   var ingredient: Ingredient
   var multiplier: Double = 1.0
+  var unitSystem: UnitSystem? = nil
   var onTap: ((Ingredient?, IngredientSection?) -> Void)?
   var section: IngredientSection? = nil
   var padding: CGFloat = 6
 
-  init(ingredient: Ingredient, multiplier: Double = 1.0, onTap: ((Ingredient?, IngredientSection?) -> Void)? = nil, section: IngredientSection? = nil, padding: CGFloat = 6) {
+  init(ingredient: Ingredient, multiplier: Double = 1.0, unitSystem: UnitSystem? = nil, onTap: ((Ingredient?, IngredientSection?) -> Void)? = nil, section: IngredientSection? = nil, padding: CGFloat = 6) {
     self.ingredient = ingredient
     self.multiplier = multiplier
+    self.unitSystem = unitSystem
     self.onTap = onTap
     self.section = section
     self.padding = padding
   }
 
   // onTap (Ingredient?) -> Void initializer
-  init(ingredient: Ingredient, multiplier: Double = 1.0, onTap: ((Ingredient?) -> Void)?, padding: CGFloat = 6) {
+  init(ingredient: Ingredient, multiplier: Double = 1.0, unitSystem: UnitSystem? = nil, onTap: ((Ingredient?) -> Void)?, padding: CGFloat = 6) {
     self.ingredient = ingredient
     self.multiplier = multiplier
+    self.unitSystem = unitSystem
     self.padding = padding
     self.section = nil
 
@@ -123,7 +139,7 @@ struct IngredientRow: View {
 
   var body: some View {
     HStack {
-      IngredientLabel(ingredient, multiplier: multiplier)
+      IngredientLabel(ingredient, multiplier: multiplier, unitSystem: unitSystem)
       Spacer()
     }
     .onTapGesture {

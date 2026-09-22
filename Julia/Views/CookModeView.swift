@@ -5,6 +5,7 @@
 
 import SwiftUI
 import SwiftData
+import StoreKit
 
 struct CookModeView: View {
   let recipe: Recipe
@@ -12,6 +13,8 @@ struct CookModeView: View {
 
   @Environment(\.dismiss) private var dismiss
   @Environment(\.modelContext) private var context
+  @Environment(\.requestReview) private var requestReview
+  @AppStorage("rateReviewEnabled") private var rateReviewEnabled = true
 
   @State private var currentStep = 0
   @State private var isDrawerExpanded = false
@@ -337,6 +340,9 @@ struct CookModeView: View {
       usedFromPantryCount = used
       skippedFromPantryCount = skipped
       showCompleteResult = true
+      if rateReviewEnabled {
+        requestReview()
+      }
     } catch {
       print("Error completing recipe: \(error)")
     }

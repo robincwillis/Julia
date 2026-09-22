@@ -34,6 +34,7 @@ struct RecipeDetails: View {
   @State private var adjustedServings: Int? = nil
   @State private var showServingAdjuster = false
   @State private var showCookMode = false
+  @State private var unitSystem: UnitSystem? = nil
 
   // Recipe actions
   @State private var showCompleteRecipeConfirmation = false
@@ -45,6 +46,12 @@ struct RecipeDetails: View {
 
   @State private var titleIsVisible: Bool = true
   @State private var focusedField: RecipeFocusedField = .none
+
+  // Edit with AI
+  @State private var isRunningAIEdit = false
+  @State private var aiEditError: String?
+  @State private var showAIEditError = false
+  @State private var showAIEditNothingToFix = false
 
   private var servingMultiplier: Double {
     guard let adjusted = adjustedServings, let original = recipe.servings, original > 0 else {
@@ -123,9 +130,34 @@ struct RecipeDetails: View {
         .hidesSharedGlassBackground()
       }
     }
+    .overlay {
+      if isRunningAIEdit {
+        aiEditOverlay
+      }
+    }
   }
-  
-  
+
+  private var aiEditOverlay: some View {
+    ZStack {
+      Color.black.opacity(0.2)
+        .ignoresSafeArea()
+
+      VStack(spacing: 16) {
+        ProgressView()
+          .scaleEffect(1.2)
+        Text("Fixing recipe with AI…")
+          .font(.subheadline)
+          .foregroundColor(Color.app.textPrimary)
+      }
+      .padding(16)
+      .background(Color.app.white)
+      .cornerRadius(12)
+      .shadow(radius: 5)
+    }
+    .transition(.opacity)
+  }
+
+
   @ViewBuilder
   private var viewModeContent: some View {
     ZStack(alignment: .top) {
@@ -147,6 +179,8 @@ struct RecipeDetails: View {
           RecipeIngredientsSection(
             recipe: recipe,
             multiplier: servingMultiplier,
+            adjustedServings: $adjustedServings,
+            unitSystem: $unitSystem,
             selectableBinding: selectableBinding(for:),
             toggleSelection: toggleSelection(for:)
           )
@@ -156,6 +190,7 @@ struct RecipeDetails: View {
             IngredientSectionList(
               sections: recipe.sections,
               multiplier: servingMultiplier,
+              unitSystem: unitSystem,
               selectableBinding: selectableBinding(for:),
               toggleSelection: toggleSelection(for:)
             )
@@ -217,23 +252,39 @@ struct RecipeDetails: View {
         }
         .circleToolbarButtonStyle(background: Color.app.backgroundSheet)
         .buttonStyle(.plain)
-      } else if !recipe.instructions.isEmpty {
-        Button {
-          showCookMode = true
-        } label: {
-          Image(systemName: "play.fill")
-            .font(.system(size: 13, weight: .medium))
-            .foregroundStyle(Color.white)
-        }
-        .frame(width: 44, height: 44)
-        .background(Color.app.primary)
-        .clipShape(Circle())
-        .shadow(color: Color.app.primary.opacity(0.3), radius: 4, x: 0, y: 2)
-        .buttonStyle(.plain)
-        .accessibilityLabel("Start cooking")
       }
     }
     .hidesSharedGlassBackground()
+
+    if !isEditing {
+      ToolbarItem(placement: .navigationBarTrailing) {
+        Button {
+          showChefChat = true
+        } label: {
+          GlowingIcon(systemName: "circle.fill", size: 12)
+            .frame(width: 44, height: 44)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Ask Julia")
+      }
+      .hidesSharedGlassBackground()
+
+      if !recipe.instructions.isEmpty {
+        ToolbarItem(placement: .navigationBarTrailing) {
+          Button {
+            showCookMode = true
+          } label: {
+            Image(systemName: "play.fill")
+              .font(.system(size: 13, weight: .medium))
+              .foregroundStyle(Color.app.primary)
+          }
+          .circleToolbarButtonStyle(background: Color.app.backgroundSheet)
+          .buttonStyle(.plain)
+          .accessibilityLabel("Start cooking")
+        }
+        .hidesSharedGlassBackground()
+      }
+    }
 
     ToolbarItem(placement: .navigationBarTrailing) {
       if isEditing {
@@ -271,13 +322,12 @@ struct RecipeDetails: View {
           Button("Edit Recipe", systemImage: "pencil") {
             editMode?.wrappedValue = .active
           }
-          Button("Ask Julia", systemImage: "fork.knife.circle") {
-            showChefChat = true
-          }
           if !recipe.ingredients.isEmpty || !recipe.sections.isEmpty {
             Divider()
-            Button("Add to Grocery List", systemImage: "basket") {
-              addAllToGroceryList()
+            if selectedIngredients.isEmpty {
+              Button("Add to Groceries", systemImage: "basket") {
+                addAllToGroceryList()
+              }
             }
             Button("Complete Recipe", systemImage: "checkmark.seal", role: .destructive) {
               showCompleteRecipeConfirmation = true
@@ -296,6 +346,14 @@ struct RecipeDetails: View {
 
   private var editingMenu: some View {
     Menu {
+      Button("Edit with AI", systemImage: "sparkles") {
+        Task { await runAIEdit() }
+      }
+      .tint(Color.app.primary)
+      .disabled(isRunningAIEdit)
+
+      Divider()
+
       Button("Show Raw Text", systemImage: "text.quote") {
         showRawTextSheet = true
       }
@@ -307,7 +365,6 @@ struct RecipeDetails: View {
       Button("Delete Recipe", systemImage: "trash", role: .destructive) {
         showDeleteConfirmation = true
       }
-      .tint(Color.app.danger)
     } label: {
       Image(systemName: "ellipsis")
         .font(.system(size: 14))
@@ -390,6 +447,16 @@ struct RecipeDetails: View {
       } else {
         Text("Removed \(usedFromPantryCount) item\(usedFromPantryCount == 1 ? "" : "s") from your pantry.")
       }
+    }
+    .alert("Nothing to Fix", isPresented: $showAIEditNothingToFix) {
+      Button("OK", role: .cancel) { }
+    } message: {
+      Text("All ingredients look well-structured and servings, timing, and summary are already filled in.")
+    }
+    .alert("Edit with AI Failed", isPresented: $showAIEditError) {
+      Button("OK", role: .cancel) { }
+    } message: {
+      Text(aiEditError ?? "Unknown error occurred")
     }
     .onChange(of: showIngredientEditor) { oldValue, newValue in
       // Only execute when the sheet is being dismissed
@@ -572,6 +639,88 @@ struct RecipeDetails: View {
       all += section.ingredients
     }
     return all
+  }
+
+  private func runAIEdit() async {
+    let unstructured = allRecipeIngredients().filter { $0.quantity == nil && $0.unit == nil }
+    let needsServings = recipe.servings == nil
+    let needsSummary = (recipe.summary ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    let needsTimings = recipe.timings.isEmpty
+
+    guard !unstructured.isEmpty || needsServings || needsSummary || needsTimings else {
+      showAIEditNothingToFix = true
+      return
+    }
+
+    guard await FoundationModelsService.shared.isAvailable else {
+      aiEditError = "Apple Intelligence is not available on this device."
+      showAIEditError = true
+      return
+    }
+
+    isRunningAIEdit = true
+    defer { isRunningAIEdit = false }
+
+    let sortedInstructions = recipe.instructions
+      .sorted { $0.position < $1.position }
+      .map { $0.value }
+
+    let input = FoundationModelsRecipeEditor.Input(
+      title: recipe.title,
+      instructions: sortedInstructions,
+      unstructuredIngredients: unstructured.map { $0.name },
+      needsServings: needsServings,
+      needsSummary: needsSummary,
+      needsTimings: needsTimings
+    )
+
+    do {
+      let result = try await FoundationModelsRecipeEditor().edit(input)
+      applyAIEdit(result, to: unstructured, needsServings: needsServings, needsSummary: needsSummary, needsTimings: needsTimings)
+      try context.save()
+    } catch {
+      aiEditError = "Could not edit recipe: \(error.localizedDescription)"
+      showAIEditError = true
+    }
+  }
+
+  /// Applies the model's response back onto the recipe. Ingredients are
+  /// matched to the request by index/count — mismatched counts are skipped
+  /// entirely for that ingredient rather than guessed at. Recipe-level
+  /// fields are only written when the caller said they were missing, so a
+  /// field the model filled in despite not being asked is simply ignored.
+  private func applyAIEdit(
+    _ result: RecipeAIEdit,
+    to unstructuredIngredients: [Ingredient],
+    needsServings: Bool,
+    needsSummary: Bool,
+    needsTimings: Bool
+  ) {
+    if result.ingredients.count == unstructuredIngredients.count {
+      for (ingredient, parsed) in zip(unstructuredIngredients, result.ingredients) {
+        guard !parsed.name.isEmpty else { continue }
+        ingredient.name = parsed.name
+        ingredient.quantity = Double(parsed.quantity)
+        ingredient.unit = MeasurementUnit(from: parsed.unit)
+        ingredient.comment = parsed.comment.isEmpty ? nil : parsed.comment
+      }
+    }
+
+    if needsServings, let servings = Int(result.servings) {
+      recipe.servings = servings
+    }
+
+    if needsSummary, !result.summary.isEmpty {
+      recipe.summary = result.summary
+    }
+
+    if needsTimings, !result.timings.isEmpty {
+      for (index, timing) in result.timings.enumerated() {
+        let newTiming = Timing(type: timing.type, hours: timing.hours, minutes: timing.minutes, position: index)
+        context.insert(newTiming)
+        recipe.timings.append(newTiming)
+      }
+    }
   }
 
   private func addAllToGroceryList() {

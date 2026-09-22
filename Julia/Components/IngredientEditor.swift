@@ -18,6 +18,7 @@ struct IngredientEditor: View {
   @State private var showControls = false
   @State private var showNotes = false
   @State private var hasSaved = false
+  @State private var isFixingWithAI = false
 
   @FocusState private var isNameFieldFocused: Bool
   @FocusState private var isCommentFieldFocused: Bool
@@ -128,7 +129,25 @@ struct IngredientEditor: View {
             .foregroundColor(Color.app.primary)
         }
         .disabled(!canSave)
+
         Spacer()
+
+        Button(action: {
+          Task { await fixWithAI() }
+        }) {
+          if isFixingWithAI {
+            ProgressView()
+              .tint(Color.app.primary)
+          } else {
+            Image(systemName: "sparkles")
+              .font(.title2)
+              .foregroundColor(Color.app.primary)
+          }
+        }
+        .disabled(name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isFixingWithAI)
+
+        Spacer()
+
         Button(action: {
           if canSave {
             saveIngredient()
@@ -421,6 +440,30 @@ struct IngredientEditor: View {
     unit = existingIngredient.unit ?? MeasurementUnit(from: "item")  // Default to item if nil
     comment = existingIngredient.comment ?? ""
 
+  }
+
+  /// Re-parses the current name field with Foundation Models and populates
+  /// name/quantity/unit/comment from the result, so a raw imported line
+  /// (e.g. "2 cups flour, sifted" sitting entirely in the name) gets split
+  /// into its proper fields for review before saving.
+  private func fixWithAI() async {
+    let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard !trimmed.isEmpty else { return }
+    guard await FoundationModelsService.shared.isAvailable else { return }
+
+    isFixingWithAI = true
+    defer { isFixingWithAI = false }
+
+    do {
+      if let parsed = try await FoundationModelsIngredientParser().parse(trimmed, location: ingredientLocation) {
+        name = parsed.name
+        quantity = parsed.quantity
+        unit = parsed.unit
+        comment = parsed.comment ?? ""
+      }
+    } catch {
+      print("AI ingredient fix failed: \(error)")
+    }
   }
 
   private func saveIngredient() {

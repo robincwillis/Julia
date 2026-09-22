@@ -6,6 +6,7 @@ struct SettingsDrawer: View {
   @Binding var isOpen: Bool
   @Environment(\.debugMode) private var debugMode
   @State private var debugModeState: Bool = false
+  @AppStorage("rateReviewEnabled") private var rateReviewEnabled = true
   @Environment(\.colorScheme) private var colorScheme
   
   // Import/Export states
@@ -151,7 +152,23 @@ struct SettingsDrawer: View {
             
             Divider()
               .padding(.vertical, 8)
-            
+
+            // Rate & Review toggle
+            Toggle(isOn: $rateReviewEnabled) {
+              HStack {
+                Image(systemName: "star")
+                  .foregroundColor(Color.app.primary)
+                  .frame(width: 24)
+                Text("Rate & Review Prompts")
+                  .font(.headline)
+              }
+              .foregroundColor(Color.app.textPrimary)
+            }
+            .toggleStyle(BrandSwitchToggleStyle())
+
+            Divider()
+              .padding(.vertical, 8)
+
             // Debug toggle
             Toggle(isOn: $debugModeState) {
               HStack {

@@ -9,7 +9,7 @@ import SwiftUI
 
 // MARK: - Environment Keys
 private struct DebugModeKey: EnvironmentKey {
-    static let defaultValue: Bool = true
+    static let defaultValue: Bool = false
 }
 
 extension EnvironmentValues {

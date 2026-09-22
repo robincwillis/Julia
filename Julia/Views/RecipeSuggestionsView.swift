@@ -149,6 +149,7 @@ private struct RecipeMatchRow: View {
             Text(match.recipe.title)
                 .font(.headline)
                 .lineLimit(1)
+                .foregroundStyle(titleColor)
 
             HStack(spacing: 8) {
                 GeometryReader { geo in
@@ -174,6 +175,16 @@ private struct RecipeMatchRow: View {
 
     private var coverageColor: Color {
         Color.app.primary
+    }
+
+    private var titleColor: Color {
+        if match.coveragePercent >= 1.0 {
+            return Color.app.textPrimary
+        } else if match.coveragePercent >= 0.5 {
+            return Color.app.textSecondary
+        } else {
+            return Color.app.textTertiary
+        }
     }
 }
 

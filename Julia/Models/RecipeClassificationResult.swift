@@ -84,6 +84,41 @@ struct ClassifiedIngredient {
     var comment: String
 }
 
+// MARK: - Recipe AI Edit
+
+/// One inferred timing entry (e.g. "Prep: 15 min").
+@Generable
+struct ClassifiedTiming {
+    @Guide(description: "The kind of timing, e.g. 'Prep', 'Cook', 'Bake', 'Total'")
+    var type: String
+
+    @Guide(description: "Hours as a whole number, 0 if under an hour")
+    var hours: Int
+
+    @Guide(description: "Minutes as a whole number, 0-59")
+    var minutes: Int
+}
+
+/// Structured output for "Edit with AI": restructures ingredient lines that
+/// weren't cleanly split into quantity/unit/name, and infers whichever
+/// recipe-level fields the caller asked for because they're currently blank.
+/// Every field is left empty/unset when it can't be confidently determined
+/// from the given text — the model is not meant to invent facts.
+@Generable
+struct RecipeAIEdit {
+    @Guide(description: "One entry per ingredient line provided, in the same order. Restructure each into name/quantity/unit/comment.")
+    var ingredients: [ClassifiedIngredient]
+
+    @Guide(description: "Number of servings this recipe makes, as a whole number string (e.g. '4'). Empty string if it cannot be confidently determined from the title/instructions/ingredients.")
+    var servings: String
+
+    @Guide(description: "A one-to-two sentence summary of the recipe. Empty string if one cannot be confidently written from the given text.")
+    var summary: String
+
+    @Guide(description: "Timing entries (prep, cook, etc.) inferred from the instructions. Empty array if none can be confidently determined.")
+    var timings: [ClassifiedTiming]
+}
+
 // MARK: - Receipt Parsing
 
 /// Structured output for parsing an entire grocery receipt.

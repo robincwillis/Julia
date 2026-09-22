@@ -20,7 +20,7 @@ import SwiftUI
 enum MeasurementUnit: String, CaseIterable, Codable {
   case item, teaspoon, tablespoon, cup,
        ounce, pound, gram, kilogram,
-       pint, quart, gallon, liter,
+       pint, quart, gallon, liter, milliliter,
        can, bunch, piece, pinch,
        clove, jar, bottle, container
   
@@ -53,6 +53,8 @@ enum MeasurementUnit: String, CaseIterable, Codable {
       self = .gallon
     case "l", "liter", "liters":
       self = .liter
+    case "ml", "milliliter", "milliliters":
+      self = .milliliter
 
     case "clv", "clove", "cloves":
       self = .clove
@@ -95,8 +97,9 @@ enum MeasurementUnit: String, CaseIterable, Codable {
     case .pint: return "pint"
     case .quart: return "quart"
     case .liter: return "liter"
+    case .milliliter: return "milliliter"
     case .gallon: return "gallon"
-      
+
     case .clove: return "clove"
     case .bunch: return "bunch"
     case .piece: return "piece"
@@ -124,8 +127,9 @@ enum MeasurementUnit: String, CaseIterable, Codable {
     case .pint: return "pints"
     case .quart: return "quarts"
     case .liter: return "liters"
+    case .milliliter: return "milliliters"
     case .gallon: return "gallons"
-      
+
 
     case .clove: return "cloves"
     case .bunch: return "bunches"
@@ -154,8 +158,9 @@ enum MeasurementUnit: String, CaseIterable, Codable {
     case .pint: return "pt"
     case .quart: return "qt"
     case .liter: return "lt"
+    case .milliliter: return "ml"
     case .gallon: return "gal"
-      
+
     case .clove: return "clv"
     case .bunch: return "bn"
     case .piece: return "pc"
@@ -166,5 +171,91 @@ enum MeasurementUnit: String, CaseIterable, Codable {
     case .bottle: return "btl"
     case .container: return "ctr"
     }
+  }
+}
+
+enum UnitSystem: String, CaseIterable {
+  case imperial, metric
+}
+
+extension MeasurementUnit {
+  /// The measurement system this unit belongs to. `nil` for count-based
+  /// units (item, piece, clove, etc.) that have no metric/imperial
+  /// equivalent and so aren't affected by a unit system conversion.
+  var unitSystem: UnitSystem? {
+    switch self {
+    case .teaspoon, .tablespoon, .cup, .pint, .quart, .gallon, .ounce, .pound:
+      return .imperial
+    case .milliliter, .liter, .gram, .kilogram:
+      return .metric
+    case .item, .can, .bunch, .piece, .pinch, .clove, .jar, .bottle, .container:
+      return nil
+    }
+  }
+
+  /// Base-unit conversion factor: milliliters for volume units, grams for
+  /// weight units. `nil` for count-based units.
+  private var baseUnitsPerUnit: Double? {
+    switch self {
+    // Volume, in milliliters
+    case .teaspoon: return 4.92892
+    case .tablespoon: return 14.7868
+    case .cup: return 236.588
+    case .pint: return 473.176
+    case .quart: return 946.353
+    case .gallon: return 3785.41
+    case .milliliter: return 1
+    case .liter: return 1000
+    // Weight, in grams
+    case .ounce: return 28.3495
+    case .pound: return 453.592
+    case .gram: return 1
+    case .kilogram: return 1000
+    case .item, .can, .bunch, .piece, .pinch, .clove, .jar, .bottle, .container:
+      return nil
+    }
+  }
+
+  private var isVolume: Bool {
+    switch self {
+    case .teaspoon, .tablespoon, .cup, .pint, .quart, .gallon, .milliliter, .liter:
+      return true
+    default:
+      return false
+    }
+  }
+
+  /// Converts a quantity in this unit to the "nicest" (largest whole-ish)
+  /// unit in the target system. Returns `nil` for count-based units, which
+  /// have no metric/imperial equivalent. Returns the unit unchanged if it's
+  /// already in the target system.
+  func converted(_ quantity: Double, to targetSystem: UnitSystem) -> (unit: MeasurementUnit, quantity: Double)? {
+    guard let currentSystem = unitSystem, let perUnit = baseUnitsPerUnit else { return nil }
+    guard currentSystem != targetSystem else { return (self, quantity) }
+
+    let baseAmount = quantity * perUnit
+
+    let candidates: [MeasurementUnit]
+    switch (isVolume, targetSystem) {
+    case (true, .metric): candidates = [.liter, .milliliter]
+    case (true, .imperial): candidates = [.gallon, .quart, .pint, .cup, .tablespoon, .teaspoon]
+    case (false, .metric): candidates = [.kilogram, .gram]
+    case (false, .imperial): candidates = [.pound, .ounce]
+    }
+
+    // Pick the largest candidate unit whose converted quantity is at least
+    // 1, so a gallon of liquid reads as "3.8 L" rather than "3785 mL".
+    for candidate in candidates {
+      guard let candidatePerUnit = candidate.baseUnitsPerUnit else { continue }
+      let convertedQuantity = baseAmount / candidatePerUnit
+      if convertedQuantity >= 1 {
+        return (candidate, convertedQuantity)
+      }
+    }
+    // Amount is smaller than the smallest candidate (e.g. a pinch of
+    // something) — fall back to the smallest unit rather than showing a
+    // quantity under 1 in a larger unit.
+    guard let smallest = candidates.last, let smallestPerUnit = smallest.baseUnitsPerUnit else { return nil }
+    return (smallest, baseAmount / smallestPerUnit)
   }
 }

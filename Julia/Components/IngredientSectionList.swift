@@ -10,6 +10,7 @@ import SwiftUI
 struct IngredientSectionList: View {
     let sections: [IngredientSection]
     var multiplier: Double = 1.0
+    var unitSystem: UnitSystem? = nil
     let selectableBinding: (Ingredient) -> Binding<Bool>
     let toggleSelection: (Ingredient) -> Void
     
@@ -27,7 +28,7 @@ struct IngredientSectionList: View {
                       .padding(.vertical, 8)
               } else {
                   ForEach(section.ingredients) { ingredient in
-                    IngredientRow(ingredient: ingredient, multiplier: multiplier, section: section)
+                    IngredientRow(ingredient: ingredient, multiplier: multiplier, unitSystem: unitSystem, section: section)
                           .selectable(selected: selectableBinding(ingredient))
                           .contentShape(Rectangle())
                           .onTapGesture {

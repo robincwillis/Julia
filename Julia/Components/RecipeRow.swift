@@ -13,7 +13,7 @@ struct RecipeRow: View {
         Text("\(recipe.title)")
         .lineLimit(1)
         .truncationMode(.tail)
-        .foregroundColor(Color.app.textPrimary)
+        .foregroundColor(Color.app.textSecondary)
     }
 }
 

@@ -13,13 +13,13 @@ import SwiftData
 struct JuliaApp: App {
     @State private var showDBError = false
     @State private var dbError: Error?
-    @State private var debugModeEnabled = true
-    
+    @State private var debugModeEnabled = false
+
     var body: some Scene {
         WindowGroup {
             // Environment objects are set at the top level of the app
             let _ = UserDefaults.standard.register(defaults: [
-                "debugMode": true
+                "debugMode": false
             ])
             ContentView()
                 .environment(\.debugMode, debugModeEnabled)
