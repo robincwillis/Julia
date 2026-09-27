@@ -74,10 +74,10 @@ struct ClassifiedIngredient {
     @Guide(description: "The ingredient name only — no quantity or unit (e.g. 'all-purpose flour', 'unsalted butter')")
     var name: String
 
-    @Guide(description: "The numeric quantity as a decimal string (e.g. '2', '0.5', '1.5'). Empty string if not present.")
+    @Guide(description: "The numeric quantity as a decimal string (e.g. '2', '0.5', '1.5'). Extract any leading number even when no unit follows it (e.g. '2 eggs' -> '2'). If no number is given, use culinary judgment: a discrete countable item (egg, tomato, onion) defaults to '1'; an ingredient normally measured by volume/weight (flour, sugar, butter, oil) should get a realistic quantity for the dish, using any recipe context given (e.g. flour in a cake is usually a few cups). Leave empty only when no quantity applies at all (e.g. 'salt to taste', 'pepper').")
     var quantity: String
 
-    @Guide(description: "The unit of measurement (e.g. 'cup', 'tbsp', 'oz', 'lb'). Empty string if not present.")
+    @Guide(description: "The unit of measurement (e.g. 'cup', 'tbsp', 'oz', 'lb'). Use 'item' only for things genuinely counted individually with no measuring unit, e.g. an egg, a tomato, an onion. For ingredients normally measured by volume or weight (flour, sugar, butter, milk, rice, oil, etc.) with no unit given, infer a realistic one by culinary convention and any recipe context — e.g. flour is almost always 'cup', not 'item'. Empty string only when quantity itself is also empty.")
     var unit: String
 
     @Guide(description: "Preparation note or comment (e.g. 'finely chopped', 'at room temperature'). Empty string if not present.")
@@ -99,11 +99,36 @@ struct ClassifiedTiming {
     var minutes: Int
 }
 
+/// One group of instruction steps sharing a heading, or the initial
+/// ungrouped steps when `name` is empty. See `RecipeAIEdit.instructionGroups`.
+@Generable
+struct ClassifiedInstructionGroup {
+    @Guide(description: "Name of this group, e.g. 'Dressing', 'Crust'. Empty string for the initial steps that come before any section heading.")
+    var name: String
+
+    @Guide(description: "The steps belonging to this group, in order, as clean instruction text. If this group's name came from a step that was actually a section heading (e.g. 'For the dressing'), that heading line is not itself a step — it becomes `name` above and is removed from this list.")
+    var steps: [String]
+}
+
+/// One group of ingredients sharing a heading, or the initial ungrouped
+/// ingredients when `name` is empty. See `RecipeAIEdit.ingredientGroups`.
+@Generable
+struct ClassifiedIngredientGroup {
+    @Guide(description: "Name of this group, e.g. 'Dressing', 'Crust'. Empty string for the initial ingredients that come before any section heading.")
+    var name: String
+
+    @Guide(description: "The ingredients belonging to this group, restructured into name/quantity/unit/comment, in order. If this group's name came from an ingredient line that was actually a section heading (e.g. 'For the dressing'), that heading line is not itself an ingredient — it becomes `name` above and is removed from this list.")
+    var ingredients: [ClassifiedIngredient]
+}
+
 /// Structured output for "Edit with AI": restructures ingredient lines that
-/// weren't cleanly split into quantity/unit/name, and infers whichever
-/// recipe-level fields the caller asked for because they're currently blank.
-/// Every field is left empty/unset when it can't be confidently determined
-/// from the given text — the model is not meant to invent facts.
+/// weren't cleanly split into quantity/unit/name, detects ingredient lines
+/// and instruction steps that are actually section headings and splits them
+/// out, and infers whichever recipe-level fields the caller asked for
+/// because they're currently blank. Every field is left empty/unset when it
+/// can't be confidently determined from the given text — the model is not
+/// meant to invent facts (except where a custom instruction explicitly asks
+/// it to change something).
 @Generable
 struct RecipeAIEdit {
     @Guide(description: "One entry per ingredient line provided, in the same order. Restructure each into name/quantity/unit/comment.")
@@ -117,6 +142,12 @@ struct RecipeAIEdit {
 
     @Guide(description: "Timing entries (prep, cook, etc.) inferred from the instructions. Empty array if none can be confidently determined.")
     var timings: [ClassifiedTiming]
+
+    @Guide(description: "Only set when the given instruction steps contain one that's actually a section heading rather than a real instruction (e.g. a short step reading 'For the dressing' or 'Dressing:') — regroup ALL given steps into groups split at each heading, with the heading text becoming that group's name (not a step) and remaining as the group's steps. Preserve step order. Leave this empty when every given step is a genuine instruction with no hidden headings — do not restructure or reword steps that don't need it.")
+    var instructionGroups: [ClassifiedInstructionGroup]
+
+    @Guide(description: "Only set when the given unsectioned ingredients (see the separate 'unsectioned ingredients' list, not the general ingredients-to-restructure list) contain one that's actually a section heading rather than a real ingredient (e.g. 'For the dressing', 'Dressing:') — regroup ALL of those unsectioned ingredients into groups split at each heading, restructuring each into name/quantity/unit/comment same as the main `ingredients` field. Preserve order. Leave this empty when none of them are actually headings.")
+    var ingredientGroups: [ClassifiedIngredientGroup]
 }
 
 // MARK: - Receipt Parsing

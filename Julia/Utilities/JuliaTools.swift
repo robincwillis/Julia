@@ -132,3 +132,92 @@ struct CreateRecipeTool: Tool {
         return "Created '\(title)' with \(ingredientCount) ingredients and \(stepCount) steps. It's now in your recipe collection."
     }
 }
+
+// MARK: - UpdateRecipeTool
+
+/// Lets the assistant edit and save changes to the specific recipe the user
+/// is currently viewing/chatting about. Only registered when ChefChatView
+/// has a recipe in scope — there's nothing to update in the generic chat.
+struct UpdateRecipeTool: Tool {
+    let name = "updateRecipe"
+    let description = "Update and save changes to the recipe currently being viewed — title, description, servings, ingredients, and/or instructions. Use this when the user asks to change, fix, edit, improve, scale, or otherwise modify this recipe. Only set the fields that should change; leave the rest at their defaults (empty string, 0, or false) to leave them unchanged."
+
+    nonisolated(unsafe) let context: ModelContext
+    nonisolated(unsafe) let recipe: Recipe
+
+    @Generable
+    struct Arguments {
+        @Guide(description: "New title, empty string to leave unchanged")
+        var title: String
+
+        @Guide(description: "New description/summary, empty string to leave unchanged")
+        var description: String
+
+        @Guide(description: "New serving count, 0 to leave unchanged")
+        var servings: Int
+
+        @Guide(description: "Set true to replace the whole ingredient list with `ingredients` below — required for any ingredient change, even a small one (the entire list must be given, not just the changed items). False leaves the existing ingredients untouched and `ingredients` is ignored.")
+        var replaceIngredients: Bool
+
+        @Guide(description: "Full replacement ingredient list with quantities (e.g. '2 cups flour'), in order. Only used when replaceIngredients is true.")
+        var ingredients: [String]
+
+        @Guide(description: "Set true to replace the whole instructions list with `steps` below — required for any instruction change, even a small one. False leaves the existing instructions untouched and `steps` is ignored.")
+        var replaceInstructions: Bool
+
+        @Guide(description: "Full replacement step-by-step instructions, in order. Only used when replaceInstructions is true.")
+        var steps: [String]
+    }
+
+    func call(arguments: Arguments) async throws -> String {
+        let changed = await MainActor.run { () -> [String] in
+            var changes: [String] = []
+
+            if !arguments.title.isEmpty && arguments.title != recipe.title {
+                recipe.title = arguments.title
+                changes.append("title")
+            }
+            if !arguments.description.isEmpty {
+                recipe.summary = arguments.description
+                changes.append("description")
+            }
+            if arguments.servings > 0 {
+                recipe.servings = arguments.servings
+                changes.append("servings")
+            }
+            if arguments.replaceIngredients {
+                let unsectioned = recipe.ingredients.filter { $0.section == nil }
+                for old in unsectioned { context.delete(old) }
+                recipe.ingredients.removeAll { $0.section == nil }
+
+                for (index, input) in arguments.ingredients.enumerated() {
+                    if let ingredient = IngredientParser.fromString(input: input, location: .recipe) {
+                        ingredient.position = index
+                        ingredient.recipe = recipe
+                        context.insert(ingredient)
+                    }
+                }
+                changes.append("ingredients")
+            }
+            if arguments.replaceInstructions {
+                for old in recipe.instructions { context.delete(old) }
+                recipe.instructions.removeAll()
+
+                for (index, value) in arguments.steps.enumerated() {
+                    let step = Step(value: value, position: index, recipe: recipe)
+                    recipe.instructions.append(step)
+                    context.insert(step)
+                }
+                changes.append("instructions")
+            }
+
+            try? context.save()
+            return changes
+        }
+
+        guard !changed.isEmpty else {
+            return "Nothing was specified to update — no changes made."
+        }
+        return "Updated \(changed.joined(separator: ", ")) and saved the recipe."
+    }
+}

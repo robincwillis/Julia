@@ -52,6 +52,8 @@ struct RecipeDetails: View {
   @State private var aiEditError: String?
   @State private var showAIEditError = false
   @State private var showAIEditNothingToFix = false
+  @State private var showAIEditPrompt = false
+  @State private var aiEditCustomInstruction = ""
 
   private var servingMultiplier: Double {
     guard let adjusted = adjustedServings, let original = recipe.servings, original > 0 else {
@@ -87,6 +89,7 @@ struct RecipeDetails: View {
       // Instructions section
       RecipeEditInstructionsSection(
         instructions: $recipe.instructions,
+        instructionSections: $recipe.instructionSections,
         focusedField: $focusedField
       )
       
@@ -347,7 +350,8 @@ struct RecipeDetails: View {
   private var editingMenu: some View {
     Menu {
       Button("Edit with AI", systemImage: "sparkles") {
-        Task { await runAIEdit() }
+        aiEditCustomInstruction = ""
+        showAIEditPrompt = true
       }
       .tint(Color.app.primary)
       .disabled(isRunningAIEdit)
@@ -398,7 +402,55 @@ struct RecipeDetails: View {
     .background(.background.secondary)
     .presentationDragIndicator(.hidden)
   }
-  
+
+  private var aiEditPromptSheet: some View {
+    NavigationStack {
+      VStack(alignment: .leading, spacing: 16) {
+        Text("Restructures ingredients that didn't import cleanly, and fills in missing servings, timing, or summary. Add specific instructions below if you want — e.g. \"make this vegetarian\" or \"double the recipe.\"")
+          .font(.subheadline)
+          .foregroundStyle(Color.app.textSecondary)
+
+        ZStack(alignment: .topLeading) {
+          if aiEditCustomInstruction.isEmpty {
+            Text("Custom instructions (optional)")
+              .foregroundStyle(Color.app.textPlaceholder)
+              .padding(.horizontal, 5)
+              .padding(.vertical, 9)
+              .allowsHitTesting(false)
+          }
+          TextEditor(text: $aiEditCustomInstruction)
+            .scrollContentBackground(.hidden)
+            .padding(.horizontal, 1)
+        }
+        .frame(minHeight: 100)
+        .padding(8)
+        .background(Color.app.backgroundInput, in: RoundedRectangle(cornerRadius: 12))
+
+        Spacer()
+      }
+      .padding()
+      .background(Color.app.backgroundSheet)
+      .navigationTitle("Edit with AI")
+      .navigationBarTitleDisplayMode(.inline)
+      .toolbar {
+        ToolbarItem(placement: .cancellationAction) {
+          Button("Cancel") {
+            showAIEditPrompt = false
+          }
+          .foregroundStyle(Color.app.primary)
+        }
+        ToolbarItem(placement: .confirmationAction) {
+          Button("Edit Recipe") {
+            showAIEditPrompt = false
+            Task { await runAIEdit() }
+          }
+          .foregroundStyle(Color.app.primary)
+          .fontWeight(.medium)
+        }
+      }
+    }
+  }
+
   // MARK: - Body
   var body: some View {
     ZStack {
@@ -492,6 +544,11 @@ struct RecipeDetails: View {
     }
     .sheet(isPresented: $showSourceSheet) {
       sourceSheet
+    }
+    .sheet(isPresented: $showAIEditPrompt) {
+      aiEditPromptSheet
+        .presentationDetents([.medium])
+        .presentationDragIndicator(.visible)
     }
     .sheet(isPresented: $showChefChat) {
       ChefChatView(recipe: recipe)
@@ -641,13 +698,36 @@ struct RecipeDetails: View {
     return all
   }
 
+  /// Cheap pre-check for "this line is probably actually a section
+  /// heading" (e.g. "For the dressing", "Dressing:") — short, and either
+  /// starts with "for " or ends with a colon. Applies equally to an
+  /// instruction step's text or an ingredient's name. Only decides whether
+  /// it's worth asking the model to look; the model makes the real call.
+  private func looksLikeSectionHeading(_ text: String) -> Bool {
+    let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard !trimmed.isEmpty, trimmed.split(separator: " ").count <= 6 else { return false }
+    return trimmed.lowercased().hasPrefix("for ") || trimmed.hasSuffix(":")
+  }
+
   private func runAIEdit() async {
+    let customInstruction = aiEditCustomInstruction.trimmingCharacters(in: .whitespacesAndNewlines)
+    let hasCustomInstruction = !customInstruction.isEmpty
     let unstructured = allRecipeIngredients().filter { $0.quantity == nil && $0.unit == nil }
+    let unsectionedIngredients = recipe.ingredients.filter { $0.section == nil }
     let needsServings = recipe.servings == nil
     let needsSummary = (recipe.summary ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     let needsTimings = recipe.timings.isEmpty
+    let hasPossibleInstructionHeading = recipe.instructions.contains { looksLikeSectionHeading($0.value) }
+    let hasPossibleIngredientHeading = unsectionedIngredients.contains { looksLikeSectionHeading($0.name) }
 
-    guard !unstructured.isEmpty || needsServings || needsSummary || needsTimings else {
+    // A custom instruction like "make this vegetarian" or "double the
+    // recipe" needs to see and possibly revise every ingredient, not just
+    // the unstructured ones — and is reason enough to run even when nothing
+    // looks structurally broken.
+    let ingredientsToSend = hasCustomInstruction ? allRecipeIngredients() : unstructured
+
+    guard !unstructured.isEmpty || needsServings || needsSummary || needsTimings
+      || hasCustomInstruction || hasPossibleInstructionHeading || hasPossibleIngredientHeading else {
       showAIEditNothingToFix = true
       return
     }
@@ -664,19 +744,31 @@ struct RecipeDetails: View {
     let sortedInstructions = recipe.instructions
       .sorted { $0.position < $1.position }
       .map { $0.value }
+    let sortedUnsectionedIngredients = unsectionedIngredients
+      .sorted { $0.position < $1.position }
 
     let input = FoundationModelsRecipeEditor.Input(
       title: recipe.title,
       instructions: sortedInstructions,
-      unstructuredIngredients: unstructured.map { $0.name },
+      ingredientLines: ingredientsToSend.map { IngredientParser.toString(for: $0) },
+      unsectionedIngredientLines: sortedUnsectionedIngredients.map { IngredientParser.toString(for: $0) },
       needsServings: needsServings,
       needsSummary: needsSummary,
-      needsTimings: needsTimings
+      needsTimings: needsTimings,
+      customInstruction: hasCustomInstruction ? customInstruction : nil
     )
 
     do {
       let result = try await FoundationModelsRecipeEditor().edit(input)
-      applyAIEdit(result, to: unstructured, needsServings: needsServings, needsSummary: needsSummary, needsTimings: needsTimings)
+      applyAIEdit(
+        result,
+        to: ingredientsToSend,
+        unsectionedIngredients: sortedUnsectionedIngredients,
+        needsServings: needsServings,
+        needsSummary: needsSummary,
+        needsTimings: needsTimings,
+        hasCustomInstruction: hasCustomInstruction
+      )
       try context.save()
     } catch {
       aiEditError = "Could not edit recipe: \(error.localizedDescription)"
@@ -686,18 +778,24 @@ struct RecipeDetails: View {
 
   /// Applies the model's response back onto the recipe. Ingredients are
   /// matched to the request by index/count — mismatched counts are skipped
-  /// entirely for that ingredient rather than guessed at. Recipe-level
-  /// fields are only written when the caller said they were missing, so a
-  /// field the model filled in despite not being asked is simply ignored.
+  /// entirely for that ingredient rather than guessed at. Servings/summary
+  /// are only written when the caller said they were missing, unless a
+  /// custom instruction was given — that's the one case where an explicit
+  /// user ask (e.g. "double the recipe") is allowed to overwrite an
+  /// existing value. Timings are always fill-only regardless, since
+  /// reconciling an edit against existing Timing entries from free text
+  /// isn't handled here.
   private func applyAIEdit(
     _ result: RecipeAIEdit,
-    to unstructuredIngredients: [Ingredient],
+    to sentIngredients: [Ingredient],
+    unsectionedIngredients: [Ingredient],
     needsServings: Bool,
     needsSummary: Bool,
-    needsTimings: Bool
+    needsTimings: Bool,
+    hasCustomInstruction: Bool
   ) {
-    if result.ingredients.count == unstructuredIngredients.count {
-      for (ingredient, parsed) in zip(unstructuredIngredients, result.ingredients) {
+    if result.ingredients.count == sentIngredients.count {
+      for (ingredient, parsed) in zip(sentIngredients, result.ingredients) {
         guard !parsed.name.isEmpty else { continue }
         ingredient.name = parsed.name
         ingredient.quantity = Double(parsed.quantity)
@@ -706,11 +804,11 @@ struct RecipeDetails: View {
       }
     }
 
-    if needsServings, let servings = Int(result.servings) {
+    if (needsServings || hasCustomInstruction), let servings = Int(result.servings) {
       recipe.servings = servings
     }
 
-    if needsSummary, !result.summary.isEmpty {
+    if (needsSummary || hasCustomInstruction), !result.summary.isEmpty {
       recipe.summary = result.summary
     }
 
@@ -719,6 +817,105 @@ struct RecipeDetails: View {
         let newTiming = Timing(type: timing.type, hours: timing.hours, minutes: timing.minutes, position: index)
         context.insert(newTiming)
         recipe.timings.append(newTiming)
+      }
+    }
+
+    if !result.instructionGroups.isEmpty {
+      applyInstructionGroups(result.instructionGroups)
+    }
+
+    if !result.ingredientGroups.isEmpty {
+      applyIngredientGroups(result.ingredientGroups, replacing: unsectionedIngredients)
+    }
+  }
+
+  /// Replaces the unsectioned ingredients with the model's regrouped ones:
+  /// the first empty-named group becomes the new unsectioned list, and
+  /// every named group becomes a new IngredientSection appended after any
+  /// that already exist. Old Ingredient objects are deleted rather than
+  /// reused, matching how UpdateRecipeTool replaces ingredients.
+  ///
+  /// `recipe.ingredients` invariantly holds only unsectioned ingredients
+  /// (sectioned ones live in `section.ingredients` — see `moveIngredient`),
+  /// so it's safe to clear wholesale here, same as `applyInstructionGroups`
+  /// does for `recipe.instructions`.
+  private func applyIngredientGroups(_ groups: [ClassifiedIngredientGroup], replacing oldIngredients: [Ingredient]) {
+    for old in oldIngredients { context.delete(old) }
+    recipe.ingredients.removeAll()
+
+    var sectionPosition = recipe.sections.count
+
+    for group in groups {
+      guard !group.ingredients.isEmpty else { continue }
+
+      if group.name.isEmpty {
+        for (index, parsed) in group.ingredients.enumerated() {
+          guard !parsed.name.isEmpty else { continue }
+          let ingredient = Ingredient(
+            name: parsed.name,
+            location: .recipe,
+            quantity: Double(parsed.quantity),
+            unit: parsed.unit.isEmpty ? nil : parsed.unit,
+            comment: parsed.comment.isEmpty ? nil : parsed.comment,
+            position: index,
+            recipe: recipe
+          )
+          recipe.ingredients.append(ingredient)
+          context.insert(ingredient)
+        }
+      } else {
+        let section = IngredientSection(name: group.name, position: sectionPosition, recipe: recipe)
+        context.insert(section)
+        for (index, parsed) in group.ingredients.enumerated() {
+          guard !parsed.name.isEmpty else { continue }
+          let ingredient = Ingredient(
+            name: parsed.name,
+            location: .recipe,
+            quantity: Double(parsed.quantity),
+            unit: parsed.unit.isEmpty ? nil : parsed.unit,
+            comment: parsed.comment.isEmpty ? nil : parsed.comment,
+            position: index,
+            section: section
+          )
+          section.ingredients.append(ingredient)
+          context.insert(ingredient)
+        }
+        recipe.sections.append(section)
+        sectionPosition += 1
+      }
+    }
+  }
+
+  /// Replaces the unsectioned instructions with the model's regrouped
+  /// steps: the first empty-named group becomes the new unsectioned list,
+  /// and every named group becomes a new InstructionSection appended after
+  /// any that already exist. Old Step objects are deleted rather than
+  /// reused, matching how UpdateRecipeTool replaces instructions.
+  private func applyInstructionGroups(_ groups: [ClassifiedInstructionGroup]) {
+    for old in recipe.instructions { context.delete(old) }
+    recipe.instructions.removeAll()
+
+    var sectionPosition = recipe.instructionSections.count
+
+    for group in groups {
+      guard !group.steps.isEmpty else { continue }
+
+      if group.name.isEmpty {
+        for (index, value) in group.steps.enumerated() {
+          let step = Step(value: value, position: index, recipe: recipe)
+          recipe.instructions.append(step)
+          context.insert(step)
+        }
+      } else {
+        let section = InstructionSection(name: group.name, position: sectionPosition, recipe: recipe)
+        context.insert(section)
+        for (index, value) in group.steps.enumerated() {
+          let step = Step(value: value, position: index, section: section)
+          section.steps.append(step)
+          context.insert(step)
+        }
+        recipe.instructionSections.append(section)
+        sectionPosition += 1
       }
     }
   }
