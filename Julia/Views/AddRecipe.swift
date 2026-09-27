@@ -26,6 +26,7 @@ struct AddRecipe: View {
   @State private var ingredients = [Ingredient]()
   @State private var sections = [IngredientSection]()
   @State private var instructions = [Step]()
+  @State private var instructionSections = [InstructionSection]()
   @State private var timings = [Timing]()
   
   @State private var notes: [Note] = []
@@ -61,7 +62,8 @@ struct AddRecipe: View {
       _ingredients = State(initialValue: existingRecipe.ingredients)
       _sections = State(initialValue: existingRecipe.sections)
       _instructions = State(initialValue: existingRecipe.instructions)
-      _timings = State(initialValue: existingRecipe.timings )
+      _instructionSections = State(initialValue: existingRecipe.instructionSections)
+      _timings = State(initialValue: existingRecipe.timings)
     }
   }
   
@@ -113,6 +115,7 @@ struct AddRecipe: View {
           // Instructions Section
           RecipeEditInstructionsSection(
             instructions: $instructions,
+            instructionSections: $instructionSections,
             focusedField: $focusedField
           )
           

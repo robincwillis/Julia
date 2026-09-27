@@ -4,6 +4,7 @@ import UniformTypeIdentifiers
 
 // MARK: - Data Import/Export Manager
 
+@MainActor
 class ImportExportManager {
   
   // MARK: - Export Models
@@ -25,7 +26,7 @@ class ImportExportManager {
     let sections: [SectionExport]
     let timings: [TimingExport]
     let instructions: [StepExport]
-    let instructionSections: [InstructionSectionExport]
+    let instructionSections: [InstructionSectionExport]?
     let notes: [NoteExport]
   }
   
@@ -411,7 +412,7 @@ class ImportExportManager {
     }
 
     // Create and insert instruction sections with their steps
-    for importedSection in importedRecipe.instructionSections {
+    for importedSection in importedRecipe.instructionSections ?? [] {
       let section = InstructionSection(
         id: importedSection.id,
         name: importedSection.name,
@@ -529,7 +530,7 @@ class ImportExportManager {
       recipe.instructions.append(step)
     }
 
-    for importedSection in importedRecipe.instructionSections {
+    for importedSection in importedRecipe.instructionSections ?? [] {
       let section = InstructionSection(
         id: importedSection.id,
         name: importedSection.name,

@@ -154,13 +154,13 @@
     ],
     "timings": [
       {
-        "id": "timing-1",
+        "id": "timing-galette-prep",
         "type": "Prep",
         "hours": 0,
         "minutes": 30
       },
       {
-        "id": "timing-2",
+        "id": "timing-galette-cook",
         "type": "Cook",
         "hours": 1,
         "minutes": 20
@@ -233,9 +233,10 @@
         "position": 12
       }
     ],
+    "instructionSections": [],
     "notes": [
       {
-        "id": "note-1",
+        "id": "note-galette-1",
         "text": "You can add extra flour, cornmeal or breadcrumbs to the base of the pastry to avoid it getting soggy from filling when baking.",
         "position": 0
       }
@@ -261,7 +262,7 @@
     "author": null,
     "ingredients": [
       {
-        "id": "ingredient-1",
+        "id": "ingredient-roast-1",
         "name": "boneless chuck roast",
         "location": "recipe",
         "quantity": 4,
@@ -270,14 +271,14 @@
         "position": 0
       },
       {
-        "id": "ingredient-2",
+        "id": "ingredient-roast-2",
         "name": "Kosher salt and freshly ground black pepper",
         "location": "recipe",
         "comment": "to taste",
         "position": 1
       },
       {
-        "id": "ingredient-3",
+        "id": "ingredient-roast-3",
         "name": "canola oil",
         "location": "recipe",
         "quantity": 2,
@@ -285,7 +286,7 @@
         "position": 2
       },
       {
-        "id": "ingredient-4",
+        "id": "ingredient-roast-4",
         "name": "sweet onion",
         "location": "recipe",
         "quantity": 1,
@@ -294,7 +295,7 @@
         "position": 3
       },
       {
-        "id": "ingredient-5",
+        "id": "ingredient-roast-5",
         "name": "tomato paste",
         "location": "recipe",
         "quantity": 2,
@@ -302,7 +303,7 @@
         "position": 4
       },
       {
-        "id": "ingredient-6",
+        "id": "ingredient-roast-6",
         "name": "garlic",
         "location": "recipe",
         "quantity": 4,
@@ -311,7 +312,7 @@
         "position": 5
       },
       {
-        "id": "ingredient-7",
+        "id": "ingredient-roast-7",
         "name": "dry red wine",
         "location": "recipe",
         "quantity": 1,
@@ -320,7 +321,7 @@
         "position": 6
       },
       {
-        "id": "ingredient-8",
+        "id": "ingredient-roast-8",
         "name": "beef stock",
         "location": "recipe",
         "quantity": 1,
@@ -328,7 +329,7 @@
         "position": 7
       },
       {
-        "id": "ingredient-9",
+        "id": "ingredient-roast-9",
         "name": "carrots",
         "location": "recipe",
         "quantity": 3,
@@ -337,7 +338,7 @@
         "position": 8
       },
       {
-        "id": "ingredient-10",
+        "id": "ingredient-roast-10",
         "name": "cremini mushrooms",
         "location": "recipe",
         "quantity": 8,
@@ -345,7 +346,7 @@
         "position": 9
       },
       {
-        "id": "ingredient-11",
+        "id": "ingredient-roast-11",
         "name": "fresh thyme",
         "location": "recipe",
         "quantity": 4,
@@ -353,7 +354,7 @@
         "position": 10
       },
       {
-        "id": "ingredient-12",
+        "id": "ingredient-roast-12",
         "name": "fresh rosemary",
         "location": "recipe",
         "quantity": 1,
@@ -361,7 +362,7 @@
         "position": 11
       },
       {
-        "id": "ingredient-13",
+        "id": "ingredient-roast-13",
         "name": "small Yukon gold potatoes",
         "location": "recipe",
         "quantity": 1.5,
@@ -369,7 +370,7 @@
         "position": 12
       },
       {
-        "id": "ingredient-14",
+        "id": "ingredient-roast-14",
         "name": "fresh parsley leaves",
         "location": "recipe",
         "quantity": 2,
@@ -381,13 +382,13 @@
     "sections": [],
     "timings": [
       {
-        "id": "timing-1",
+        "id": "timing-roast-prep",
         "type": "Prep",
         "hours": 0,
         "minutes": 30
       },
       {
-        "id": "timing-2",
+        "id": "timing-roast-cook",
         "type": "Cook",
         "hours": 4,
         "minutes": 0
@@ -395,59 +396,60 @@
     ],
     "instructions": [
       {
-        "id": "instruction-1",
+        "id": "instruction-roast-1",
         "value": "Preheat oven to 325 degrees F.",
         "position": 0
       },
       {
-        "id": "instruction-2",
+        "id": "instruction-roast-2",
         "value": "Season beef with 2 teaspoons salt and 3/4 teaspoon black pepper.",
         "position": 1
       },
       {
-        "id": "instruction-3",
+        "id": "instruction-roast-3",
         "value": "Heat canola oil in a Dutch oven over medium high heat. Add beef and cook until evenly browned, about 5-6 minutes per side; set aside.",
         "position": 2
       },
       {
-        "id": "instruction-4",
+        "id": "instruction-roast-4",
         "value": "Reduce heat to medium. Add onion, and cook, stirring frequently, until tender, about 5 minutes.",
         "position": 3
       },
       {
-        "id": "instruction-5",
+        "id": "instruction-roast-5",
         "value": "Stir in tomato paste and garlic until fragrant, about 1 minute.",
         "position": 4
       },
       {
-        "id": "instruction-6",
+        "id": "instruction-roast-6",
         "value": "Stir in wine and beef stock, scraping any browned bits from the bottom of the Dutch oven.",
         "position": 5
       },
       {
-        "id": "instruction-7",
+        "id": "instruction-roast-7",
         "value": "Stir in carrots, mushrooms, thyme and rosemary; season with salt and pepper, to taste. Bring to a boil; reduce heat and simmer. Top with beef.",
         "position": 6
       },
       {
-        "id": "instruction-8",
+        "id": "instruction-roast-8",
         "value": "Place into oven, covered, and bake for 2 hours. Uncover and add potatoes; place into oven, covered, and bake until beef is fork-tender, about 1 hour to 1 hour and 30 minutes.",
         "position": 7
       },
       {
-        "id": "instruction-9",
+        "id": "instruction-roast-9",
         "value": "Let stand 15 minutes. Remove beef from the Dutch oven; shred, using two forks.",
         "position": 8
       },
       {
-        "id": "instruction-10",
+        "id": "instruction-roast-10",
         "value": "Serve beef, potatoes, carrots and mushrooms with juices immediately, garnished with parsley, if desired.",
         "position": 9
       }
     ],
+    "instructionSections": [],
     "notes": [
       {
-        "id": "note-1",
+        "id": "note-roast-1",
         "text": "Beef stock can be used for red wine as a non-alcoholic substitute.",
         "position": 0
       }
@@ -606,7 +608,7 @@
     ],
     "timings": [
       {
-        "id": "timing-1",
+        "id": "timing-nicoise-prep",
         "type": "Prep",
         "hours": 0,
         "minutes": 45
@@ -614,44 +616,45 @@
     ],
     "instructions": [
       {
-        "id": "instruction-1",
+        "id": "instruction-nicoise-1",
         "value": "Make the dressing: Mince the anchovies and smear them into a paste using the side of a broad chef's knife. Put the paste in a small bowl and whisk in the vinegar, mustard, and oil until emulsified.",
         "position": 0
       },
       {
-        "id": "instruction-2",
+        "id": "instruction-nicoise-2",
         "value": "Make the salad: Bring a 1-quart (960-ml) saucepan of water and the kosher salt to a boil. Drop the potatoes in the boiling water and boil for 20 minutes, or until they are tender. Remove the potatoes with a slotted spoon and put aside.",
         "position": 1
       },
       {
-        "id": "instruction-3",
+        "id": "instruction-nicoise-3",
         "value": "Add the haricots verts to the boiling water. Cook for 30 seconds, then remove them with a slotted spoon to ice water.",
         "position": 2
       },
       {
-        "id": "instruction-4",
+        "id": "instruction-nicoise-4",
         "value": "Add the eggs (in the shell) to the boiling water and cook for 8 minutes, until they are medium-boiled. Remove them with a slotted spoon to the ice water and let them cool completely. Peel and cut them into halves.",
         "position": 3
       },
       {
-        "id": "instruction-5",
+        "id": "instruction-nicoise-5",
         "value": "Cut the potatoes and each haricot vert into halves.",
         "position": 4
       },
       {
-        "id": "instruction-6",
+        "id": "instruction-nicoise-6",
         "value": "Arrange the lettuce leaves on a platter and compose the potatoes, haricots verts, egg, sardines, olives, onion, and tomato in groupings on top.",
         "position": 5
       },
       {
-        "id": "instruction-7",
+        "id": "instruction-nicoise-7",
         "value": "Spoon the dressing over the salad, season with sea salt and pepper, and serve.",
         "position": 6
       }
     ],
+    "instructionSections": [],
     "notes": [
       {
-        "id": "note-1",
+        "id": "note-nicoise-1",
         "text": "The tomatoes make this a summer dish but if you have a hankering for niçoise any other time of year simply omit the tomato and you still have a winning main course.",
         "position": 0
       }

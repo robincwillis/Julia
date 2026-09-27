@@ -17,12 +17,11 @@ struct RecipeEditRawTextSection: View {
     Section("Raw Text") {      
       TextEditor(text: $rawText)
         .font(.system(size: 14, design: .monospaced))
+        .scrollContentBackground(.hidden)
         .padding(.vertical, 8)
         .frame(minHeight: 200)
         .frame(maxWidth: .infinity)
         .foregroundColor(.secondary)
-        .background(Color.app.white)
-        .cornerRadius(12)
         .focused($isRawTextFieldFocused)
         .onSubmit {
           isRawTextFieldFocused = false
