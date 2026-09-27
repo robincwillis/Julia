@@ -119,32 +119,31 @@ struct IngredientEditor: View {
     VStack(spacing: 0) {
       // Header with close/save buttons
       HStack {
-        Button(action: {
-          withAnimation {
-            isNameFieldFocused.toggle()
-          }
-        }) {
-          Image(systemName: isNameFieldFocused ? "arrow.down" : "arrow.up")
-            .font(.title2)
-            .foregroundColor(Color.app.primary)
-        }
-        .disabled(!canSave)
-
-        Spacer()
-
-        Button(action: {
-          Task { await fixWithAI() }
-        }) {
-          if isFixingWithAI {
-            ProgressView()
-              .tint(Color.app.primary)
-          } else {
-            Image(systemName: "sparkles")
+        HStack(spacing: 16) {
+          Button(action: {
+            withAnimation {
+              isNameFieldFocused.toggle()
+            }
+          }) {
+            Image(systemName: isNameFieldFocused ? "arrow.down" : "arrow.up")
               .font(.title2)
               .foregroundColor(Color.app.primary)
           }
+          .disabled(!canSave)
+
+          Button(action: {
+            Task { await fixWithAI() }
+          }) {
+            if isFixingWithAI {
+              Loader(isLoading: .constant(true))
+            } else {
+              Image(systemName: "sparkles")
+                .font(.title2)
+                .foregroundColor(Color.app.primary)
+            }
+          }
+          .disabled(name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isFixingWithAI)
         }
-        .disabled(name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isFixingWithAI)
 
         Spacer()
 
@@ -455,7 +454,11 @@ struct IngredientEditor: View {
     defer { isFixingWithAI = false }
 
     do {
-      if let parsed = try await FoundationModelsIngredientParser().parse(trimmed, location: ingredientLocation) {
+      if let parsed = try await FoundationModelsIngredientParser().parse(
+        trimmed,
+        location: ingredientLocation,
+        recipeContext: recipe?.title
+      ) {
         name = parsed.name
         quantity = parsed.quantity
         unit = parsed.unit

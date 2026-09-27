@@ -25,8 +25,21 @@ struct CookModeView: View {
   @State private var usedFromPantryCount = 0
   @State private var skippedFromPantryCount = 0
 
+  /// Unsectioned steps first, then each instruction section's steps in
+  /// order, paired with the section name (nil for unsectioned) so
+  /// StepCardView can show which part of the recipe a step belongs to.
+  private var orderedSteps: [(step: Step, sectionName: String?)] {
+    var result: [(step: Step, sectionName: String?)] = recipe.instructions
+      .sorted { $0.position < $1.position }
+      .map { ($0, nil) }
+    for section in recipe.instructionSections.sorted(by: { $0.position < $1.position }) {
+      result.append(contentsOf: section.sortedSteps.map { ($0, section.name) })
+    }
+    return result
+  }
+
   private var steps: [Step] {
-    recipe.instructions.sorted { $0.position < $1.position }
+    orderedSteps.map { $0.step }
   }
 
   private var hasIngredients: Bool {
@@ -55,11 +68,12 @@ struct CookModeView: View {
           emptyState
         } else {
           TabView(selection: $currentStep) {
-            ForEach(Array(steps.enumerated()), id: \.offset) { index, step in
+            ForEach(Array(orderedSteps.enumerated()), id: \.offset) { index, entry in
               StepCardView(
-                step: step,
+                step: entry.step,
                 stepNumber: index + 1,
-                totalSteps: steps.count
+                totalSteps: steps.count,
+                sectionName: entry.sectionName
               )
               .tag(index)
             }
@@ -355,6 +369,7 @@ private struct StepCardView: View {
   let step: Step
   let stepNumber: Int
   let totalSteps: Int
+  var sectionName: String? = nil
 
   var body: some View {
     ScrollView(.vertical, showsIndicators: false) {
@@ -369,12 +384,20 @@ private struct StepCardView: View {
             .foregroundStyle(.white)
         }
 
-        // Step text
-        Text(step.value)
-          .font(.title3)
-          .lineSpacing(7)
-          .foregroundStyle(Color.app.textPrimary)
-          .frame(maxWidth: .infinity, alignment: .leading)
+        VStack(alignment: .leading, spacing: 8) {
+          if let sectionName {
+            Text(sectionName.uppercased())
+              .font(.caption.weight(.semibold))
+              .foregroundStyle(Color.app.textSecondary)
+          }
+
+          // Step text
+          Text(step.value)
+            .font(.title3)
+            .lineSpacing(7)
+            .foregroundStyle(Color.app.textPrimary)
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
 
         Spacer(minLength: 0)
       }

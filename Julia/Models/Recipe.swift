@@ -74,9 +74,10 @@ class Recipe: Identifiable, Hashable, CustomStringConvertible {
     @Relationship(deleteRule: .cascade) var sections: [IngredientSection] = []
     @Relationship(deleteRule: .cascade) var timings: [Timing] = []
     @Relationship(deleteRule: .cascade) var instructions: [Step] = []
+    @Relationship(deleteRule: .cascade) var instructionSections: [InstructionSection] = []
     @Relationship(deleteRule: .cascade) var notes: [Note] = []
     @Relationship(deleteRule: .cascade) var images: [ImageItem] = []
-  
+
     init(
       id: String = UUID().uuidString,
       title: String,
@@ -84,6 +85,7 @@ class Recipe: Identifiable, Hashable, CustomStringConvertible {
       ingredients: [Ingredient] = [],
       instructions: [Step] = [],
       sections: [IngredientSection] = [],
+      instructionSections: [InstructionSection] = [],
       servings: Int? = nil,
       timings: [Timing] = [],
       notes: [Note] = [],
@@ -101,6 +103,7 @@ class Recipe: Identifiable, Hashable, CustomStringConvertible {
         self.ingredients = ingredients
         self.instructions = instructions
         self.sections = sections
+        self.instructionSections = instructionSections
         self.servings = servings
         self.timings = timings
         self.notes = notes
@@ -121,6 +124,13 @@ class Recipe: Identifiable, Hashable, CustomStringConvertible {
     func addSection(name: String) -> IngredientSection {
         let newSection = IngredientSection(name: name, position: sections.count)
         sections.append(newSection)
+        return newSection
+    }
+
+    // Helper method to add a new instruction section
+    func addInstructionSection(name: String) -> InstructionSection {
+        let newSection = InstructionSection(name: name, position: instructionSections.count)
+        instructionSections.append(newSection)
         return newSection
     }
     
@@ -150,7 +160,7 @@ class Recipe: Identifiable, Hashable, CustomStringConvertible {
                 ingredients.remove(at: index)
             }
         }
-        
+
         // Now add to the new section or to unsectioned ingredients
         if let newSection = section {
             ingredient.section = newSection
@@ -158,6 +168,43 @@ class Recipe: Identifiable, Hashable, CustomStringConvertible {
         } else {
             ingredient.section = nil
             ingredients.append(ingredient)
+        }
+    }
+
+    // Helper method to get all steps (both sectioned and unsectioned)
+    var allInstructions: [Step] {
+        var all = instructions
+        for section in instructionSections {
+            all.append(contentsOf: section.steps)
+        }
+        return all
+    }
+
+    // Get unsectioned steps sorted by position
+    var sortedInstructions: [Step] {
+        return instructions.sorted { $0.position < $1.position }
+    }
+
+    // Helper method to move a step to an instruction section
+    func moveStep(_ step: Step, toSection section: InstructionSection?) {
+        // First remove the step from its current location
+        if let currentSection = step.section {
+            if let index = currentSection.steps.firstIndex(of: step) {
+                currentSection.steps.remove(at: index)
+            }
+        } else {
+            if let index = instructions.firstIndex(of: step) {
+                instructions.remove(at: index)
+            }
+        }
+
+        // Now add to the new section or to unsectioned instructions
+        if let newSection = section {
+            step.section = newSection
+            newSection.steps.append(step)
+        } else {
+            step.section = nil
+            instructions.append(step)
         }
     }
 }

@@ -512,14 +512,20 @@ struct ChefChatView: View {
             DO NOT invent data not requested. Use specific numbers for temperatures, times, and ratios.
             """
 
-        let tools: [any Tool] = [
+        var tools: [any Tool] = [
             AddToGroceryListTool(context: context),
             CreateRecipeTool(context: context)
         ]
 
         if let recipe {
+            tools.append(UpdateRecipeTool(context: context, recipe: recipe))
+            let recipeInstructions = """
+                \(baseInstructions) \
+                Use the updateRecipe tool when the user asks to change, fix, edit, improve, or scale this recipe — \
+                it saves the change, so don't just describe the edit in your reply, make it.
+                """
             session = LanguageModelSession(tools: tools) {
-                "\(baseInstructions)\n\nContext: The user is viewing this recipe:\n\(buildRecipeContext(recipe))"
+                "\(recipeInstructions)\n\nContext: The user is viewing this recipe:\n\(buildRecipeContext(recipe))"
             }
         } else {
             session = LanguageModelSession(tools: tools) { baseInstructions }

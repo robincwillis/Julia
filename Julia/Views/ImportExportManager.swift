@@ -25,6 +25,7 @@ class ImportExportManager {
     let sections: [SectionExport]
     let timings: [TimingExport]
     let instructions: [StepExport]
+    let instructionSections: [InstructionSectionExport]
     let notes: [NoteExport]
   }
   
@@ -56,6 +57,13 @@ class ImportExportManager {
     let id: String
     let value: String
     let position: Int
+  }
+
+  struct InstructionSectionExport: Codable {
+    let id: String
+    let name: String
+    let position: Int
+    let steps: [StepExport]
   }
   
   struct NoteExport: Codable {
@@ -152,6 +160,20 @@ class ImportExportManager {
             id: step.id,
             value: step.value,
             position: step.position
+          )
+        },
+        instructionSections: recipe.instructionSections.map { section in
+          InstructionSectionExport(
+            id: section.id,
+            name: section.name,
+            position: section.position,
+            steps: section.steps.map { step in
+              StepExport(
+                id: step.id,
+                value: step.value,
+                position: step.position
+              )
+            }
           )
         },
         notes: recipe.notes.map { note in
@@ -387,7 +409,31 @@ class ImportExportManager {
       step.recipe = recipe // Set the recipe relationship
       recipe.instructions.append(step)
     }
-    
+
+    // Create and insert instruction sections with their steps
+    for importedSection in importedRecipe.instructionSections {
+      let section = InstructionSection(
+        id: importedSection.id,
+        name: importedSection.name,
+        position: importedSection.position
+      )
+      context.insert(section) // Insert into context before establishing relationship
+      section.recipe = recipe
+
+      for importedStep in importedSection.steps {
+        let step = Step(
+          id: importedStep.id,
+          value: importedStep.value,
+          position: importedStep.position
+        )
+        context.insert(step) // Insert into context before establishing relationship
+        step.section = section
+        section.steps.append(step)
+      }
+
+      recipe.instructionSections.append(section)
+    }
+
     // Create and insert notes
     for importedNote in importedRecipe.notes {
       let note = Note(
@@ -399,7 +445,7 @@ class ImportExportManager {
       note.recipe = recipe // Set the recipe relationship
       recipe.notes.append(note)
     }
-    
+
     return recipe
   }
   
@@ -422,13 +468,15 @@ class ImportExportManager {
     let oldSections = recipe.sections
     let oldTimings = recipe.timings
     let oldInstructions = recipe.instructions
+    let oldInstructionSections = recipe.instructionSections
     let oldNotes = recipe.notes
-    
+
     // Clear arrays without deleting objects yet
     recipe.ingredients = []
     recipe.sections = []
     recipe.timings = []
     recipe.instructions = []
+    recipe.instructionSections = []
     recipe.notes = []
     
     // Recreate relationships with proper context insertion
@@ -480,7 +528,30 @@ class ImportExportManager {
       step.recipe = recipe
       recipe.instructions.append(step)
     }
-    
+
+    for importedSection in importedRecipe.instructionSections {
+      let section = InstructionSection(
+        id: importedSection.id,
+        name: importedSection.name,
+        position: importedSection.position
+      )
+      context.insert(section) // Insert into context before establishing relationship
+      section.recipe = recipe
+
+      for importedStep in importedSection.steps {
+        let step = Step(
+          id: importedStep.id,
+          value: importedStep.value,
+          position: importedStep.position
+        )
+        context.insert(step) // Insert into context before establishing relationship
+        step.section = section
+        section.steps.append(step)
+      }
+
+      recipe.instructionSections.append(section)
+    }
+
     for importedNote in importedRecipe.notes {
       let note = Note(
         id: importedNote.id,
@@ -491,7 +562,7 @@ class ImportExportManager {
       note.recipe = recipe
       recipe.notes.append(note)
     }
-    
+
     // Now safely delete old objects after new relationships are established
     for ingredient in oldIngredients {
       context.delete(ingredient)
@@ -512,7 +583,15 @@ class ImportExportManager {
     for instruction in oldInstructions {
       context.delete(instruction)
     }
-    
+
+    for section in oldInstructionSections {
+      // First delete section steps
+      for step in section.steps {
+        context.delete(step)
+      }
+      context.delete(section)
+    }
+
     for note in oldNotes {
       context.delete(note)
     }

@@ -20,10 +20,11 @@ class DataController {
       Recipe.self,
       Timing.self,
       IngredientSection.self,
+      InstructionSection.self,
       Note.self,
       Step.self,
       ImageItem.self
-    ], version: Schema.Version(2, 2, 2))
+    ], version: Schema.Version(2, 2, 3))
   }()
   
   // MARK: - Data Management
@@ -40,6 +41,7 @@ class DataController {
       recipe.sections = []
       recipe.timings = []
       recipe.instructions = []
+      recipe.instructionSections = []
       recipe.notes = []
       recipe.images = []
       
