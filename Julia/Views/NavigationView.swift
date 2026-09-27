@@ -61,6 +61,7 @@ enum Tabs: String, CaseIterable{
 
 struct NavigationView: View {
   @Environment(\.modelContext) private var context
+  @Environment(\.debugMode) private var debugMode
 
   // Tab bar state
   @State private var isTabBarVisible: Bool = true
@@ -94,6 +95,37 @@ struct NavigationView: View {
       .offset(x: isSettingsDrawerVisible ? 280 : 0)
       .animation(.easeInOut(duration: 0.3), value: isTabBarVisible)
 
+      // Debug: highlight swipe-trigger zones
+      if debugMode {
+        // Sidebar: left-edge swipe zone (0…100pt)
+        Rectangle()
+          .fill(Color.blue.opacity(0.15))
+          .frame(width: 100)
+          .frame(maxHeight: .infinity)
+          .overlay(alignment: .center) {
+            Text("Sidebar")
+              .font(.caption2.bold())
+              .foregroundStyle(.blue)
+              .rotationEffect(.degrees(-90))
+          }
+          .allowsHitTesting(false)
+
+        // ChefChat / Import: bottom-right upward-swipe zone (x > 65%, y > 88%)
+        Rectangle()
+          .fill(Color.green.opacity(0.15))
+          .frame(
+            width: screenSize.width * 0.35,
+            height: screenSize.height * 0.12
+          )
+          .overlay(alignment: .center) {
+            Text("ChefChat / Import")
+              .font(.caption2.bold())
+              .foregroundStyle(.green)
+              .multilineTextAlignment(.center)
+          }
+          .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
+          .allowsHitTesting(false)
+      }
     }
     .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isSettingsDrawerVisible)
     .gesture(

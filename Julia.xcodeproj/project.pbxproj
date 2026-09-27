@@ -113,6 +113,7 @@
 		5AE1C0DE0000000000000014 /* JuliaShareExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 5AE1C0DE0000000000000002 /* JuliaShareExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		5AE1C0DE0000000000000021 /* ModelErrorMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5AE1C0DE0000000000000020 /* ModelErrorMessage.swift */; };
 		5AE1C0DE0000000000000031 /* RecipeLineType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5AE1C0DE0000000000000030 /* RecipeLineType.swift */; };
+		8B1BAE883062C9E5004F2867 /* FoundationModelsRecipeEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B1BAE873062C9E5004F2867 /* FoundationModelsRecipeEditor.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -254,6 +255,7 @@
 		5AE1C0DE000000000000000E /* SharedImportInbox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedImportInbox.swift; sourceTree = "<group>"; };
 		5AE1C0DE0000000000000020 /* ModelErrorMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelErrorMessage.swift; sourceTree = "<group>"; };
 		5AE1C0DE0000000000000030 /* RecipeLineType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeLineType.swift; sourceTree = "<group>"; };
+		8B1BAE873062C9E5004F2867 /* FoundationModelsRecipeEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoundationModelsRecipeEditor.swift; sourceTree = "<group>"; };
 		AA100001BB000001CC000001 /* ReceiptData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiptData.swift; sourceTree = "<group>"; };
 		AA100003BB000001CC000001 /* RecipeClassificationResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeClassificationResult.swift; sourceTree = "<group>"; };
 		AA100005BB000001CC000001 /* FoundationModelsIngredientParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoundationModelsIngredientParser.swift; sourceTree = "<group>"; };
@@ -383,6 +385,7 @@
 				AA10000DBB000001CC000001 /* RecipeMatchingService.swift */,
 				AA10000FBB000001CC000001 /* RecipeSuggestionsViewModel.swift */,
 				AA100011BB000001CC000001 /* JuliaTools.swift */,
+				8B1BAE873062C9E5004F2867 /* FoundationModelsRecipeEditor.swift */,
 			);
 			path = Utilities;
 			sourceTree = "<group>";
@@ -715,6 +718,7 @@
 				5228BD532C2362E7001C845E /* ContentView.swift in Sources */,
 				52E7A63C2DCFCACE00AFEF2B /* RecipeLayoutAnalyzer.swift in Sources */,
 				526302EE2DA4407F00FA8A66 /* RecipeData.swift in Sources */,
+				8B1BAE883062C9E5004F2867 /* FoundationModelsRecipeEditor.swift in Sources */,
 				52852E892F7CA00100716647 /* ProcessingResultsReceipt.swift in Sources */,
 				520DE6AD2C34603400CAF570 /* Ingredient.swift in Sources */,
 				52A5E03C2DA6C685002D3920 /* RecipeProcessor.swift in Sources */,

@@ -141,11 +141,12 @@ struct ProcessingResults: View {
     .onDisappear {
       // Move to RecipeProcessor?
       UserDefaults.standard.removeObject(forKey: "latestRecipeProcessingResults")
-      
+
       // Reset processing state
       processingState.reset()
       recipeData.reset()
     }
+    .presentationBackground(Color.app.backgroundSecondary)
   }
   
   private func saveProcessingResults() {

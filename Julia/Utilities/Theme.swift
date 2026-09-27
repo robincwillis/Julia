@@ -23,18 +23,14 @@ extension EnvironmentValues {
 struct AppTheme {
   enum Colors {
     // MARK: - Off White Shades
-    static let offWhite200 = Color("offwhite.200")
     static let offWhite300 = Color("offwhite.300")  // L #E9E9E5 / D #4C4B47
-    static let offWhite400 = Color("offwhite.400")
+    static let offWhite400 = Color("offwhite.400")  // used for list separator tints
 
     // Checkbox: light and dark each needed a different step off the shared
     // offwhite ramp for good contrast (offwhite.300 was too close to
     // background.primary in light mode; offwhite.400 was too close to the
     // dark backgrounds). Own colorset carrying the best value per mode.
     static let checkboxUnselected = Color("checkbox.unselected")  // L #DDDAD1 / D #4C4B47
-    // Semantic aliases for the off-white ramp (brand/background-form tokens)
-    static let backgroundForm = Color("offwhite.200")
-    static let backgroundFormField = Color("offwhite.400")
 
     // Accent Colors
     static let primary = Color("primary")
@@ -51,7 +47,7 @@ struct AppTheme {
     // backgroundSecondary itself still needs its call sites individually
     // re-audited against the new table (docs/design-tokens.md flag #5)
     // before its own value can move to the new spec's black-in-dark value.
-    static let backgroundSheet = Color("background.sheet")
+    static let backgroundSheet = Color("background.sheet")  // L #FFFFFF / D #2C2C2E — form rows, elevated cards
     static let backgroundKeyboardToolbar = Color("background.card")
     static let backgroundCard = Color("background.card")
     static let backgroundInput = Color("background.input")  // L #F5F5F5 / D #1C1C1E — chat close btn, import btns, input field

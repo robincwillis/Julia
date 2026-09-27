@@ -24,7 +24,7 @@ struct RecipeURLImportView: View {
                     }
                 }
             }
-            .background(Color.app.backgroundSecondary.ignoresSafeArea(.keyboard))
+            .background(Color.app.backgroundSecondary.ignoresSafeArea())
             .navigationTitle("Import Recipe")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -63,6 +63,7 @@ struct RecipeURLImportView: View {
         .onAppear {
             isUrlTextFieldFocused = true
         }
+        .presentationBackground(Color.app.backgroundSecondary)
     }
 
     // MARK: - Subviews
@@ -87,6 +88,7 @@ struct RecipeURLImportView: View {
                 .foregroundStyle(urlText.isEmpty ? Color.app.primary.opacity(0.4) : Color.app.primary)
                 .disabled(urlText.isEmpty)
             }
+            .listRowBackground(Color.app.backgroundSheet)
         }
         .scrollContentBackground(.hidden)
         .toolbar {

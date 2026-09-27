@@ -20,12 +20,11 @@ struct RecipeTextImportView: View {
               .frame(minHeight: 200)
               .frame(maxWidth: .infinity)
               .foregroundColor(Color.app.textPrimary)
-              //.background(Color.app.white)
-              //.cornerRadius(12)
               .focused($isRecipeTextFieldFocused)
               .onSubmit {
                 isRecipeTextFieldFocused = false
               }
+              
               .toolbar {
                 ToolbarItemGroup(placement: .keyboard) {
                   if isRecipeTextFieldFocused {
@@ -64,10 +63,11 @@ struct RecipeTextImportView: View {
             .foregroundStyle(inputText.isEmpty ? Color.app.primary.opacity(0.4) : Color.app.primary)
             .disabled(inputText.isEmpty)
           }
+          .listRowBackground(Color.app.backgroundSheet)
         }
         .scrollContentBackground(.hidden)
       }
-      .background(Color.app.backgroundSecondary.ignoresSafeArea(.keyboard))
+      .background(Color.app.backgroundSecondary.ignoresSafeArea())
       .navigationTitle("Import Recipe")
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {
@@ -105,6 +105,7 @@ struct RecipeTextImportView: View {
       .onDisappear {
       }
     }
+    .presentationBackground(Color.app.backgroundSecondary)
   }
   
   private func processRecipeText() {
