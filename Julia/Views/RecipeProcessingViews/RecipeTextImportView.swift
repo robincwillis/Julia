@@ -56,8 +56,8 @@ struct RecipeTextImportView: View {
               processRecipeText()
             } label: {
               HStack(spacing: 4) {
-                Text("Import")
                 Image(systemName: "sparkles")
+                Text("Import")
               }
             }
             .foregroundStyle(inputText.isEmpty ? Color.app.primary.opacity(0.4) : Color.app.primary)

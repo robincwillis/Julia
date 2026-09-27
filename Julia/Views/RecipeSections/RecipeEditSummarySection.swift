@@ -81,6 +81,7 @@ struct RecipeEditSummarySection: View {
         }
       
     }
+    .listRowBackground(Color.app.backgroundSheet)
     Section {
       HStack {
         Text("Servings")
@@ -120,8 +121,9 @@ struct RecipeEditSummarySection: View {
       }
       // TODO  Combine with Timings
     }
+    .listRowBackground(Color.app.backgroundSheet)
   }
-  
+
   private func calculateTitleFontSize(for text: String) -> CGFloat {
     // Start with large font for short titles
     let maxSize: CGFloat = 28

@@ -62,8 +62,9 @@ struct RecipeEditTagsSection: View {
         .padding(.top, 3)
       }
     }
+    .listRowBackground(Color.app.backgroundSheet)
   }
-  
+
   private func addTag() {
     let trimmedTag = newTag.trimmingCharacters(in: .whitespacesAndNewlines)
     if !trimmedTag.isEmpty && !tags.contains(trimmedTag) {

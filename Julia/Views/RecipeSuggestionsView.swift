@@ -29,22 +29,14 @@ struct RecipeSuggestionsView: View {
                     ProgressView("Checking pantry...")
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else if recipes.isEmpty {
-                    ContentUnavailableView(
-                        "No Recipes Yet",
-                        systemImage: "book",
-                        description: Text("Add some recipes first to see what you can cook.")
-                    )
+                    SuggestionsEmptyState(label: "No Recipes Yet")
                 } else if viewModel.matches.isEmpty {
-                    ContentUnavailableView(
-                        "No Matches",
-                        systemImage: "fork.knife",
-                        description: Text("Add \(selectedFilter == .pantry ? "pantry" : "grocery") ingredients to see recipe matches.")
-                    )
+                    SuggestionsEmptyState(label: "No Matches")
                 } else {
                     matchList
                 }
             }
-            .background(Color.app.backgroundSheet)
+            .background(Color.app.backgroundSecondary.ignoresSafeArea())
             .navigationTitle("What can I cook?")
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
@@ -62,7 +54,9 @@ struct RecipeSuggestionsView: View {
                 .hidesSharedGlassBackground()
             }
             .safeAreaInset(edge: .bottom) {
-                filterBar
+                if !recipes.isEmpty {
+                    filterBar
+                }
             }
         }
         .onAppear {
@@ -85,6 +79,7 @@ struct RecipeSuggestionsView: View {
             viewModel.includePantry = (filter == .pantry)
             viewModel.includeGrocery = (filter == .grocery)
         }
+        .presentationBackground(Color.app.backgroundSecondary)
     }
 
     // MARK: - Subviews
@@ -136,6 +131,28 @@ struct RecipeSuggestionsView: View {
             }
         }
         .background(Color(UIColor.systemGray5), in: Capsule())
+    }
+}
+
+// MARK: - Empty State
+
+private struct SuggestionsEmptyState: View {
+    let label: String
+
+    var body: some View {
+        VStack(spacing: 16) {
+            GlowingIcon(
+                systemName: "book.fill",
+                size: 18,
+                primaryColor: Color.app.primary,
+                glowColor: .orange
+            )
+            Text(label)
+                .font(.title3)
+                .fontWeight(.medium)
+                .foregroundStyle(Color.app.labelPrimary)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 

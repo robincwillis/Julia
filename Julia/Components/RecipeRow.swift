@@ -14,6 +14,7 @@ struct RecipeRow: View {
         .lineLimit(1)
         .truncationMode(.tail)
         .foregroundColor(Color.app.textSecondary)
+        .padding(.vertical, 8)
     }
 }
 

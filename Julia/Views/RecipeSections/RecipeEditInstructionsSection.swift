@@ -57,6 +57,7 @@ struct RecipeEditInstructionsSection: View {
       .padding(.top, 4)
       
     }
+    .listRowBackground(Color.app.backgroundSheet)
     .onChange(of: focusedInstructionField) { _, newValue in
       if let stepId =  newValue {
         focusedField = .instruction(stepId)

@@ -76,6 +76,7 @@ struct RecipeEditTimingsSection: View {
         Label("Add Timing", systemImage: "plus")
       }
     }
+    .listRowBackground(Color.app.backgroundSheet)
   }
   
   // Helper to find the index of a timing in the array

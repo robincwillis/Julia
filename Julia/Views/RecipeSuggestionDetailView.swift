@@ -70,7 +70,7 @@ struct RecipeSuggestionDetailView: View {
                         Button {
                             addSelectedToGrocery()
                         } label: {
-                            Text("Add to Groceries")
+                            Label("Add to Groceries", systemImage: "basket")
                                 .foregroundStyle(Color.app.primary)
                         }
                         .buttonStyle(.plain)
@@ -84,11 +84,12 @@ struct RecipeSuggestionDetailView: View {
             if !match.missingIngredients.isEmpty {
                 Section("Substitutions") {
                     if viewModel.isFetchingSubstitutions {
-                        HStack(spacing: 12) {
+                        HStack {
+                            Text("Get Suggestions")
+                                .frame(maxWidth: .infinity, alignment: .leading)
                             Loader(isLoading: .constant(true))
-                            Text("Generating suggestions...")
-                                .foregroundStyle(Color.app.primary)
                         }
+                        .foregroundStyle(Color.app.primary)
                         .listRowBackground(Color.app.white)
                     } else if let subs = substitutions {
                         ForEach(subs.suggestions, id: \.missingIngredient) { sub in

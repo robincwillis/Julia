@@ -47,7 +47,8 @@ struct RecipeEditIngredientsSection: View {
           .foregroundStyle(Color.app.primary)
       }
     }
-    
+    .listRowBackground(Color.app.backgroundSheet)
+
     // Sections
     // Ingredient Sections Section
     ForEach($sections.indices, id: \.self) { sectionIndex in
@@ -97,6 +98,7 @@ struct RecipeEditIngredientsSection: View {
           }
         }
       }
+      .listRowBackground(Color.app.backgroundSheet)
     }
     .onMove { from, to in
       moveSection(from: from, to: to)
@@ -108,9 +110,10 @@ struct RecipeEditIngredientsSection: View {
           .foregroundStyle(Color.app.primary)
       }
     }
+    .listRowBackground(Color.app.backgroundSheet)
   }
-  
-  
+
+
   private func deleteIngredient(at indices: IndexSet) {
     withAnimation {
       ingredients.remove(atOffsets: indices)

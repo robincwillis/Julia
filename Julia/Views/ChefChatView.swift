@@ -95,14 +95,16 @@ struct ChefChatView: View {
                 } else {
                     emptyState
                 }
-
-                inputBar
             }
 
             // FAB items overlay (Dot lives in inputBar; items float above it)
             if showImportOptions {
                 importFABItems
             }
+        }
+        .safeAreaInset(edge: .bottom) {
+            inputBar
+                .background(Color(UIColor.systemBackground))
         }
         .sheet(isPresented: $showScanInstruction) {
             ScanInstructionView(
@@ -202,7 +204,7 @@ struct ChefChatView: View {
                     .font(.system(size: 17, weight: .regular))
                     .foregroundStyle(Color.app.primary)
             }
-            .circleToolbarButtonStyle(background: Color.app.backgroundInput)
+            .circleToolbarButtonStyle(background: recipe != nil ? Color.black : Color.app.backgroundInput)
             .buttonStyle(.plain)
 
             Spacer()
@@ -295,7 +297,7 @@ struct ChefChatView: View {
                     fabItem(icon: "camera.fill", label: "Camera", delay: 0.0) { openCamera() }
                 }
                 .padding(.trailing, 20)
-                .padding(.bottom, 84)
+                .padding(.bottom, 8)
             }
         }
     }
@@ -437,7 +439,7 @@ struct ChefChatView: View {
             .lineLimit(1...5)
             .padding(.horizontal, 16)
             .padding(.vertical, 18)
-            .background(Color.app.backgroundInput, in: RoundedRectangle(cornerRadius: 30))
+            .background(recipe != nil ? Color.black : Color.app.backgroundInput, in: RoundedRectangle(cornerRadius: 30))
             .frame(minHeight: 60)
             .disabled(!isAvailable)
 

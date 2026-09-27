@@ -81,8 +81,8 @@ struct RecipeURLImportView: View {
 
                 Button(action: startImport) {
                     HStack(spacing: 4) {
-                        Text("Import")
                         Image(systemName: "sparkles")
+                        Text("Import")
                     }
                 }
                 .foregroundStyle(urlText.isEmpty ? Color.app.primary.opacity(0.4) : Color.app.primary)

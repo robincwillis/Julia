@@ -19,6 +19,7 @@ struct RecipeEditNotesSection: View {
       notesList
       addNoteRow
     }
+    .listRowBackground(Color.app.backgroundSheet)
     .onChange(of: focusedNoteField) { _, newValue in
       if let noteId = newValue {
         focusedField = .note(noteId)
