@@ -27,33 +27,26 @@ struct JuliaApp: App {
                     // Debug mode is a dev tool — always start off, never persist across launches
                     UserDefaults.standard.set(false, forKey: "debugMode")
                     debugModeEnabled = false
-                    setupErrorObserver()
                     setupDebugModeObserver()
+                    // `appContainer` already finished initializing by this point (it's forced by
+                    // `.modelContainer(...)` above), so this is a plain, race-free state check —
+                    // not a notification that could arrive before anything is listening.
+                    if DataController.isRunningInMemoryFallback {
+                        dbError = DataController.containerLoadError
+                        showDBError = true
+                    }
                     // Warm the Foundation Models on-device model for faster first request
                     Task { await FoundationModelsService.shared.prewarm() }
                 }
-                .alert("Database Error", isPresented: $showDBError) {
+                .alert("Data Isn't Being Saved", isPresented: $showDBError) {
                     Button("OK", role: .cancel) {}
                 } message: {
-                    Text("There was a problem loading your data: \(dbError?.localizedDescription ?? "Unknown error")")
+                    Text("Your saved data couldn't be loaded, so Julia is running on a temporary, in-memory database. Recipes, ingredients, and lists will NOT be saved once you close the app.\n\n\(dbError?.localizedDescription ?? "Unknown error")")
                 }
         }
         .modelContainer(DataController.appContainer)
     }
-    
-    private func setupErrorObserver() {
-        NotificationCenter.default.addObserver(
-            forName: NSNotification.Name("ModelContainerError"),
-            object: nil,
-            queue: .main
-        ) { notification in
-            if let error = notification.object as? Error {
-                dbError = error
-                showDBError = true
-            }
-        }
-    }
-    
+
     private func setupDebugModeObserver() {
         // Observe changes to the debug mode UserDefault
         NotificationCenter.default.addObserver(

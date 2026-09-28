@@ -19,7 +19,7 @@ struct RecipeSuggestionsView: View {
 
     private enum FilterOption: String, CaseIterable {
         case pantry = "Pantry"
-        case grocery = "Grocery List"
+        case grocery = "Groceries"
     }
 
     var body: some View {
@@ -91,7 +91,7 @@ struct RecipeSuggestionsView: View {
             } label: {
                 RecipeMatchRow(match: match)
             }
-            .listRowBackground(Color.app.backgroundSheet)
+            .listRowBackground(Color.clear)
             .listRowSeparatorTint(Color(UIColor.separator))
         }
         .listStyle(.plain)
@@ -102,7 +102,7 @@ struct RecipeSuggestionsView: View {
         segmentedControl
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
-            .background(Color.app.backgroundSheet)
+            .background(Color.app.backgroundSecondary)
     }
 
     private var segmentedControl: some View {
@@ -165,8 +165,10 @@ private struct RecipeMatchRow: View {
         VStack(alignment: .leading, spacing: 12) {
             Text(match.recipe.title)
                 .font(.headline)
+                .fontWeight(isReadyToCook ? .semibold : .regular)
                 .lineLimit(1)
                 .foregroundStyle(titleColor)
+                .opacity(titleOpacity)
 
             HStack(spacing: 8) {
                 GeometryReader { geo in
@@ -194,14 +196,16 @@ private struct RecipeMatchRow: View {
         Color.app.primary
     }
 
+    private var isReadyToCook: Bool {
+        match.coveragePercent >= 1.0
+    }
+
     private var titleColor: Color {
-        if match.coveragePercent >= 1.0 {
-            return Color.app.textPrimary
-        } else if match.coveragePercent >= 0.5 {
-            return Color.app.textSecondary
-        } else {
-            return Color.app.textTertiary
-        }
+        isReadyToCook ? Color.app.textPrimary : Color.app.textSecondary
+    }
+
+    private var titleOpacity: Double {
+        match.coveragePercent >= 0.5 ? 1.0 : 0.5
     }
 }
 

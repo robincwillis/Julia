@@ -117,7 +117,7 @@ struct RecipeSuggestionDetailView: View {
                         Text(error)
                             .font(.caption)
                             .foregroundStyle(.secondary)
-                    } else {
+                    } else if match.missingIngredients.count < 5 {
                         actionButton(
                             title: "Get Suggestions",
                             icon: "wand.and.stars",
@@ -158,7 +158,7 @@ struct RecipeSuggestionDetailView: View {
         }
         .listStyle(.insetGrouped)
         .scrollContentBackground(.hidden)
-        .background(Color.app.backgroundSheet)
+        .background(Color.app.backgroundSecondary)
         .navigationTitle(match.recipe.title)
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden(true)
@@ -197,6 +197,7 @@ struct RecipeSuggestionDetailView: View {
                 Image(systemName: icon)
             }
             .foregroundStyle(color)
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
     }

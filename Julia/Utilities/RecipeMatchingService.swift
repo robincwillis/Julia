@@ -14,7 +14,9 @@ struct RecipeMatch: Identifiable {
     let missingIngredients: [String]
 
     var coveragePercent: Double {
-        totalCount > 0 ? Double(coveredCount) / Double(totalCount) : 0
+        // A recipe with no parsed ingredients has nothing missing — treat as fully covered
+        // rather than 0%, so it doesn't render as "not ready to cook".
+        totalCount > 0 ? Double(coveredCount) / Double(totalCount) : 1.0
     }
 
     /// Human-readable coverage label, e.g. "8/12 ingredients".
@@ -51,10 +53,10 @@ struct RecipeMatchingService {
 
         for ingredient in recipeIngredients {
             let normalizedIngredient = normalize(ingredient.name)
-            // Match if pantry contains this ingredient name, or if one is a substring of the other
+            // Match if pantry contains this ingredient name, or if one contains the other as a whole word
             let matched = availableNames.contains(normalizedIngredient)
                 || availableNames.contains(where: { available in
-                    available.contains(normalizedIngredient) || normalizedIngredient.contains(available)
+                    wordBoundaryMatch(available, normalizedIngredient)
                 })
             if matched {
                 coveredCount += 1
@@ -82,5 +84,15 @@ struct RecipeMatchingService {
             result.removeSubrange(range)
         }
         return result.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    /// Whether the shorter string appears as a whole word (or word sequence) inside the
+    /// longer one. Avoids false positives from raw substring containment, e.g. "egg"
+    /// matching inside "eggplant" or "pea" matching inside "peanut butter".
+    private static func wordBoundaryMatch(_ a: String, _ b: String) -> Bool {
+        guard !a.isEmpty, !b.isEmpty else { return false }
+        let (needle, haystack) = a.count <= b.count ? (a, b) : (b, a)
+        let pattern = "\\b\(NSRegularExpression.escapedPattern(for: needle))\\b"
+        return haystack.range(of: pattern, options: .regularExpression) != nil
     }
 }

@@ -4,6 +4,11 @@ struct Dot: View {
   @Binding var isLoading: Bool
   @Binding var isExpanded: Bool
 
+  // Matches the bottom tab menu height (see NavigationView.tabButtons) by default.
+  // Pass a smaller value to fit a tighter slot (e.g. the chat input bar) — every
+  // other dimension scales proportionally so the animation keeps its proportions.
+  var size: CGFloat = 70
+
   @State private var rotation: Double = 0
   @State private var animationState: AnimationState = .closed
   @State private var xMarkScale: CGFloat = 0.25
@@ -16,14 +21,15 @@ struct Dot: View {
   }
 
   let numberOfCircles = 10
-  // Matches the bottom tab menu height (see NavigationView.tabButtons)
-  let mainCircleSize: CGFloat = 70
-  let smallCircleSize: CGFloat = 10
-  let expandedRadius: CGFloat = 25
   let animationDuration: Double = 0.2
   let pauseDuration: Double = 0.05
   let xMarkDelay: Double = 0.05
-  let openCircleSize: CGFloat = 60
+
+  private var mainCircleSize: CGFloat { size }
+  private var smallCircleSize: CGFloat { size * 10 / 70 }
+  private var expandedRadius: CGFloat { size * 25 / 70 }
+  private var openCircleSize: CGFloat { size * 60 / 70 }
+  private var xMarkFontSize: CGFloat { size * 22 / 70 }
 
   private let buttonColor = Color.app.primary
 
@@ -41,7 +47,7 @@ struct Dot: View {
       // X Mark
       if animationState == .open {
         Image(systemName: "xmark")
-          .font(.system(size: 22, weight: .medium))
+          .font(.system(size: xMarkFontSize, weight: .medium))
           .foregroundColor(Color.app.textOnPrimary)
           .scaleEffect(xMarkScale)
           .opacity(animationState == .open ? 1 : 0)

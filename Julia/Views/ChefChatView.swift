@@ -428,6 +428,10 @@ struct ChefChatView: View {
 
     // MARK: - Input Bar
 
+    // Resting height of the input field — the CTA button is pinned to this in every
+    // state so it never changes size as you type, focus, or start/stop streaming.
+    private let ctaSize: CGFloat = 60
+
     private var inputBar: some View {
         HStack(alignment: .bottom, spacing: 10) {
             TextField(
@@ -440,21 +444,26 @@ struct ChefChatView: View {
             .padding(.horizontal, 16)
             .padding(.vertical, 18)
             .background(recipe != nil ? Color.black : Color.app.backgroundInput, in: RoundedRectangle(cornerRadius: 30))
-            .frame(minHeight: 60)
+            .frame(minHeight: ctaSize)
             .disabled(!isAvailable)
 
-            // Single CTA: Dot (import) when idle & unfocused, arrow when focused or typing, stop when streaming
+            // Single CTA: Dot (import) when idle & unfocused, arrow when focused or typing, stop when streaming.
+            // All three states are pinned to ctaSize so the button never changes size —
+            // it always matches the input field's resting height.
             ZStack {
                 if isStreaming {
                     Button(action: stopStreaming) {
-                        Image(systemName: "stop.circle.fill")
-                            .font(.system(size: 44))
-                            .foregroundStyle(Color.app.primary)
+                        Image(systemName: "stop.fill")
+                            .font(.system(size: ctaSize * 18 / 60, weight: .medium))
+                            .foregroundStyle(.white)
+                            .frame(width: ctaSize, height: ctaSize)
+                            .background(Color.app.primary, in: Circle())
+                            .shadow(color: Color.app.primary.opacity(0.3), radius: 4, x: 0, y: 2)
                     }
                     .buttonStyle(.plain)
                     .transition(.scale(scale: 0.6).combined(with: .opacity))
                 } else if showImportOptions && inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !isInputFocused {
-                    Dot(isLoading: $isFABLoading, isExpanded: $isFABExpanded)
+                    Dot(isLoading: $isFABLoading, isExpanded: $isFABExpanded, size: ctaSize)
                         .onTapGesture {
                             guard !isFABLoading else { return }
                             withAnimation(.spring(response: 0.4, dampingFraction: 0.75)) {
@@ -465,9 +474,9 @@ struct ChefChatView: View {
                 } else {
                     Button(action: sendMessage) {
                         Image(systemName: "arrow.up")
-                            .font(.system(size: 15, weight: .medium))
+                            .font(.system(size: ctaSize * 20 / 60, weight: .medium))
                             .foregroundStyle(.white)
-                            .frame(width: 44, height: 44)
+                            .frame(width: ctaSize, height: ctaSize)
                             .background(canSend ? Color.app.primary : Color.app.primary.opacity(0.35), in: Circle())
                             .shadow(color: canSend ? Color.app.primary.opacity(0.3) : .clear, radius: 4, x: 0, y: 2)
                     }
@@ -476,7 +485,7 @@ struct ChefChatView: View {
                     .transition(.scale(scale: 0.6).combined(with: .opacity))
                 }
             }
-            .frame(width: 60, height: 60)
+            .frame(width: ctaSize, height: ctaSize)
             .animation(.spring(response: 0.3, dampingFraction: 0.75), value: inputText.isEmpty)
             .animation(.spring(response: 0.3, dampingFraction: 0.75), value: isInputFocused)
             .animation(.spring(response: 0.3, dampingFraction: 0.75), value: isStreaming)

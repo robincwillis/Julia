@@ -64,24 +64,29 @@ class DataController {
   }
   
   // MARK: - Containers
-  
+
+  /// Set synchronously if the on-disk store failed to load and the app fell back to an
+  /// in-memory container — meaning nothing persists for the rest of this run. Read this
+  /// (not a notification) to detect the fallback: `appContainer` is force-initialized by
+  /// `.modelContainer(...)` before the app's view hierarchy appears, so anything relying on
+  /// `.onAppear`-registered observers is too late to catch the failure.
+  static private(set) var containerLoadError: Error?
+  static var isRunningInMemoryFallback: Bool { containerLoadError != nil }
+
   /// Main application container for persistent storage
   static let appContainer: ModelContainer = {
     do {
       return try ModelContainer(for: appSchema)
     } catch {
       print("Error creating app container: \(error.localizedDescription)")
-      // Post notification for app to display user-facing error
-      NotificationCenter.default.post(
-        name: NSNotification.Name("ModelContainerError"),
-        object: error
-      )
+      containerLoadError = error
+
       // Crash in development so a schema mistake is caught immediately.
       assertionFailure("Failed to create app container: \(error.localizedDescription)")
 
       // In production, degrade instead of crashing: an in-memory container over
       // the same schema keeps the app usable and read-consistent for the
-      // session, and the notification above drives the user-facing alert.
+      // session. `containerLoadError` above drives the user-facing alert.
       //
       // Previously this force-tried a *second* on-disk container — inside the
       // handler for the first one failing — so the usual outcome was a crash

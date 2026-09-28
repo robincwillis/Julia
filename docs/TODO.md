@@ -16,6 +16,58 @@ list at "P2".
 
 ---
 
+## 🚨 URGENT — data loss on every app close
+
+**Needs verification on a real device — cannot be reproduced or tested in the
+sandbox this was diagnosed in (Linux, no Xcode/simulator/device access).**
+
+Reported 2026-09-27: recipes, pantry, and grocery data are lost every time the
+app is closed and reopened.
+
+**Confirmed bug, fixed blind:** `DataController.appContainer`
+(`Julia/Utilities/DataController.swift`) already had a safety net — if the
+on-disk SwiftData store fails to load, it silently falls back to an
+**in-memory** container so the app doesn't crash. That matches the symptom
+exactly (app works normally, everything vanishes on relaunch). The alert meant
+to surface this to the user could never fire: it was wired through a
+`NotificationCenter` observer registered in `JuliaApp.onAppear`, but
+`appContainer` is force-initialized earlier — by `.modelContainer(...)`
+building the scene, before the view hierarchy (and thus `onAppear`) exists —
+so the notification was posted before anything listened for it. Total silent
+failure, no crash, no alert.
+
+Fixed: replaced the notification race with a synchronous flag
+(`DataController.isRunningInMemoryFallback` / `.containerLoadError`) that
+`JuliaApp` checks directly and deterministically in `onAppear`. If the
+fallback engages, an unmissable alert now shows: *"Data Isn't Being
+Saved... Recipes, ingredients, and lists will NOT be saved once you close the
+app."*
+
+**Not yet confirmed:** *why* the on-disk container is failing to load in the
+first place (if that's even what's happening — this is the leading hypothesis,
+not a confirmed root cause). Leading suspect: the SwiftData schema version was
+bumped 2.2.2 → 2.2.3 this session for the new `InstructionSection` model —
+the only recent change touching the schema. That class of change (new model
+type, new optional/cascade relationships) is supposed to be handled by
+SwiftData's automatic lightweight migration without a custom
+`SchemaMigrationPlan`, so on paper it shouldn't fail — but it's the only
+schema-relevant change in the vicinity of when this was reported.
+
+**To verify out of sandbox:**
+1. Build to a real device, force-quit, relaunch.
+2. If the new "Data Isn't Being Saved" alert appears → theory confirmed. Check
+   Xcode's console for the `print("Error creating app container: ...")` line
+   for the actual underlying error, then decide whether a `SchemaMigrationPlan`
+   is needed for the 2.2.2 → 2.2.3 step, or whether the `InstructionSection`
+   model/relationships need adjusting.
+3. If the alert does *not* appear and data still disappears → this fix doesn't
+   address the real cause. Rule out environmental causes next: Xcode
+   reinstalling the app on each run (bundle ID / provisioning / entitlement
+   changes can trigger this), iOS storage pressure evicting app data, or a
+   destructive path we haven't found yet.
+
+---
+
 ## Test coverage
 
 Was P4. Now the top of the list — the first item is the highest-value work here.
@@ -156,6 +208,20 @@ Was P3. Yours, and gated on the Figma review.
   `brand/background-primary` vs. `brand/background-sheet` differ only by a
   few points in dark mode (`#242424` vs `#1C1C1E`) — intentional depth cue or
   picker rounding? → [design-tokens.md](design-tokens.md) flag 6
+
+- [ ] **Audit `backgroundSecondary` vs. `backgroundSheet` call sites, especially dark mode** — M
+  Found and fixed two concrete mismatches this session: `RecipeSuggestionsView`'s
+  list rows and pantry/grocery filter bar, and `RecipeSuggestionDetailView`'s
+  screen background, were all set to `Color.app.backgroundSheet` (`#2C2C2E`
+  dark — the lighter, elevated-card tone) when the surrounding sheet actually
+  uses `Color.app.backgroundSecondary` (`#1C1C1E` dark), producing a visibly
+  lighter patch. Both are now `backgroundSecondary`. Given how easy this
+  mismatch is to introduce (the two tokens are close enough in light mode to
+  not notice, but diverge sharply in dark mode), worth a deliberate pass over
+  every `Color.app.backgroundSheet` / `Color.app.backgroundSecondary` call site
+  to confirm each one matches its actual container rather than catching these
+  one screen at a time as they're noticed. Related to the two token-semantics
+  items above — may fold into that review.
 
 - [ ] **Reconcile toolbar button styling** — S
   `NavigationView.swift:300` and `RecipeDetails.editingMenu` use
