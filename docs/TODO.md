@@ -5,10 +5,9 @@ Open work only, highest priority first. Completed items live in
 
 Effort is rough: **S** under an hour, **M** a session, **L** a day or more.
 
-> **Next up:** bring the image fixtures over (Test coverage, below). The
-> classifier has never been tested against real OCR, and that same evidence is
-> what unblocks the deferred section-based redesign. Mind the asset-catalog
-> gotcha recorded there.
+> **Next up:** the 🚨 urgent data-loss item below is blocked on a real-device
+> test — it can't be driven further from here. Everything else on this list
+> is lower priority than that.
 
 Headings are descriptive rather than numbered — the old P0/P1 tiers are both
 complete, and numbering the rest would either imply false urgency or start the
@@ -67,94 +66,6 @@ schema-relevant change in the vicinity of when this was reported.
    destructive path we haven't found yet.
 
 ---
-
-## Test coverage
-
-Was P4. Now the top of the list — the first item is the highest-value work here.
-
-- [ ] **Bring the existing test assets over from the other machine** — M
-  A library of recipe images and some text files sits on another computer, in
-  `JuliaTests/Test Images.xcassets/` and `JuliaTests/Test Assets/`. Both are
-  excluded by `.gitignore:43-44`, which is why they exist on one machine only.
-
-  ⚠️ **Before copying anything:** `TestAssets.images()` enumerates *loose files*
-  in the test bundle. Asset-catalog images compile into `Assets.car` and cannot
-  be enumerated at runtime — they are only reachable by name via
-  `UIImage(named:in:)`, which is exactly why the old harness needed a hardcoded
-  `imageNames` array. **Copying the `.xcassets` over as-is will discover zero
-  images.**
-
-  Two ways out:
-  - *Preferred* — export the catalog contents as loose files into
-    `Fixtures/Images/`. Keeps the file-drop workflow, no code change.
-  - Add a catalog path to `TestAssets` alongside discovery, accepting that
-    catalog fixtures need their names listed somewhere.
-
-  Then settle the `.gitignore` question: committing fixtures is what makes the
-  suite reproducible across machines and CI, and the current pain is exactly the
-  cost of not doing it. Weigh against repo size — recipe-page JPEGs run a few
-  hundred KB each. A middle path is committing a small curated set and leaving
-  the bulk library ignored.
-  → [TESTING.md](TESTING.md)
-
-- [ ] **Stress-test with real scans, not just clean or hand-messed text** — M
-  **This is the evidence the deferred redesign waits on.** A paper estimate
-  against a clean 38-line blog recipe came to only ~49% of budget in a single
-  call; the real risk concentrates in genuinely messy OCR — multi-column
-  reading-order errors, garbled characters, higher effective line counts from
-  fragmentation — which a typed fixture cannot reproduce.
-
-  Matters doubly now that the `{lineNumber, category}` redesign dropped inline
-  OCR correction: real scans are the only way to see whether
-  uncorrected-but-categorised garble is good enough, or whether correction needs
-  a new home in the pipeline.
-
-  Depends on the item above.
-
-- [ ] **Add adversarial text fixtures** — S
-  Two fixtures today, one clean and one 46-line multi-chunk. The reconstructor
-  exists to handle mess, so it should be tested with mess: messy OCR dumps, blog
-  preamble before the recipe, multiple recipes on one page, ad-interleaved text,
-  incomplete recipes, ingredient lists with `1 1/2` space-separated mixed
-  numbers.
-
-- [ ] **Add a URL test set** — S
-  URL import is covered by two hand-written HTML fixtures. Keep the suite
-  offline and deterministic — the reason fixtures were chosen over live requests
-  — but make refreshing easy: `Fixtures/Web/urls.txt` as the list of source
-  pages, plus a small script that curls each into a `.html` fixture. One command
-  to re-capture when a site changes its markup, and the list doubles as
-  documentation of what is covered.
-
-  Vary the JSON-LD shape, since that is what the parser branches on: direct
-  `@type: Recipe`, `@graph`-nested, `recipeInstructions` as strings vs
-  `HowToStep` objects, all three `author` shapes, `recipeYield` as string vs
-  array. Client-side-rendered pages have no JSON-LD and belong in a separate
-  group — they exercise the AI fallback, not this path.
-
-- [ ] **Harden the Apple Intelligence test gate** — S
-  `.enabled(if: availability == .available)` is evaluated before any request,
-  and the model can report available then still refuse to generate — so the
-  suite goes **red instead of skipping** for environmental reasons. Seen
-  2026-09-03: both pipeline tests failing in 3.7s with `GenerationError error
-  -1` against code byte-identical to a 38/38 run earlier the same day.
-
-  Options: probe with one trivial generation in a suite-level trait and skip if
-  it throws; or catch `.assetsUnavailable`/`.rateLimited` in the test helper and
-  record a skip rather than a failure. Either way the signal should distinguish
-  "the model would not answer" from "the pipeline is broken".
-  → [TESTING.md](TESTING.md)
-
-- [ ] **Cover the share extension** — M
-  `SharedImportInbox` has no unit tests. `enqueue`/`dequeue` ordering, corrupt
-  JSON being skipped, and `isImportLink` are all cheap. The `bareURL(in:)`
-  heuristic deserves tests too, but lives in the extension target, which has no
-  test host.
-
-- [ ] **Verify the share sheet on a real device** — S
-  Needs the App Groups capability first (see Setup). Only the simulator hand-off
-  has been exercised end to end; the real Notes and Safari share sheets have
-  not. → [SHARE-EXTENSION.md](SHARE-EXTENSION.md)
 
 ## Design consistency
 
@@ -295,42 +206,39 @@ New capability rather than fixes. Unranked between themselves.
   imports do? Is it undoable? And which operations should be AI at all — scaling
   is arithmetic, and "double it" through an LLM will occasionally get it wrong.
 
-- [ ] **Two app icons, and shipping with debug on or off** — M, approach undecided
-  Captured as-is; **not resolved.** Two icon designs exist and need preparing
-  and testing. Separately, the app should be archivable in two modes: debug
-  features on by default, or off.
+- [ ] **Two app icons** — M, scaffolded 2026-10-03, **needs real art + device verification**
+  Decided: the icon is **not** tied to the `debugMode` settings toggle at all
+  (that stays a separate, user-switchable, per-session thing). Two independent
+  mechanisms instead, both scaffolded with placeholder artwork — nothing here
+  has been run on a device or in Xcode, since this sandbox can't do either:
 
-  The thought was that the two icons might *correspond* to those modes, so a
-  debug build is identifiable on the Home Screen — but it could equally be a
-  user preference unrelated to debug.
+  1. **Light/dark primary icon** — `AppIcon.appiconset/Contents.json` now has
+     `appearances: [{appearance: luminosity, value: dark}]` entries for the
+     five Home-Screen-visible sizes (120, 180, 152, 167, 1024), each pointing
+     at a `<size>-dark.png` placeholder (an programmatically darkened copy of
+     the light version — not real dark art). This needs iOS 18+ to render,
+     which the app's iOS 26 minimum covers, and needs no code — purely an
+     asset-catalog mechanism. **To verify:** build to a device, switch system
+     appearance, confirm the Home Screen icon actually changes.
 
-  Current state, which shapes the options:
-  - `debugMode` is a `UserDefaults` bool registered **`true`** by default at
-    `JuliaApp.swift:22`, surfaced as `\.debugMode` in the environment and
-    toggled by a switch at `SettingsDrawer.swift:151`. So every build today
-    ships with debug on, user-switchable at runtime.
-  - One `AppIcon.appiconset`, wired via
-    `ASSETCATALOG_COMPILER_APPICON_NAME`. Alternate icons need
-    `ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES` plus
-    `UIApplication.shared.setAlternateIconName(_:)`, which is unused so far.
+  2. **Dev/TestFlight icon** — a new `AppIcon-Dev.appiconset` (placeholder: the
+     primary icon with an orange corner ribbon, same sizes), registered via
+     `ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES` (both build configs) and
+     `CFBundleIcons`/`CFBundleAlternateIcons` in `Info.plist`. `JuliaApp`
+     switches to it automatically on launch — no user action — via a new
+     `isDevOrTestFlightBuild` check (`#if DEBUG`, or for Release, whether
+     `Bundle.main.appStoreReceiptURL` points at a `sandboxReceipt`, which is
+     how a TestFlight install differs from an App Store one), guarded so it
+     only calls `setAlternateIconName` when the icon actually needs to change
+     (that call shows a system alert — confirmed by this item's own original
+     research — so an unguarded call on every launch would be bad). **To
+     verify:** a Debug build and a TestFlight build should both pick up the
+     dev icon automatically; an App Store build should not, and the alert
+     should fire once, not every launch.
 
-  Roughly independent axes:
-  1. *Debug default per build* — flip the registered default from the build
-     configuration (`#if DEBUG`, or a custom
-     `SWIFT_ACTIVE_COMPILATION_CONDITIONS` flag so a Release archive can still
-     be built with debug on).
-  2. *Icon follows debug mode* — call `setAlternateIconName` when the flag
-     changes. Cheap, and makes a debug build obvious. Note iOS shows a system
-     alert when an app changes its icon, which is intrusive if it fires off a
-     settings toggle.
-  3. *Icon as user preference* — a picker in `SettingsDrawer`, unrelated to
-     debug. No alert problem when the user initiated it.
-  4. *Two schemes / configurations* — a separate "Julia Debug" archive with its
-     own bundle id, so both install side by side. Most work, but the only option
-     that keeps a debug and a normal build on one device.
-
-  Settle 1 before 2/3: whether the icon follows a build flag or a user setting
-  decides where the code lives.
+  **Still needed:** real artwork for both the dark primary icon and the dev
+  icon — everything currently on disk is a generated placeholder so the
+  mechanism could be built and reviewed, not final art.
 
 ## Setup, not code
 
@@ -339,12 +247,12 @@ New capability rather than fixes. Unranked between themselves.
   → `group.rcw.Julia`. Repeat for **JuliaShareExtension**. Device builds will
   not sign until this is done; the simulator does not enforce it.
 
-- [ ] **Decide whether `Package.resolved` is tracked** — S
-  `6b5cbe4` removed it deliberately; Xcode has regenerated it and it is
-  currently untracked. `.gitignore:41` has the rule commented out. Either commit
-  it for reproducible dependency resolution or uncomment the rule. Worth
-  settling — SwiftSoup has already resolved to two different versions (2.13.6
-  and 2.8.5) across runs.
+- [x] **Decide whether `Package.resolved` is tracked** — resolved
+  It's tracked: `Julia.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved`
+  is committed, and the `.gitignore:41` rule is still commented out, consistent
+  with that choice. Worth a one-time check that it currently resolves to a
+  single consistent SwiftSoup version rather than the 2.13.6/2.8.5 split seen
+  before, but the tracking decision itself is settled.
 
 - [ ] **Review the hand-edited project file** — S
   The `JuliaShareExtension` target was added by editing `project.pbxproj`

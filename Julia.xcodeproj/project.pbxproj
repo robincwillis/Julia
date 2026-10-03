@@ -166,7 +166,6 @@
 		520DE6C32C34712800CAF570 /* RecipeRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeRow.swift; sourceTree = "<group>"; };
 		520DE6C52C34713700CAF570 /* RecipeList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeList.swift; sourceTree = "<group>"; };
 		520DE6C72C3473CC00CAF570 /* RecipeDetails.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeDetails.swift; sourceTree = "<group>"; };
-		520DE6CB2C35B0CF00CAF570 /* Playground.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Playground.swift; sourceTree = "<group>"; };
 		521313B72D733E2E0021DA90 /* IngredientSection.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IngredientSection.swift; sourceTree = "<group>"; };
 		5217950C2DB56D9F004B265B /* SettingsDrawer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsDrawer.swift; sourceTree = "<group>"; };
 		5217950E2DB58003004B265B /* EmptyRecipesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = EmptyRecipesView.swift; path = Julia/Views/EmptyRecipesView.swift; sourceTree = SOURCE_ROOT; };
@@ -423,7 +422,6 @@
 				520DE69E2C330F9600CAF570 /* Info.plist */,
 				5AE1C0DE000000000000000D /* Julia.entitlements */,
 				5228BD502C2362E7001C845E /* JuliaApp.swift */,
-				520DE6CB2C35B0CF00CAF570 /* Playground.swift */,
 				52CD8F892D7492CF0076F578 /* Components */,
 				520DE6B72C3465C000CAF570 /* Views */,
 				520DE6B62C3465AD00CAF570 /* Models */,
@@ -945,6 +943,7 @@
 		5228BD5C2C2362EB001C845E /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES = "AppIcon-Dev";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Julia/Julia.entitlements;
@@ -986,6 +985,7 @@
 		5228BD5D2C2362EB001C845E /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES = "AppIcon-Dev";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Julia/Julia.entitlements;
