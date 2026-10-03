@@ -28,7 +28,6 @@
 		5217950F2DB58003004B265B /* EmptyRecipesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5217950E2DB58003004B265B /* EmptyRecipesView.swift */; };
 		521795112DB58067004B265B /* EmptyIngredientsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 521795102DB58067004B265B /* EmptyIngredientsView.swift */; };
 		521795132DB58254004B265B /* SampleDataLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 521795122DB58254004B265B /* SampleDataLoader.swift */; };
-		521795172DB586FC004B265B /* ImportExportManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 521795162DB586FC004B265B /* ImportExportManager.swift */; };
 		521795192DB5CBE9004B265B /* GlowingIcon.swift in Sources */ = {isa = PBXBuildFile; fileRef = 521795182DB5CBE9004B265B /* GlowingIcon.swift */; };
 		5217951B2DB5D0B0004B265B /* PagingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5217951A2DB5D0B0004B265B /* PagingView.swift */; };
 		521EEF862D74A10600806A5D /* FloatingActionMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = 521EEF852D74A10600806A5D /* FloatingActionMenu.swift */; };
@@ -172,7 +171,6 @@
 		5217950E2DB58003004B265B /* EmptyRecipesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = EmptyRecipesView.swift; path = Julia/Views/EmptyRecipesView.swift; sourceTree = SOURCE_ROOT; };
 		521795102DB58067004B265B /* EmptyIngredientsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyIngredientsView.swift; sourceTree = "<group>"; };
 		521795122DB58254004B265B /* SampleDataLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleDataLoader.swift; sourceTree = "<group>"; };
-		521795162DB586FC004B265B /* ImportExportManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ImportExportManager.swift; path = Julia/Views/ImportExportManager.swift; sourceTree = SOURCE_ROOT; };
 		521795182DB5CBE9004B265B /* GlowingIcon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlowingIcon.swift; sourceTree = "<group>"; };
 		5217951A2DB5D0B0004B265B /* PagingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PagingView.swift; sourceTree = "<group>"; };
 		521EEF852D74A10600806A5D /* FloatingActionMenu.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FloatingActionMenu.swift; sourceTree = "<group>"; };
@@ -366,7 +364,6 @@
 				527A08962F8031A30030EE1C /* DocumentClassifier.swift */,
 				52E7A63B2DCFCA8600AFEF2B /* RecipeLayoutAnalyzer.swift */,
 				52E7A63F2DCFCBD700AFEF2B /* RecipePostProcessor.swift */,
-				521795162DB586FC004B265B /* ImportExportManager.swift */,
 				521795122DB58254004B265B /* SampleDataLoader.swift */,
 				52A5E03B2DA6C685002D3920 /* RecipeProcessor.swift */,
 				527AF2562D8F684000FE6E38 /* Julia/Utilities/PreviewHelpers.swift */,
@@ -727,7 +724,6 @@
 				52A5E03C2DA6C685002D3920 /* RecipeProcessor.swift in Sources */,
 				52CD8F8D2D7493450076F578 /* RecipeProcessingState.swift in Sources */,
 				520DE6A42C3320F000CAF570 /* RecipesView.swift in Sources */,
-				521795172DB586FC004B265B /* ImportExportManager.swift in Sources */,
 				52CD8F862D7492B80076F578 /* RecipeProcessing.swift in Sources */,
 				52010E4F2D7FD362007C4889 /* RecipeTextReconstructor.swift in Sources */,
 				526250CA2CE3A641004EE6C7 /* MeasurementUnit.swift in Sources */,

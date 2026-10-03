@@ -1,10 +1,3 @@
-//
-//  FloatingActionMenu.swift
-//  Julia
-//
-//  Created by Robin Willis on 3/2/25.
-//
-
 import SwiftUI
 
 struct FloatingActionMenu: View {

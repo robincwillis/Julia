@@ -1,13 +1,6 @@
-//
-//  ChefChatView.swift
-//  Julia
-//
-
 import SwiftUI
 import PhotosUI
 import FoundationModels
-
-// MARK: - Message Model
 
 struct ChatMessage: Identifiable {
     let id = UUID()
@@ -20,8 +13,6 @@ struct ChatMessage: Identifiable {
         (try? AttributedString(markdown: text)) ?? AttributedString(text)
     }
 }
-
-// MARK: - Chat View
 
 struct ChefChatView: View {
     var recipe: Recipe? = nil
@@ -41,7 +32,6 @@ struct ChefChatView: View {
         self._extractedRecipeData = extractedRecipeData
     }
 
-    // Chat state
     @State private var messages: [ChatMessage] = []
     @State private var inputText = ""
     @State private var isStreaming = false
@@ -49,15 +39,12 @@ struct ChefChatView: View {
     @State private var isAvailable = true
     @State private var streamingTask: Task<Void, Never>? = nil
 
-    // FAB state
     @State private var isFABExpanded = false
     @State private var isFABLoading = false
 
-    // Local URL import processor (handles URL → ProcessingResults within this view)
     @State private var localRecipeProcessor = RecipeProcessor()
     @State private var localExtractedData: RecipeData? = nil
 
-    // Import sheet state
     @State private var showScanInstruction = false
     @State private var showCamera = false
     @State private var showPhotosPicker = false
@@ -65,7 +52,6 @@ struct ChefChatView: View {
     @State private var showRecipeTextImport = false
     @State private var photosPickerItem: PhotosPickerItem?
 
-    // First-use gates
     @AppStorage("hasSeenJuliaSuggestions") private var hasSeenSuggestions = false
     @AppStorage("hasSeenScanInstruction") private var hasSeenScanInstruction = false
 
@@ -73,12 +59,8 @@ struct ChefChatView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var context
 
-    // MARK: - Computed
-
     private var showImportOptions: Bool { recipe == nil }
     private var hasMessages: Bool { !messages.isEmpty }
-
-    // MARK: - Body
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -193,8 +175,6 @@ struct ChefChatView: View {
         .onDisappear { streamingTask?.cancel() }
     }
 
-    // MARK: - Top Bar
-
     private var topBar: some View {
         HStack {
             Button {
@@ -213,8 +193,6 @@ struct ChefChatView: View {
         .padding(.top, 16)
         .padding(.bottom, 8)
     }
-
-    // MARK: - Empty State
 
     private var emptyState: some View {
         VStack(spacing: 0) {
@@ -255,8 +233,6 @@ struct ChefChatView: View {
             : "Import a recipe using the menu below, or enable Apple Intelligence in Settings to unlock chat."
     }
 
-    // MARK: - First-Use Suggestions
-
     private var firstUseSuggestions: some View {
         VStack(alignment: .center, spacing: 8) {
             ForEach([
@@ -282,8 +258,6 @@ struct ChefChatView: View {
         .frame(maxWidth: .infinity, alignment: .center)
         .padding(.horizontal, 40)
     }
-
-    // MARK: - Import FAB Items (Dot trigger lives in inputBar)
 
     private var importFABItems: some View {
         VStack {
@@ -333,8 +307,6 @@ struct ChefChatView: View {
         }
     }
 
-    // MARK: - Import Chip Row (above input when messages exist)
-
     private var importChipRow: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
@@ -364,8 +336,6 @@ struct ChefChatView: View {
         }
         .buttonStyle(.plain)
     }
-
-    // MARK: - Message List
 
     private var messageList: some View {
         ScrollViewReader { proxy in
@@ -408,8 +378,6 @@ struct ChefChatView: View {
         }
     }
 
-    // MARK: - Recipe Context Banner
-
     private func recipeContextBanner(_ recipe: Recipe) -> some View {
         HStack(spacing: 6) {
             Image(systemName: "book.closed")
@@ -425,8 +393,6 @@ struct ChefChatView: View {
         .padding(.top, 8)
         .frame(maxWidth: .infinity, alignment: .center)
     }
-
-    // MARK: - Input Bar
 
     // Resting height of the input field — the CTA button is pinned to this in every
     // state so it never changes size as you type, focus, or start/stop streaming.
@@ -493,8 +459,6 @@ struct ChefChatView: View {
         .padding(.horizontal, 16)
         .padding(.vertical, 8)
     }
-
-    // MARK: - Logic
 
     private func openCamera() {
         if hasSeenScanInstruction {
@@ -628,8 +592,6 @@ struct ChefChatView: View {
     }
 }
 
-// MARK: - Message Bubble
-
 private struct MessageBubble: View {
     let message: ChatMessage
     let isStreaming: Bool
@@ -659,8 +621,6 @@ private struct MessageBubble: View {
         message.role == .user ? AnyShapeStyle(Color.app.secondary) : AnyShapeStyle(.fill.secondary)
     }
 }
-
-// MARK: - Supporting Views
 
 private struct BubbleShape: Shape {
     let role: ChatMessage.Role

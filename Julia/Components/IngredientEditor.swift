@@ -23,11 +23,8 @@ struct IngredientEditor: View {
   @FocusState private var isNameFieldFocused: Bool
   @FocusState private var isCommentFieldFocused: Bool
 
-  // Helper computed property to determine if any field is focused
   private var isAnyFieldFocused: Bool {
-    // return withAnimation {
     isNameFieldFocused || isCommentFieldFocused
-    // }
   }
 
   private var canSave: Bool {
@@ -36,48 +33,37 @@ struct IngredientEditor: View {
 
   @Environment(\.modelContext) private var context
 
-  // Basic ingredient properties
   @State private var name: String = ""
   @State private var quantity: Double?
   @State private var unit: MeasurementUnit?
   @State private var comment: String = ""
 
-  // For parsing from text input
   @State private var ingredientInput: String = ""
 
   let units = MeasurementUnit.allCases
   let numbers = MeasurementValue.numbers
   let fractions = MeasurementValue.fractions
 
-  // Formatted measurement for display
   var displayMeasurement: String? {
-    // If no quantity, no measurement to display
     if quantity == nil {
       return nil
     }
 
     var display = ""
 
-    // Format quantity with fractions instead of decimals
     if let qty = quantity {
-      // Get the integer and fractional parts
       let intPart = Int(floor(qty))
       let fracPart = qty - floor(qty)
 
-      // Format the integer part if it's not zero
       if intPart > 0 {
         display += "\(intPart)"
       }
 
-      // Format the fractional part using MeasurementValue fractions
       if fracPart > 0 {
-        // Find the closest fraction from our enum
         let closestFraction = MeasurementValue.fractions
           .min(by: { abs($0.rawValue - fracPart) < abs($1.rawValue - fracPart) })
 
-        // Only use the fraction if it's reasonably close to the actual value
         if let fraction = closestFraction, abs(fraction.rawValue - fracPart) < 0.1 {
-          // Add space between whole number and fraction if needed
           if intPart > 0 {
             display += " "
           }
@@ -86,13 +72,11 @@ struct IngredientEditor: View {
       }
     }
 
-    // Add unit if it exists and isn't "item"
     if let unitValue = unit, unitValue.rawValue != "item" {
       if !display.isEmpty {
         display += " "
       }
 
-      // Pluralize unit if quantity > 1
       if let qty = quantity, qty > 1 {
         display += unitValue.pluralName
       } else {
@@ -107,7 +91,6 @@ struct IngredientEditor: View {
     case name, quantity, unit, comment
   }
 
-  // Define rows for horizontal scrolling grid
   let rows = [
     GridItem(.fixed(36)),
     GridItem(.fixed(36)),
@@ -117,7 +100,6 @@ struct IngredientEditor: View {
 
   var body: some View {
     VStack(spacing: 0) {
-      // Header with close/save buttons
       HStack {
         HStack(spacing: 16) {
           Button(action: {
@@ -159,11 +141,8 @@ struct IngredientEditor: View {
             .foregroundColor(canSave ? Color.app.primary : Color.app.primaryDisabled)
         }
       }
-      //.transition(.opacity)
-
       VStack(alignment: .center, spacing: 12) {
 
-        // Display Ingredient Measurement and Unit
         if let measurementLabel = displayMeasurement {
           Button(action: {
             withAnimation {
@@ -179,16 +158,8 @@ struct IngredientEditor: View {
           .disabled(!canSave)
         }
 
-        // Ingredient name field - either enter name or full ingredient text
         TextField("Ingredient", text: $name)
-          .font(
-            .system(
-              //size: max(16, min(32, 700 / max(1, CGFloat(name.count)))),
-              //size: calculateTitleFontSize(for: name),
-              size: 32,
-              weight: .medium
-            )
-          )
+          .font(.system(size: 32, weight: .medium))
           .foregroundColor(Color.app.textPrimary)
           .tint(Color.app.primary)
           .multilineTextAlignment(.center)
@@ -209,10 +180,8 @@ struct IngredientEditor: View {
           }
           .background(Color.app.white)
 
-        // Control panel that shows/hides based on focus state
         if showControls {
           VStack {
-            // Units grid with horizontal scrolling
             ScrollView(.horizontal, showsIndicators: false) {
               LazyHGrid(rows: rows, spacing: 8) {
                 ForEach(units, id: \.self) { unitOption in
@@ -233,17 +202,13 @@ struct IngredientEditor: View {
               }
             }
 
-            // Fractions row
             HStack(spacing: 8) {
               ForEach(fractions, id: \.self) { fraction in
                 Button(action: {
-                  // Add fraction to quantity
                   if quantity == nil {
                     quantity = fraction.rawValue
                   } else {
-                    // Get the integer part
                     let intPart = floor(quantity!)
-                    // Replace the fractional part
                     quantity = intPart + fraction.rawValue
                   }
                 }) {
@@ -258,22 +223,18 @@ struct IngredientEditor: View {
               }
             }
 
-            // Numbers grid
             VStack(spacing: 8) {
 
-              // 3x3 grid for numbers 1-9
               ForEach(0..<3) { row in
                 HStack(spacing: 8) {
                   ForEach(0..<3) { column in
                     let index = row * 3 + column
                     let number = numbers[index]
                     Button(action: {
-                      // Add whole number to quantity
                       let numValue = Double(number.rawValue)
                       if quantity == nil {
                         quantity = numValue
                       } else {
-                        // Multiply by 10 and add (e.g., 2 becomes 20 + new digit)
                         let intPart = floor(quantity!)
                         let fracPart = quantity! - intPart
                         quantity = (intPart * 10 + numValue) + fracPart
@@ -292,14 +253,11 @@ struct IngredientEditor: View {
                 }
               }
 
-              // Bottom row with 0 and Delete buttons
               HStack(spacing: 8) {
-                // Zero button
                 Button(action: {
                   if quantity == nil {
                     quantity = 0
                   } else {
-                    // Multiply by 10 (append zero)
                     let intPart = floor(quantity!)
                     let fracPart = quantity! - intPart
                     quantity = (intPart * 10) + fracPart
@@ -314,22 +272,17 @@ struct IngredientEditor: View {
                     .cornerRadius(12)
                 }
 
-                // Delete button - removes last digit or fraction
                 Button(action: {
                   if quantity != nil {
                     if quantity! < 1 {
-                      // If less than 1, just clear it
                       quantity = nil
                     } else {
-                      // Get integer and fractional parts
                       let intPart = floor(quantity!)
                       let fracPart = quantity! - intPart
 
                       if fracPart > 0 {
-                        // Remove fraction part first
                         quantity = intPart
                       } else {
-                        // Remove last digit
                         quantity = floor(intPart / 10)
                         if quantity == 0 {
                           quantity = nil
@@ -338,7 +291,6 @@ struct IngredientEditor: View {
                     }
                   }
 
-                  // If quantity is nil/deleted and unit is set, also clear unit
                   if quantity == nil {
                     unit = nil
                   }
@@ -360,7 +312,6 @@ struct IngredientEditor: View {
 
         if showNotes {
           VStack {
-            // Comment field that collapses when name is focused
             TextField("Comment (e.g., diced, chopped)", text: $comment)
               .padding()
               .background(Color.app.backgroundPrimary)
@@ -385,29 +336,22 @@ struct IngredientEditor: View {
         showControls = !isAnyFieldFocused && showBottomSheet
       }
     }
-    // Add this at the root view level
     .onChange(of: isNameFieldFocused) { oldValue, newValue in
       withAnimation {
         showNotes = !isNameFieldFocused && showBottomSheet
       }
-      // If losing focus and input looks like an ingredient with quantity
       if oldValue && !newValue && name.contains(" ") {
-        // Parse the input
         if let parsedIngredient = IngredientParser.fromString(input: name, location: ingredientLocation) {
           name = parsedIngredient.name
 
-          // Only update quantity and unit if they weren't already set
           if quantity == nil {
             quantity = parsedIngredient.quantity
           }
 
           if unit == nil {
             unit = parsedIngredient.unit
-          } else {
-            // Keep existing unit
           }
 
-          // Always update comment if provided in parsing
           if let parsedComment = parsedIngredient.comment, !parsedComment.isEmpty {
             comment = parsedComment
           }
@@ -423,8 +367,7 @@ struct IngredientEditor: View {
 
   private func loadIngredient() {
     guard let existingIngredient = ingredient else {
-      // No existing ingredient, set default values
-      unit = MeasurementUnit(from: "item")  // Default to "item" unit
+      unit = MeasurementUnit(from: "item")
 
       Task { @MainActor in
         try? await Task.sleep(for: .milliseconds(350))
@@ -433,12 +376,10 @@ struct IngredientEditor: View {
       return
     }
 
-    // Populate fields with existing ingredient data
     name = existingIngredient.name
     quantity = existingIngredient.quantity
-    unit = existingIngredient.unit ?? MeasurementUnit(from: "item")  // Default to item if nil
+    unit = existingIngredient.unit ?? MeasurementUnit(from: "item")
     comment = existingIngredient.comment ?? ""
-
   }
 
   /// Re-parses the current name field with Foundation Models and populates
@@ -476,7 +417,6 @@ struct IngredientEditor: View {
     // If there's input text and no ingredient details, try to parse it
     if ingredientInput.isEmpty == false && quantity == nil && unit == nil {
       if let parsedIngredient = IngredientParser.fromString(input: ingredientInput, location: ingredientLocation) {
-        // Use the parsed values if available
         if parsedIngredient.quantity != nil {
           quantity = parsedIngredient.quantity
         }
@@ -492,13 +432,11 @@ struct IngredientEditor: View {
     }
 
     if let existingIngredient = ingredient {
-      // Update existing ingredient
       existingIngredient.name = trimmedName
       existingIngredient.quantity = quantity
       existingIngredient.unit = unit
       existingIngredient.comment = comment.isEmpty ? nil : comment
     } else {
-      // Create new ingredient
       let newIngredient = Ingredient(
         name: trimmedName,
         location: ingredientLocation,
@@ -507,27 +445,21 @@ struct IngredientEditor: View {
         comment: comment.isEmpty ? nil : comment
       )
 
-      // Insert into context
       context.insert(newIngredient)
       ingredient = newIngredient
     }
 
-    // Connect to section or recipe if needed
     if let currentIngredient = ingredient {
       if let currentSection = section {
-        // Connect to section if provided
         if currentIngredient.section == nil {
           withAnimation {
-            // Set position to end of the list for proper ordering
             currentIngredient.position = currentSection.ingredients.count
             currentSection.ingredients.append(currentIngredient)
           }
         }
       } else if let currentRecipe = recipe {
-        // Connect to recipe if no section and not already connected
         if currentIngredient.recipe == nil && currentIngredient.section == nil {
           withAnimation {
-            // Set position to end of the list for proper ordering
             currentIngredient.position = currentRecipe.ingredients.count
             currentRecipe.ingredients.append(currentIngredient)
           }
@@ -543,47 +475,24 @@ struct IngredientEditor: View {
       try context.save()
     } catch {
       print("Error saving ingredient: \(error)")
-      // Reset hasSaved in case of error to allow retry
     }
   }
 }
 
 #Preview {
-  // Preview container setup
   let container = DataController.previewContainer
 
-  // Create preview data
   let previewIngredients = [
-    Ingredient(
-      name: "Flour",
-      location: .recipe,
-      quantity: 2,
-      unit: "cup",
-      comment: "all-purpose"
-    ),
-    Ingredient(
-      name: "Garlic",
-      location: .recipe,
-      quantity: 3,
-      unit: "clove",
-      comment: "minced"
-    ),
-    Ingredient(
-      name: "Sauce",
-      location: .recipe,
-      quantity: 1,
-      unit: "jar",
-      comment: "marinara"
-    ),
+    Ingredient(name: "Flour", location: .recipe, quantity: 2, unit: "cup", comment: "all-purpose"),
+    Ingredient(name: "Garlic", location: .recipe, quantity: 3, unit: "clove", comment: "minced"),
+    Ingredient(name: "Sauce", location: .recipe, quantity: 1, unit: "jar", comment: "marinara"),
   ]
 
-  // Insert ingredients
   for ingredient in previewIngredients {
     container.mainContext.insert(ingredient)
   }
 
   struct PreviewWrapper: View {
-    // Use the ingredient we created in the container
     @State private var ingredient: Ingredient?
     @State private var showSheet = true
     private var location: IngredientLocation = .recipe
@@ -595,20 +504,15 @@ struct IngredientEditor: View {
     var body: some View {
       ZStack {
         Spacer()
-        // Main content
         VStack {
           Spacer()
           Text("Main View")
-          Button("Show Sheet") {
-            showSheet = true
-          }
+          Button("Show Sheet") { showSheet = true }
         }
 
         Spacer()
 
-        FloatingBottomSheet(
-          isPresented: $showSheet
-        ) {
+        FloatingBottomSheet(isPresented: $showSheet) {
           IngredientEditor(
             ingredientLocation: location,
             ingredient: $ingredient,
@@ -619,7 +523,6 @@ struct IngredientEditor: View {
     }
   }
 
-  // Use the first preview ingredient
   return PreviewWrapper(ingredient: previewIngredients[0])
     .modelContainer(container)
 }

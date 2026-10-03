@@ -2,14 +2,9 @@ import SwiftUI
 import SwiftData
 import UniformTypeIdentifiers
 
-// MARK: - Data Import/Export Manager
-
 @MainActor
 class ImportExportManager {
-  
-  // MARK: - Export Models
-  
-  // Export models for JSON serialization remain the same
+
   struct RecipeExport: Codable {
     let id: String
     let title: String
@@ -29,7 +24,7 @@ class ImportExportManager {
     let instructionSections: [InstructionSectionExport]?
     let notes: [NoteExport]
   }
-  
+
   struct IngredientExport: Codable {
     let id: String
     let name: String
@@ -39,21 +34,21 @@ class ImportExportManager {
     let comment: String?
     let position: Int
   }
-  
+
   struct SectionExport: Codable {
     let id: String
     let name: String
     let position: Int
     let ingredients: [IngredientExport]
   }
-  
+
   struct TimingExport: Codable {
     let id: String
     let type: String
     let hours: Int
     let minutes: Int
   }
-  
+
   struct StepExport: Codable {
     let id: String
     let value: String
@@ -66,19 +61,19 @@ class ImportExportManager {
     let position: Int
     let steps: [StepExport]
   }
-  
+
   struct NoteExport: Codable {
     let id: String
     let text: String
     let position: Int
   }
-  
+
   enum ImportError: Error, LocalizedError {
     case fileReadError(Error)
     case jsonDecodingError(Error)
     case recipeProcessingError(index: Int, error: Error)
     case contextSaveError(Error)
-    
+
     var errorDescription: String? {
       switch self {
       case .fileReadError(let error):
@@ -92,13 +87,9 @@ class ImportExportManager {
       }
     }
   }
-  
-  // MARK: - Export Functions
-  
-  /// Shows file exporter for recipes
+
   static func exportRecipes(context: ModelContext) async -> (URL?, Error?) {
     do {
-      // Create the export file
       let url = try await createRecipesExport(context: context)
       return (url, nil)
     } catch {
@@ -106,11 +97,9 @@ class ImportExportManager {
       return (nil, error)
     }
   }
-  
-  /// Shows file exporter for ingredients
+
   static func exportIngredients(context: ModelContext) async -> (URL?, Error?) {
     do {
-      // Create the export file
       let url = try await createIngredientsExport(context: context)
       return (url, nil)
     } catch {
@@ -118,14 +107,11 @@ class ImportExportManager {
       return (nil, error)
     }
   }
-  
-  /// Creates a JSON file with all recipes
+
   static func createRecipesExport(context: ModelContext) async throws -> URL {
-    // Fetch all recipes
     let recipesDescriptor = FetchDescriptor<Recipe>()
     let recipes = try context.fetch(recipesDescriptor)
-    
-    // Convert to exportable format
+
     let exportRecipes = recipes.map { recipe in
       RecipeExport(
         id: recipe.id,
@@ -186,45 +172,37 @@ class ImportExportManager {
         }
       )
     }
-    
-    // Encode to JSON
+
     let encoder = JSONEncoder()
     encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
     let jsonData = try encoder.encode(exportRecipes)
-    
-    // Write to temporary file
+
     let tempURL = FileManager.default.temporaryDirectory
       .appendingPathComponent("Julia-Recipes-\(DateFormatter.compactDateTime.string(from: Date())).json")
-    
+
     try jsonData.write(to: tempURL)
     return tempURL
   }
-  
-  /// Creates a JSON file with standalone ingredients
+
   private static func createIngredientsExport(context: ModelContext) async throws -> URL {
-    // Fetch standalone ingredients (not associated with recipes)
     let ingredientsDescriptor = FetchDescriptor<Ingredient>(
       predicate: #Predicate<Ingredient> { $0.recipe == nil && $0.section == nil }
     )
     let ingredients = try context.fetch(ingredientsDescriptor)
-    
-    // Convert to exportable format
+
     let exportIngredients = ingredients.map { exportIngredient($0) }
-    
-    // Encode to JSON
+
     let encoder = JSONEncoder()
     encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
     let jsonData = try encoder.encode(exportIngredients)
-    
-    // Write to temporary file
+
     let tempURL = FileManager.default.temporaryDirectory
       .appendingPathComponent("Julia-Ingredients-\(DateFormatter.compactDateTime.string(from: Date())).json")
-    
+
     try jsonData.write(to: tempURL)
     return tempURL
   }
-  
-  /// Helper to convert an Ingredient to exportable format
+
   static func exportIngredient(_ ingredient: Ingredient) -> IngredientExport {
     return IngredientExport(
       id: ingredient.id,
@@ -236,12 +214,8 @@ class ImportExportManager {
       position: ingredient.position
     )
   }
-  
-  // MARK: - Import Functions
-  
-  /// Imports recipes from a JSON file
+
   static func importRecipesFile(from url: URL, context: ModelContext) async throws -> Int {
-    // Read JSON data
     let data: Data
     do {
       data = try Data(contentsOf: url)
@@ -250,39 +224,33 @@ class ImportExportManager {
       print("Error reading file: \(error)")
       throw ImportError.fileReadError(error)
     }
-    
-    // Decode recipes
+
     let decoder = JSONDecoder()
     let importedRecipes: [RecipeExport]
-    
+
     do {
       importedRecipes = try decoder.decode([RecipeExport].self, from: data)
       print("Successfully decoded \(importedRecipes.count) recipes")
     } catch {
       print("JSON decoding error: \(error)")
-      // Print sample of data to debug
       if let sample = String(data: data.prefix(100), encoding: .utf8) {
         print("Data sample: \(sample)...")
       }
       throw ImportError.jsonDecodingError(error)
     }
-    
-    // Import each recipe
+
     var importedCount = 0
     for (index, importedRecipe) in importedRecipes.enumerated() {
       do {
-        // Check if recipe already exists
         var existingRecipeDescriptor = FetchDescriptor<Recipe>(
           predicate: #Predicate<Recipe> { $0.id == importedRecipe.id }
         )
         existingRecipeDescriptor.fetchLimit = 1
-        
+
         if let existingRecipe = try context.fetch(existingRecipeDescriptor).first {
-          // Update existing recipe
           print("Updating existing recipe: \(importedRecipe.title)")
           updateRecipe(existingRecipe, from: importedRecipe, context: context)
         } else {
-          // Create new recipe (already inserts into context)
           print("Creating new recipe: \(importedRecipe.title)")
           let _ = createRecipe(from: importedRecipe, context: context)
         }
@@ -292,8 +260,7 @@ class ImportExportManager {
         throw ImportError.recipeProcessingError(index: index, error: error)
       }
     }
-    
-    // Save changes
+
     do {
       print("Saving changes to context")
       try context.save()
@@ -304,42 +271,32 @@ class ImportExportManager {
       throw ImportError.contextSaveError(error)
     }
   }
-  
-  /// Imports standalone ingredients from a JSON file
+
   static func importIngredientsFile(from url: URL, context: ModelContext) async throws -> Int {
-    // Read JSON data
     let data = try Data(contentsOf: url)
-    
-    // Decode ingredients
+
     let decoder = JSONDecoder()
     let importedIngredients = try decoder.decode([IngredientExport].self, from: data)
-    
-    // Import each ingredient
+
     for importedIngredient in importedIngredients {
-      // Check if ingredient already exists
       var existingIngredientDescriptor = FetchDescriptor<Ingredient>(
         predicate: #Predicate<Ingredient> { $0.id == importedIngredient.id }
       )
       existingIngredientDescriptor.fetchLimit = 1
-      
+
       if let existingIngredient = try context.fetch(existingIngredientDescriptor).first {
-        // Update existing ingredient
         updateIngredient(existingIngredient, from: importedIngredient)
       } else {
-        // Create new ingredient
         let ingredient = createIngredient(from: importedIngredient)
         context.insert(ingredient)
       }
     }
-    
-    // Save changes
+
     try context.save()
     return importedIngredients.count
   }
-  
-  /// Creates a new Recipe from imported data
+
   static func createRecipe(from importedRecipe: RecipeExport, context: ModelContext) -> Recipe {
-    // First create and insert the recipe
     let recipe = Recipe(
       id: importedRecipe.id,
       title: importedRecipe.title,
@@ -353,40 +310,35 @@ class ImportExportManager {
       website: importedRecipe.website,
       author: importedRecipe.author
     )
-    
-    // Insert the recipe into the context first
+
     context.insert(recipe)
-    
-    // Create and insert ingredients first
+
     for importedIngredient in importedRecipe.ingredients {
       let ingredient = createIngredient(from: importedIngredient)
-      context.insert(ingredient) // Insert into context before establishing relationship
+      context.insert(ingredient)
       ingredient.recipe = recipe
       recipe.ingredients.append(ingredient)
     }
-    
-    // Create and insert sections with their ingredients
+
     for importedSection in importedRecipe.sections {
       let section = IngredientSection(
         id: importedSection.id,
         name: importedSection.name,
         position: importedSection.position
       )
-      context.insert(section) // Insert into context before establishing relationship
+      context.insert(section)
       section.recipe = recipe
-      
-      // Create and insert section ingredients
+
       for importedIngredient in importedSection.ingredients {
         let ingredient = createIngredient(from: importedIngredient)
-        context.insert(ingredient) // Insert into context before establishing relationship
+        context.insert(ingredient)
         ingredient.section = section
         section.ingredients.append(ingredient)
       }
-      
+
       recipe.sections.append(section)
     }
-    
-    // Create and insert timings
+
     for importedTiming in importedRecipe.timings {
       let timing = Timing(
         id: importedTiming.id,
@@ -394,138 +346,18 @@ class ImportExportManager {
         hours: importedTiming.hours,
         minutes: importedTiming.minutes
       )
-      context.insert(timing) // Insert into context before establishing relationship
+      context.insert(timing)
       timing.recipe = recipe
       recipe.timings.append(timing)
     }
-    
-    // Create and insert instructions
+
     for importedStep in importedRecipe.instructions {
       let step = Step(
         id: importedStep.id,
         value: importedStep.value,
         position: importedStep.position
       )
-      context.insert(step) // Insert into context before establishing relationship
-      step.recipe = recipe // Set the recipe relationship
-      recipe.instructions.append(step)
-    }
-
-    // Create and insert instruction sections with their steps
-    for importedSection in importedRecipe.instructionSections ?? [] {
-      let section = InstructionSection(
-        id: importedSection.id,
-        name: importedSection.name,
-        position: importedSection.position
-      )
-      context.insert(section) // Insert into context before establishing relationship
-      section.recipe = recipe
-
-      for importedStep in importedSection.steps {
-        let step = Step(
-          id: importedStep.id,
-          value: importedStep.value,
-          position: importedStep.position
-        )
-        context.insert(step) // Insert into context before establishing relationship
-        step.section = section
-        section.steps.append(step)
-      }
-
-      recipe.instructionSections.append(section)
-    }
-
-    // Create and insert notes
-    for importedNote in importedRecipe.notes {
-      let note = Note(
-        id: importedNote.id,
-        text: importedNote.text,
-        position: importedNote.position
-      )
-      context.insert(note) // Insert into context before establishing relationship
-      note.recipe = recipe // Set the recipe relationship
-      recipe.notes.append(note)
-    }
-
-    return recipe
-  }
-  
-  /// Updates an existing Recipe with imported data
-  private static func updateRecipe(_ recipe: Recipe, from importedRecipe: RecipeExport, context: ModelContext) {
-    // Update basic properties
-    recipe.title = importedRecipe.title
-    recipe.summary = importedRecipe.summary
-    recipe.servings = importedRecipe.servings
-    recipe.tags = importedRecipe.tags
-    recipe.rawText = importedRecipe.rawText
-    recipe.source = importedRecipe.source
-    recipe.sourceType = importedRecipe.sourceType.flatMap { SourceType(rawValue: $0) }
-    recipe.sourceTitle = importedRecipe.sourceTitle
-    recipe.website = importedRecipe.website
-    recipe.author = importedRecipe.author
-    
-    // First, save copies of existing relationships to delete later
-    let oldIngredients = recipe.ingredients
-    let oldSections = recipe.sections
-    let oldTimings = recipe.timings
-    let oldInstructions = recipe.instructions
-    let oldInstructionSections = recipe.instructionSections
-    let oldNotes = recipe.notes
-
-    // Clear arrays without deleting objects yet
-    recipe.ingredients = []
-    recipe.sections = []
-    recipe.timings = []
-    recipe.instructions = []
-    recipe.instructionSections = []
-    recipe.notes = []
-    
-    // Recreate relationships with proper context insertion
-    for importedIngredient in importedRecipe.ingredients {
-      let ingredient = createIngredient(from: importedIngredient)
-      context.insert(ingredient) // Insert into context before establishing relationship
-      ingredient.recipe = recipe
-      recipe.ingredients.append(ingredient)
-    }
-    
-    for importedSection in importedRecipe.sections {
-      let section = IngredientSection(
-        id: importedSection.id,
-        name: importedSection.name,
-        position: importedSection.position
-      )
-      context.insert(section) // Insert into context before establishing relationship
-      section.recipe = recipe
-      
-      for importedIngredient in importedSection.ingredients {
-        let ingredient = createIngredient(from: importedIngredient)
-        context.insert(ingredient) // Insert into context before establishing relationship
-        ingredient.section = section
-        section.ingredients.append(ingredient)
-      }
-      
-      recipe.sections.append(section)
-    }
-    
-    for importedTiming in importedRecipe.timings {
-      let timing = Timing(
-        id: importedTiming.id,
-        type: importedTiming.type,
-        hours: importedTiming.hours,
-        minutes: importedTiming.minutes
-      )
-      context.insert(timing) // Insert into context before establishing relationship
-      timing.recipe = recipe
-      recipe.timings.append(timing)
-    }
-    
-    for importedStep in importedRecipe.instructions {
-      let step = Step(
-        id: importedStep.id,
-        value: importedStep.value,
-        position: importedStep.position
-      )
-      context.insert(step) // Insert into context before establishing relationship
+      context.insert(step)
       step.recipe = recipe
       recipe.instructions.append(step)
     }
@@ -536,7 +368,7 @@ class ImportExportManager {
         name: importedSection.name,
         position: importedSection.position
       )
-      context.insert(section) // Insert into context before establishing relationship
+      context.insert(section)
       section.recipe = recipe
 
       for importedStep in importedSection.steps {
@@ -545,7 +377,7 @@ class ImportExportManager {
           value: importedStep.value,
           position: importedStep.position
         )
-        context.insert(step) // Insert into context before establishing relationship
+        context.insert(step)
         step.section = section
         section.steps.append(step)
       }
@@ -559,34 +391,143 @@ class ImportExportManager {
         text: importedNote.text,
         position: importedNote.position
       )
-      context.insert(note) // Insert into context before establishing relationship
+      context.insert(note)
       note.recipe = recipe
       recipe.notes.append(note)
     }
 
-    // Now safely delete old objects after new relationships are established
+    return recipe
+  }
+
+  private static func updateRecipe(_ recipe: Recipe, from importedRecipe: RecipeExport, context: ModelContext) {
+    recipe.title = importedRecipe.title
+    recipe.summary = importedRecipe.summary
+    recipe.servings = importedRecipe.servings
+    recipe.tags = importedRecipe.tags
+    recipe.rawText = importedRecipe.rawText
+    recipe.source = importedRecipe.source
+    recipe.sourceType = importedRecipe.sourceType.flatMap { SourceType(rawValue: $0) }
+    recipe.sourceTitle = importedRecipe.sourceTitle
+    recipe.website = importedRecipe.website
+    recipe.author = importedRecipe.author
+
+    let oldIngredients = recipe.ingredients
+    let oldSections = recipe.sections
+    let oldTimings = recipe.timings
+    let oldInstructions = recipe.instructions
+    let oldInstructionSections = recipe.instructionSections
+    let oldNotes = recipe.notes
+
+    recipe.ingredients = []
+    recipe.sections = []
+    recipe.timings = []
+    recipe.instructions = []
+    recipe.instructionSections = []
+    recipe.notes = []
+
+    for importedIngredient in importedRecipe.ingredients {
+      let ingredient = createIngredient(from: importedIngredient)
+      context.insert(ingredient)
+      ingredient.recipe = recipe
+      recipe.ingredients.append(ingredient)
+    }
+
+    for importedSection in importedRecipe.sections {
+      let section = IngredientSection(
+        id: importedSection.id,
+        name: importedSection.name,
+        position: importedSection.position
+      )
+      context.insert(section)
+      section.recipe = recipe
+
+      for importedIngredient in importedSection.ingredients {
+        let ingredient = createIngredient(from: importedIngredient)
+        context.insert(ingredient)
+        ingredient.section = section
+        section.ingredients.append(ingredient)
+      }
+
+      recipe.sections.append(section)
+    }
+
+    for importedTiming in importedRecipe.timings {
+      let timing = Timing(
+        id: importedTiming.id,
+        type: importedTiming.type,
+        hours: importedTiming.hours,
+        minutes: importedTiming.minutes
+      )
+      context.insert(timing)
+      timing.recipe = recipe
+      recipe.timings.append(timing)
+    }
+
+    for importedStep in importedRecipe.instructions {
+      let step = Step(
+        id: importedStep.id,
+        value: importedStep.value,
+        position: importedStep.position
+      )
+      context.insert(step)
+      step.recipe = recipe
+      recipe.instructions.append(step)
+    }
+
+    for importedSection in importedRecipe.instructionSections ?? [] {
+      let section = InstructionSection(
+        id: importedSection.id,
+        name: importedSection.name,
+        position: importedSection.position
+      )
+      context.insert(section)
+      section.recipe = recipe
+
+      for importedStep in importedSection.steps {
+        let step = Step(
+          id: importedStep.id,
+          value: importedStep.value,
+          position: importedStep.position
+        )
+        context.insert(step)
+        step.section = section
+        section.steps.append(step)
+      }
+
+      recipe.instructionSections.append(section)
+    }
+
+    for importedNote in importedRecipe.notes {
+      let note = Note(
+        id: importedNote.id,
+        text: importedNote.text,
+        position: importedNote.position
+      )
+      context.insert(note)
+      note.recipe = recipe
+      recipe.notes.append(note)
+    }
+
     for ingredient in oldIngredients {
       context.delete(ingredient)
     }
-    
+
     for section in oldSections {
-      // First delete section ingredients
       for ingredient in section.ingredients {
         context.delete(ingredient)
       }
       context.delete(section)
     }
-    
+
     for timing in oldTimings {
       context.delete(timing)
     }
-    
+
     for instruction in oldInstructions {
       context.delete(instruction)
     }
 
     for section in oldInstructionSections {
-      // First delete section steps
       for step in section.steps {
         context.delete(step)
       }
@@ -597,8 +538,7 @@ class ImportExportManager {
       context.delete(note)
     }
   }
-  
-  /// Creates a new Ingredient from imported data
+
   static func createIngredient(from importedIngredient: IngredientExport) -> Ingredient {
     return Ingredient(
       id: importedIngredient.id,
@@ -610,8 +550,7 @@ class ImportExportManager {
       position: importedIngredient.position
     )
   }
-  
-  /// Updates an existing Ingredient with imported data
+
   private static func updateIngredient(_ ingredient: Ingredient, from importedIngredient: IngredientExport) {
     ingredient.name = importedIngredient.name
     ingredient.location = IngredientLocation(rawValue: importedIngredient.location) ?? .unknown
@@ -621,8 +560,6 @@ class ImportExportManager {
     ingredient.position = importedIngredient.position
   }
 }
-
-// MARK: - Helper Extensions
 
 extension DateFormatter {
   static let compactDateTime: DateFormatter = {

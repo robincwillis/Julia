@@ -1,12 +1,6 @@
-//
-//  RecipeSuggestionsView.swift
-//  Julia
-//
-
 import SwiftUI
 import SwiftData
 
-/// "What can I cook?" — shows saved recipes ranked by pantry/grocery coverage.
 struct RecipeSuggestionsView: View {
     @Environment(\.modelContext) private var context
     @Environment(\.dismiss) private var dismiss
@@ -60,11 +54,9 @@ struct RecipeSuggestionsView: View {
             }
         }
         .onAppear {
-            // Sync ViewModel to initial filter selection
             viewModel.includePantry = true
             viewModel.includeGrocery = false
             viewModel.computeMatches(recipes: recipes, ingredients: ingredients)
-            // Chevron color
             UITableViewCell.appearance().tintColor = UIColor(
                 red: 197/255, green: 197/255, blue: 199/255, alpha: 1
             )
@@ -81,8 +73,6 @@ struct RecipeSuggestionsView: View {
         }
         .presentationBackground(Color.app.backgroundSecondary)
     }
-
-    // MARK: - Subviews
 
     private var matchList: some View {
         List(viewModel.matches) { match in
@@ -134,8 +124,6 @@ struct RecipeSuggestionsView: View {
     }
 }
 
-// MARK: - Empty State
-
 private struct SuggestionsEmptyState: View {
     let label: String
 
@@ -155,8 +143,6 @@ private struct SuggestionsEmptyState: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
-
-// MARK: - Row
 
 private struct RecipeMatchRow: View {
     let match: RecipeMatch

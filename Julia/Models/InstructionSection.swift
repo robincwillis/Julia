@@ -22,7 +22,6 @@ final class InstructionSection: Identifiable, Hashable {
         self.recipe = recipe
     }
 
-    // Get steps sorted by position
     var sortedSteps: [Step] {
         return steps.sorted { $0.position < $1.position }
     }

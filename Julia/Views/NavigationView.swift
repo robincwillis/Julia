@@ -1,17 +1,9 @@
-//
-//  NavigationView.swift
-//  Julia
-//
-//  Created by Robin Willis on 7/1/24.
-//
-
 import SwiftUI
 import SwiftData
 import PhotosUI
 import VisionKit
 
 
-// Define notification names for tab bar visibility
 extension Notification.Name {
   static let hideTabBar = Notification.Name("hideTabBar")
   static let showTabBar = Notification.Name("showTabBar")
@@ -63,24 +55,20 @@ struct NavigationView: View {
   @Environment(\.modelContext) private var context
   @Environment(\.debugMode) private var debugMode
 
-  // Tab bar state
   @State private var isTabBarVisible: Bool = true
   @State private var selectedTab: Tabs = .grocery
 
   @State private var isSettingsDrawerVisible = false
   @State private var dragOffset: CGFloat = 0
 
-  // Recipe processing state
   @State private var selectedImage: UIImage?
   @State private var selectedText: String?
   @State private var extractedRecipeData: RecipeData?
   @Environment(\.scenePhase) private var scenePhase
   @State private var recipeProcessor = RecipeProcessor()
 
-  // Receipt processing state
   @State private var receiptProcessor = ReceiptProcessor()
 
-  // Julia chat
   @State private var showJulia = false
   @State private var screenSize: CGSize = .zero
 
@@ -95,7 +83,6 @@ struct NavigationView: View {
       .offset(x: isSettingsDrawerVisible ? 280 : 0)
       .animation(.easeInOut(duration: 0.3), value: isTabBarVisible)
 
-      // Debug: highlight swipe-trigger zones
       if debugMode {
         // Sidebar: left-edge swipe zone (0…100pt)
         Rectangle()
@@ -216,11 +203,6 @@ struct NavigationView: View {
     }
 }
 
-// MARK: - Share Extension Hand-off
-
-/// Takes one item at a time from the shared inbox. Importing runs through a
-/// single RecipeProcessor, so items are handled sequentially — the next is
-/// picked up when the results sheet for the previous one is dismissed.
 private func importNextSharedItem() {
   guard !recipeProcessor.processingState.isProcessing,
         !recipeProcessor.processingState.showResultsSheet,
@@ -234,8 +216,6 @@ private func importNextSharedItem() {
     recipeProcessor.importSharedURL(urlString)
   }
 }
-
-// MARK: - View Components
 
 private var tabView: some View {
   TabView(selection: $selectedTab) {

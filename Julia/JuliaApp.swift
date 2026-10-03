@@ -17,7 +17,6 @@ struct JuliaApp: App {
 
     var body: some Scene {
         WindowGroup {
-            // Environment objects are set at the top level of the app
             let _ = UserDefaults.standard.register(defaults: [
                 "debugMode": false
             ])
@@ -48,13 +47,11 @@ struct JuliaApp: App {
     }
 
     private func setupDebugModeObserver() {
-        // Observe changes to the debug mode UserDefault
         NotificationCenter.default.addObserver(
             forName: UserDefaults.didChangeNotification,
             object: nil,
             queue: .main
         ) { _ in
-            // Check if debugMode specifically changed
             debugModeEnabled = UserDefaults.standard.bool(forKey: "debugMode")
         }
     }

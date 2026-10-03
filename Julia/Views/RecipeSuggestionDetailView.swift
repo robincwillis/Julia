@@ -1,13 +1,6 @@
-//
-//  RecipeSuggestionDetailView.swift
-//  Julia
-//
-
 import SwiftUI
 import SwiftData
 
-/// Detailed view for a single `RecipeMatch` — shows missing ingredients,
-/// lets the user add them to grocery, and fetches FM substitution suggestions.
 struct RecipeSuggestionDetailView: View {
     @Environment(\.modelContext) private var context
     @Environment(\.dismiss) private var dismiss
@@ -23,7 +16,6 @@ struct RecipeSuggestionDetailView: View {
 
     var body: some View {
         List {
-            // Coverage summary
             Section {
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
@@ -50,7 +42,6 @@ struct RecipeSuggestionDetailView: View {
                 .padding(.vertical, 4)
             }
 
-            // Missing ingredients
             if !match.missingIngredients.isEmpty {
                 Section {
                     ForEach(match.missingIngredients, id: \.self) { ingredient in
@@ -80,7 +71,6 @@ struct RecipeSuggestionDetailView: View {
                 }
             }
 
-            // Substitutions — only shown when ingredients are missing
             if !match.missingIngredients.isEmpty {
                 Section("Substitutions") {
                     if viewModel.isFetchingSubstitutions {
@@ -130,7 +120,6 @@ struct RecipeSuggestionDetailView: View {
                 }
             }
 
-            // Ready to Cook — shown when all ingredients are available
             if match.missingIngredients.isEmpty {
                 Section {
                     VStack(spacing: 12) {
@@ -144,7 +133,6 @@ struct RecipeSuggestionDetailView: View {
                 }
             }
 
-            // View full recipe
             Section {
                 actionButton(
                     title: "View Full Recipe",
@@ -182,8 +170,6 @@ struct RecipeSuggestionDetailView: View {
         }
     }
 
-    // MARK: - Subviews
-
     private func actionButton(
         title: String,
         icon: String,
@@ -201,8 +187,6 @@ struct RecipeSuggestionDetailView: View {
         }
         .buttonStyle(.plain)
     }
-
-    // MARK: - Private
 
     private func addSelectedToGrocery() {
         for name in selectedMissing {

@@ -1,10 +1,3 @@
-//
-//  RecipeList.swift
-//  Julia
-//
-//  Created by Robin Willis on 7/2/24.
-//
-
 import SwiftUI
 import SwiftData
 
@@ -20,11 +13,9 @@ struct RecipeList: View {
             .listRowBackground(Color.clear)
             .listRowSeparatorTint(Color.app.offWhite400)
 
-            
-            // Add spacer at the end for tab bar
             Section {
                 Color.clear
-                    .frame(height: 90) // Height of tab bar + extra padding
+                    .frame(height: 90)
                     .listRowBackground(Color.clear)
                     .listRowSeparator(.hidden)
             }
@@ -37,7 +28,6 @@ struct RecipeList: View {
 
 #Preview("Recipe List") {
   Previews.previewModels(with: { context in
-    // Create sample recipes
     let recipe1 = Recipe(
       title: "Chocolate Chip Cookies",
       summary: "Classic homemade cookies with chocolate chips",
@@ -67,15 +57,11 @@ struct RecipeList: View {
       ]
     )
     
-    // Insert recipes into context
     context.insert(recipe1)
     context.insert(recipe2)
     context.insert(recipe3)
-    
-    // Return the array of recipes
     return [recipe1, recipe2, recipe3]
   }) { recipes in
-    // Content closure receives the recipes array
     RecipeList(recipes: recipes)
   }
 }

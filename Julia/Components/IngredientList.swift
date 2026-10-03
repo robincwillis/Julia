@@ -1,10 +1,3 @@
-//
-//  IngredientList.swift
-//  Julia
-//
-//  Created by Robin Willis on 7/2/24.
-//
-
 import SwiftUI
 import SwiftData
 
@@ -27,11 +20,10 @@ struct IngredientList: View {
         .onDelete(perform: removeIngredients)
         .listRowBackground(Color.clear)
         .listRowSeparator(.hidden)
-        
-        // Add spacer at the end for tab bar
+
         Section {
           Color.clear
-            .frame(height: 90) // Height of tab bar + extra padding
+            .frame(height: 90)
             .listRowBackground(Color.clear)
             .listRowSeparator(.hidden)
         }
@@ -46,17 +38,12 @@ struct IngredientList: View {
 
 #Preview("Ingredient List") {
   Previews.previewModels(with: { context in
-    // Create sample ingredients using MockData
     let ingredients = MockData.createSampleIngredients()
-    
-    // Insert ingredients into context
     for ingredient in ingredients {
       context.insert(ingredient)
     }
-    
     return ingredients
   }) { ingredients in
-    // Content closure receives the ingredients array
     IngredientList(
       ingredients: ingredients,
       showAddSheet: { _ in /* Noop */ },

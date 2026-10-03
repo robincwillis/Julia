@@ -11,7 +11,6 @@ import Vision
 import Foundation
 import FoundationModels
 
-/// Manages recipe processing workflow and state
 @Observable
 @MainActor
 class RecipeProcessor {
@@ -23,11 +22,9 @@ class RecipeProcessor {
   /// genuine per-line confidence.
   static let confidenceThreshold: Double = 0.65
 
-  // Consolidated state
   var processingState = RecipeProcessingState()
   var recipeData = RecipeData()
 
-  // Reference to model context for saving
   private var modelContext: ModelContext?
 
   // Recipe auto-saved on import; replaced if the user saves an edited version
@@ -37,11 +34,9 @@ class RecipeProcessor {
   /// Cleared by `start()`.
   private(set) var lastError: Error?
 
-  // Completion handler
   var onCompletion: ((RecipeData) -> Void)?
   var onError: ((String) -> Void)?
 
-  // Initialize with different input sources
   init(modelContext: ModelContext? = nil) {
     self.modelContext = modelContext
   }
@@ -50,7 +45,6 @@ class RecipeProcessor {
     self.modelContext = context
   }
 
-  // Manage State
   func start() {
     processingState.reset()
     recipeData.reset()
@@ -115,7 +109,6 @@ class RecipeProcessor {
     return true
   }
 
-  // Process image input
   func processImage(_ image: UIImage) {
     if failIfModelUnavailable() { return }
     start()
@@ -136,7 +129,6 @@ class RecipeProcessor {
     }
   }
 
-  // Process text input
   func processText(_ text: String) {
     if failIfModelUnavailable() { return }
     start()
@@ -157,7 +149,6 @@ class RecipeProcessor {
     }
   }
 
-  // Process existing recipe data (pre-extracted, no processing phase needed).
   // Pass immediatePresentation: true when called from a sheet's onDismiss — the
   // previous sheet is already fully gone so we can present the results sheet right away.
   // The default 650ms delay covers the case where a fullScreenCover is still animating out.
@@ -223,11 +214,9 @@ class RecipeProcessor {
     autoSavedRecipe = recipe
   }
 
-  // Text from image extraction task
   private func extractTextFromImage(_ image: UIImage) async throws -> [String] {
     processingState.statusMessage = "AI is Extracting text..."
 
-    // Work in Progress, not being used in pipeline yet...
     let recipeLayoutAnalyizer = RecipeLayoutAnalyzer()
     let recognizedTextGroups = try await recipeLayoutAnalyizer.analyzeTextGroups(from: image)
 
@@ -249,7 +238,6 @@ class RecipeProcessor {
     return recognizedText
   }
 
-  // Text from text extraction task
   private func extractTextFromText(_ text: String) async throws -> [String] {
     processingState.statusMessage = "AI is extracting text..."
 
@@ -264,7 +252,6 @@ class RecipeProcessor {
     return recognizedText
   }
 
-  // Text reconstruction task
   private func reconstructText(_ textLines: [String]) async throws -> ProcessingTextResult {
     processingState.statusMessage = "AI is reconstructing text..."
 
@@ -277,7 +264,6 @@ class RecipeProcessor {
     return await RecipeTextReconstructor.reconstructTextAsync(filteredText)
   }
 
-  // Text classification task
   private func classifyText(_ reconstructedLines: [String]) async throws -> ClassificationResult {
     processingState.isClassifying = true
     processingState.statusMessage = "AI is classifying recipe..."
@@ -285,17 +271,12 @@ class RecipeProcessor {
     return try await FoundationModelsRecipeClassifier().classify(reconstructedLines)
   }
 
-  // Update recipe data with processing results
   private func updateRecipeData(_ raw: [String], _ reconstructed: ProcessingTextResult, _ classified: ClassificationResult) {
-    // Store raw Text
     recipeData.rawText = raw
-    // Store reconstructed text
     recipeData.reconstructedText = reconstructed
 
-    // Use title from reconstructor if available, otherwise use the one from classifier
     recipeData.title = !reconstructed.title.isEmpty ? reconstructed.title : classified.title
 
-    // Store classification results
     recipeData.ingredients = classified.ingredients
     recipeData.instructions = classified.instructions
     recipeData.summary = classified.summary
@@ -307,7 +288,6 @@ class RecipeProcessor {
     processingState.isClassifying = false
   }
 
-  // Error handling
   /// Records the underlying error alongside the user-facing message.
   ///
   /// `onError` only carries a `String`, which is all the UI needs but leaves
@@ -344,7 +324,6 @@ class RecipeProcessor {
       autoSavedRecipe = nil
     }
 
-    // Snapshot current data
     let data = recipeData
 
     let recipe = await data.convertToSwiftDataModelAsync()
@@ -354,7 +333,6 @@ class RecipeProcessor {
     return true
   }
 
-  // Custom error types for processing
   enum ProcessingError: Error, LocalizedError {
     case noTextDetected
     case emptyContent
@@ -373,7 +351,6 @@ class RecipeProcessor {
   }
 }
 
-// Type alias for classification result
 typealias ClassificationResult = (
   title: String,
   sectionTitles: [String],
@@ -388,7 +365,6 @@ typealias ClassificationResult = (
   classified: [(String, RecipeLineType, Double)]
 )
 
-// Async wrapper for the text reconstructor (pure heuristic, no ML needed)
 extension RecipeTextReconstructor {
   static func reconstructTextAsync(_ lines: [String]) async -> ProcessingTextResult {
     await Task.detached(priority: .userInitiated) {

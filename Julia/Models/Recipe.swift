@@ -61,7 +61,6 @@ class Recipe: Identifiable, Hashable, CustomStringConvertible {
 
 
   
-    // Meta
     var tags: [String]
     var rawText: [String]?
     var source: String?
@@ -120,21 +119,18 @@ class Recipe: Identifiable, Hashable, CustomStringConvertible {
         return "Recipe(id: \(id), title: \(title), rawText: \(String(describing: rawText))"
     }
     
-    // Helper method to add a new section
     func addSection(name: String) -> IngredientSection {
         let newSection = IngredientSection(name: name, position: sections.count)
         sections.append(newSection)
         return newSection
     }
 
-    // Helper method to add a new instruction section
     func addInstructionSection(name: String) -> InstructionSection {
         let newSection = InstructionSection(name: name, position: instructionSections.count)
         instructionSections.append(newSection)
         return newSection
     }
-    
-    // Helper method to get all ingredients (both sectioned and unsectioned)
+
     var allIngredients: [Ingredient] {
         var allIngredients = ingredients
         for section in sections {
@@ -142,15 +138,12 @@ class Recipe: Identifiable, Hashable, CustomStringConvertible {
         }
         return allIngredients
     }
-    
-    // Get ingredients sorted by position
+
     var sortedIngredients: [Ingredient] {
         return ingredients.sorted { $0.position < $1.position }
     }
-    
-    // Helper method to move an ingredient to a section
+
     func moveIngredient(_ ingredient: Ingredient, toSection section: IngredientSection?) {
-        // First remove the ingredient from its current location
         if let currentSection = ingredient.section {
             if let index = currentSection.ingredients.firstIndex(of: ingredient) {
                 currentSection.ingredients.remove(at: index)
@@ -161,7 +154,6 @@ class Recipe: Identifiable, Hashable, CustomStringConvertible {
             }
         }
 
-        // Now add to the new section or to unsectioned ingredients
         if let newSection = section {
             ingredient.section = newSection
             newSection.ingredients.append(ingredient)
@@ -171,7 +163,6 @@ class Recipe: Identifiable, Hashable, CustomStringConvertible {
         }
     }
 
-    // Helper method to get all steps (both sectioned and unsectioned)
     var allInstructions: [Step] {
         var all = instructions
         for section in instructionSections {
@@ -180,14 +171,11 @@ class Recipe: Identifiable, Hashable, CustomStringConvertible {
         return all
     }
 
-    // Get unsectioned steps sorted by position
     var sortedInstructions: [Step] {
         return instructions.sorted { $0.position < $1.position }
     }
 
-    // Helper method to move a step to an instruction section
     func moveStep(_ step: Step, toSection section: InstructionSection?) {
-        // First remove the step from its current location
         if let currentSection = step.section {
             if let index = currentSection.steps.firstIndex(of: step) {
                 currentSection.steps.remove(at: index)
@@ -198,7 +186,6 @@ class Recipe: Identifiable, Hashable, CustomStringConvertible {
             }
         }
 
-        // Now add to the new section or to unsectioned instructions
         if let newSection = section {
             step.section = newSection
             newSection.steps.append(step)

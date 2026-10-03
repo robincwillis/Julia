@@ -1,10 +1,3 @@
-//
-//  RecipeRow.swift
-//  Julia
-//
-//  Created by Robin Willis on 7/2/24.
-//
-
 import SwiftUI
 
 struct RecipeRow: View {

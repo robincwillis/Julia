@@ -36,7 +36,6 @@ struct RecipeDetails: View {
   @State private var showCookMode = false
   @State private var unitSystem: UnitSystem? = nil
 
-  // Recipe actions
   @State private var showCompleteRecipeConfirmation = false
   @State private var showAddedToGroceryAlert = false
   @State private var showCompleteRecipeResult = false
@@ -47,7 +46,6 @@ struct RecipeDetails: View {
   @State private var titleIsVisible: Bool = true
   @State private var focusedField: RecipeFocusedField = .none
 
-  // Edit with AI
   @State private var isRunningAIEdit = false
   @State private var aiEditError: String?
   @State private var showAIEditError = false
@@ -65,19 +63,17 @@ struct RecipeDetails: View {
   @ViewBuilder
   private var editModeContent: some View {
     Form {
-      // Edit Summary Section
       RecipeEditSummarySection(
         title: $recipe.title,
         summary: $recipe.summary,
         servings: $recipe.servings,
         focusedField: $focusedField
       )
-      
+
       RecipeEditTimingsSection(
         timings: $recipe.timings
       )
-      
-      // Ingredients section
+
       RecipeEditIngredientsSection(
         ingredients: $recipe.ingredients,
         sections: $recipe.sections,
@@ -85,8 +81,7 @@ struct RecipeDetails: View {
         selectedSection: $selectedSection,
         showIngredientEditor: $showIngredientEditor
       )
-      
-      // Instructions section
+
       RecipeEditInstructionsSection(
         instructions: $recipe.instructions,
         instructionSections: $recipe.instructionSections,
@@ -171,14 +166,12 @@ struct RecipeDetails: View {
             titleIsVisible: $titleIsVisible
           )
           
-          // Title and Summary Section
           RecipeSummarySection(
             recipe: recipe,
             adjustedServings: adjustedServings,
             onTapServings: recipe.servings != nil ? { showServingAdjuster = true } : nil
           )
 
-          // Ingredients Section with selectable ingredients
           RecipeIngredientsSection(
             recipe: recipe,
             multiplier: servingMultiplier,
@@ -188,7 +181,6 @@ struct RecipeDetails: View {
             toggleSelection: toggleSelection(for:)
           )
 
-          // Additional Ingredient Sections
           if !recipe.sections.isEmpty {
             IngredientSectionList(
               sections: recipe.sections,
@@ -198,8 +190,7 @@ struct RecipeDetails: View {
               toggleSelection: toggleSelection(for:)
             )
           }
-          
-          // Instructions Section
+
           RecipeInstructionsSection(recipe: recipe)
           
           RecipeNotesSection(
@@ -451,17 +442,14 @@ struct RecipeDetails: View {
     }
   }
 
-  // MARK: - Body
   var body: some View {
     ZStack {
-      // Main content based on edit mode
       if isEditing {
         editModeContent
       } else {
         viewModeContent
       }
-      
-      // Floating ingredient editor
+
       ingredientEditorSheet
     }
     .navigationBarBackButtonHidden(true)
@@ -511,9 +499,7 @@ struct RecipeDetails: View {
       Text(aiEditError ?? "Unknown error occurred")
     }
     .onChange(of: showIngredientEditor) { oldValue, newValue in
-      // Only execute when the sheet is being dismissed
       if oldValue == true && newValue == false {
-        // Clear the selection after handling everything
         selectedIngredient = nil
         selectedSection = nil
       }
@@ -558,58 +544,47 @@ struct RecipeDetails: View {
   }
   
   private func deleteIngredient(_ ingredient: Ingredient) {
-    // Remove from recipe if needed
     if let recipe = ingredient.recipe {
       recipe.ingredients.removeAll(where: { $0.id == ingredient.id })
     }
-    
-    // Remove from section if needed
+
     if let section = ingredient.section {
       section.ingredients.removeAll(where: { $0.id == ingredient.id })
     }
-    
-    // Delete from context
+
     context.delete(ingredient)
-    
+
     do {
       try context.save()
     } catch {
       print("Error deleting empty ingredient: \(error)")
     }
   }
-  
+
   private func deleteRecipe() {
-    // First explicitly clear relationships to prevent access to deleted objects
     let ingredientsCopy = recipe.ingredients
     let sectionsCopy = recipe.sections
-    
-    // Clear relationship arrays first
+
     recipe.ingredients = []
     recipe.sections = []
-    
-    // Then delete all related objects explicitly
+
     for ingredient in ingredientsCopy {
       context.delete(ingredient)
     }
-    
+
     for section in sectionsCopy {
-      // Clear section's ingredients to avoid nested access
       let sectionIngredients = section.ingredients
       section.ingredients = []
-      
-      // Delete section's ingredients
+
       for ingredient in sectionIngredients {
         context.delete(ingredient)
       }
-      
-      // Delete the section
+
       context.delete(section)
     }
-    
-    // Now delete the recipe
+
     context.delete(recipe)
-    
-    // We need to handle potential errors when changes are saved
+
     do {
       try context.save()
     } catch {
@@ -618,10 +593,7 @@ struct RecipeDetails: View {
     showDeleteConfirmation = false
     dismiss()
   }
-  
-  // Ingredient Selection Methods
-  
-  // Create a binding for the selectable modifier
+
   private func selectableBinding(for ingredient: Ingredient) -> Binding<Bool> {
     Binding(
       get: { selectedIngredients.contains(ingredient) },
@@ -634,8 +606,7 @@ struct RecipeDetails: View {
       }
     )
   }
-  
-  // Toggle selection for an ingredient
+
   private func toggleSelection(for ingredient: Ingredient) {
     if selectedIngredients.contains(ingredient) {
       selectedIngredients.remove(ingredient)
@@ -643,35 +614,28 @@ struct RecipeDetails: View {
       selectedIngredients.insert(ingredient)
     }
   }
-  
-  // Add selected ingredients to grocery list
+
   private func addSelectedToLocation(location: IngredientLocation) {
     for ingredient in selectedIngredients {
-      // Create a copy of the ingredient for the list
       let newIngredient = Ingredient(
         name: ingredient.name,
-        location: location,  // Change location
+        location: location,
         quantity: ingredient.quantity,
         unit: ingredient.unit?.rawValue,
         comment: ingredient.comment
       )
-      
-      // Add to context
+
       context.insert(newIngredient)
     }
-    
-    // Save changes
+
     do {
       try context.save()
-      
-      // Clear selection
       clearSelection()
     } catch {
       print("Error saving items: \(error)")
     }
   }
-  
-  // Clear the current selection
+
   private func clearSelection() {
     selectedIngredients.removeAll()
   }
@@ -687,8 +651,6 @@ struct RecipeDetails: View {
       }
     }
   }
-
-  // MARK: - Recipe Actions
 
   private func allRecipeIngredients() -> [Ingredient] {
     var all = recipe.ingredients.filter { $0.section == nil }

@@ -8,8 +8,7 @@ struct SettingsDrawer: View {
   @State private var debugModeState: Bool = false
   @AppStorage("rateReviewEnabled") private var rateReviewEnabled = true
   @Environment(\.colorScheme) private var colorScheme
-  
-  // Import/Export states
+
   @State private var isExporting = false
   @State private var isImporting = false
   @State private var exportURL: URL?
@@ -31,38 +30,24 @@ struct SettingsDrawer: View {
   
   var body: some View {
     ZStack {
-      // Invisible background tap handler that covers the entire screen when drawer is open
       if isOpen {
         Color.clear
           .contentShape(Rectangle())
           .ignoresSafeArea()
           .onTapGesture {
-            // Close drawer when tapping outside
             withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
               isOpen = false
             }
           }
       }
-      
-      // Drawer panel
+
       HStack(spacing: 0) {
-        // Actual drawer content
         ZStack {
-          // Background
           Color.app.white
             .ignoresSafeArea(edges: .bottom)
-          
+
           VStack(alignment: .leading, spacing: 24) {
-            // Logo
-//            Image("julia")
-//              .resizable()
-//              .scaledToFit()
-//              .frame(height: 72)
-//              .padding(.bottom, 24)
-            
-            // Data Management Section
             VStack(alignment: .leading, spacing: 16) {
-              // Export button
               Button(action: exportData) {
                 HStack {
                   Image(systemName: "square.and.arrow.up")
@@ -83,7 +68,6 @@ struct SettingsDrawer: View {
               .buttonStyle(.plain)
               .disabled(isExporting || isImporting || isLoadingSampleData)
 
-              // Import button
               Button(action: importData) {
                 HStack {
                   Image(systemName: "square.and.arrow.down")
@@ -104,7 +88,6 @@ struct SettingsDrawer: View {
               .buttonStyle(.plain)
               .disabled(isExporting || isImporting || isLoadingSampleData)
 
-              // Load sample data button
               Button(action: { showLoadSampleConfirmation = true }) {
                 HStack {
                   Image(systemName: "plus.square.on.square")
@@ -128,7 +111,6 @@ struct SettingsDrawer: View {
               Divider()
                 .padding(.vertical, 4)
 
-              // Clear all data button
               Button(action: { showClearDataConfirmation = true }) {
                 HStack {
                   Image(systemName: "trash")
@@ -153,7 +135,6 @@ struct SettingsDrawer: View {
             Divider()
               .padding(.vertical, 8)
 
-            // Rate & Review toggle
             Toggle(isOn: $rateReviewEnabled) {
               HStack {
                 Image(systemName: "star")
@@ -169,7 +150,6 @@ struct SettingsDrawer: View {
             Divider()
               .padding(.vertical, 8)
 
-            // Debug toggle
             Toggle(isOn: $debugModeState) {
               HStack {
                 Image(systemName: "ladybug")
@@ -182,13 +162,11 @@ struct SettingsDrawer: View {
             }
             .toggleStyle(BrandSwitchToggleStyle())
             .onChange(of: debugModeState) { oldValue, newValue in
-              // Set the user default which will be read by the environment value
               UserDefaults.standard.set(newValue, forKey: "debugMode")
             }
-            
+
             Spacer()
-            
-            // Version info
+
             VStack(alignment: .leading, spacing: 4) {
               Text("Version \(appVersion)")
                 .font(.caption)
@@ -203,11 +181,9 @@ struct SettingsDrawer: View {
           .padding(.top, 72)
           .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
           .onAppear {
-            // Initialize the state from the environment
             debugModeState = debugMode
           }
-          
-          // Processing overlay
+
           if isExporting || isImporting || isLoadingSampleData {
             ZStack {
               Color.black.opacity(0.2)
@@ -231,8 +207,7 @@ struct SettingsDrawer: View {
         }
         .frame(width: 280)
         .shadow(color: .black.opacity(0.2), radius: 10, x: 5, y: 0)
-        
-        // Empty space for the rest of the screen
+
         if isOpen {
           Spacer()
         }
@@ -240,7 +215,6 @@ struct SettingsDrawer: View {
       .offset(x: isOpen ? 0 : -280)
       .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isOpen)
     }
-    // Alerts and modal sheets
     .alert("Error", isPresented: $showError) {
       Button("OK", role: .cancel) { }
     } message: {
@@ -320,20 +294,14 @@ struct SettingsDrawer: View {
     return ""
   }
   
-  // MARK: - Import/Export Functions
-  
   private func exportData() {
     isExporting = true
-    
+
     Task {
       do {
-        // Export the data
         let url = try await ImportExportManager.createRecipesExport(context: context)
-          
-        // Set UI state
         exportURL = url
         showExportSheet = true
-        
       } catch {
         errorMessage = "Export failed: \(error.localizedDescription)"
         showError = true
@@ -382,28 +350,21 @@ struct SettingsDrawer: View {
       return
     }
     
-    // Copy the file to a temporary location
     let tempURL = FileManager.default.temporaryDirectory
       .appendingPathComponent("import-\(UUID().uuidString).json")
-    
+
     do {
       try FileManager.default.copyItem(at: url, to: tempURL)
       url.stopAccessingSecurityScopedResource()
-      
-      // Now process the import
+
       Task {
         do {
-          // Import the data
           let count = try await ImportExportManager.importRecipesFile(from: tempURL, context: context)
-          
-          // Set UI state
           successMessage = "Imported \(count) items successfully"
           showSuccess = true
           isImporting = false
           try? FileManager.default.removeItem(at: tempURL)
-        
         } catch {
-          // Handle errors on the main actor
           errorMessage = "Import failed: \(error.localizedDescription)"
           showError = true
           isImporting = false
@@ -419,27 +380,20 @@ struct SettingsDrawer: View {
     }
   }
   
-  // MARK: - Sample Data Loading
-  
   private func loadSampleData(_ type: SampleDataLoader.SampleDataType) {
     isLoadingSampleData = true
-    
+
     Task {
       do {
-        // Load sample data
         let count = try await SampleDataLoader.loadSampleData(
           type: type,
           context: context
         )
-        
-        // Set UI state
         loadedCount = count
         successMessage = "Added \(count) sample items"
         showSuccess = true
         isLoadingSampleData = false
-      
       } catch {
-        // Handle errors on the main actor
         errorMessage = "Failed to load sample data: \(error.localizedDescription)"
         showError = true
         isLoadingSampleData = false
@@ -448,17 +402,12 @@ struct SettingsDrawer: View {
     }
   }
   
-  // MARK: - Clear All Data
-  
   private func clearAllData() {
     isClearingData = true
-    
+
     Task {
       do {
-        // Clear all data
         try await DataController.clearAllData(in: context)
-        
-        // Set UI state
         successMessage = "All data has been cleared successfully"
         showSuccess = true
         isClearingData = false
@@ -499,7 +448,6 @@ private struct BrandSwitchToggleStyle: ToggleStyle {
   }
 }
 
-// Document wrapper for file export
 struct JSONDocument: FileDocument {
   var url: URL?
   
@@ -510,7 +458,6 @@ struct JSONDocument: FileDocument {
   }
   
   init(configuration: ReadConfiguration) throws {
-    // We don't need to read the document
     url = nil
   }
   

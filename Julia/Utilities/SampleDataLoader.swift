@@ -1,4 +1,7 @@
-// SampleDataLoader.swift
+//
+//  SampleDataLoader.swift
+//  Julia
+//
 
 import SwiftUI
 import SwiftData

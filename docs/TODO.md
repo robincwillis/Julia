@@ -43,28 +43,38 @@ fallback engages, an unmissable alert now shows: *"Data Isn't Being
 Saved... Recipes, ingredients, and lists will NOT be saved once you close the
 app."*
 
-**Not yet confirmed:** *why* the on-disk container is failing to load in the
-first place (if that's even what's happening — this is the leading hypothesis,
-not a confirmed root cause). Leading suspect: the SwiftData schema version was
-bumped 2.2.2 → 2.2.3 this session for the new `InstructionSection` model —
-the only recent change touching the schema. That class of change (new model
-type, new optional/cascade relationships) is supposed to be handled by
-SwiftData's automatic lightweight migration without a custom
-`SchemaMigrationPlan`, so on paper it shouldn't fail — but it's the only
-schema-relevant change in the vicinity of when this was reported.
+**Code review confirmed (2026-09-28):** The alert wiring is correct and
+race-free. `containerLoadError` is set synchronously inside the `appContainer`
+lazy initializer (before the view hierarchy exists), so `onAppear`'s check is
+guaranteed to see it. The alert message includes the underlying error string.
 
-**To verify out of sandbox:**
+**Still open — why the on-disk container is failing (if it is).** Two scenarios:
+- *Container load throws* → `isRunningInMemoryFallback = true` → alert fires.
+  Console will show `"Error creating app container: ..."`.
+- *SwiftData silently replaces a store it cannot migrate* (no throw, no
+  fallback, fresh empty store) → no alert, data just vanishes. This would not
+  be caught by the current mechanism at all and would need a different
+  diagnostic approach.
+
+Leading suspect for either scenario: the 2.2.2 → 2.2.3 schema bump adding
+`InstructionSection`. The new model and its relationships should be handled by
+SwiftData's automatic lightweight migration, but `@Relationship(originalName:)`
+annotations on new-in-2.2.3 properties (`Step.section`, `InstructionSection.recipe`)
+might confuse the migration engine — `originalName` is normally a rename hint,
+so SwiftData might look for a column that doesn't exist in the old schema.
+
+**To verify:**
 1. Build to a real device, force-quit, relaunch.
-2. If the new "Data Isn't Being Saved" alert appears → theory confirmed. Check
-   Xcode's console for the `print("Error creating app container: ...")` line
-   for the actual underlying error, then decide whether a `SchemaMigrationPlan`
-   is needed for the 2.2.2 → 2.2.3 step, or whether the `InstructionSection`
-   model/relationships need adjusting.
-3. If the alert does *not* appear and data still disappears → this fix doesn't
-   address the real cause. Rule out environmental causes next: Xcode
-   reinstalling the app on each run (bundle ID / provisioning / entitlement
-   changes can trigger this), iOS storage pressure evicting app data, or a
-   destructive path we haven't found yet.
+2. If the "Data Isn't Being Saved" alert appears → container load is throwing.
+   Check console for the error string to decide whether a `SchemaMigrationPlan`
+   is needed or whether the `originalName` annotations need removing.
+3. If the alert does *not* appear and data still disappears → silent store
+   replacement. Add `print` after `ModelContainer(for: appSchema)` succeeds to
+   confirm it's reaching that line, then check whether the store file's
+   modification date changes on relaunch. Add a `SchemaMigrationPlan` with an
+   explicit lightweight stage as the next step.
+4. If neither happens (data persists) → the original report was a development
+   environment artifact (simulator reset, Xcode reinstall). Close this item.
 
 ---
 
@@ -132,18 +142,13 @@ Was P4. Now the top of the list — the first item is the highest-value work her
   array. Client-side-rendered pages have no JSON-LD and belong in a separate
   group — they exercise the AI fallback, not this path.
 
-- [ ] **Harden the Apple Intelligence test gate** — S
-  `.enabled(if: availability == .available)` is evaluated before any request,
-  and the model can report available then still refuse to generate — so the
-  suite goes **red instead of skipping** for environmental reasons. Seen
-  2026-09-03: both pipeline tests failing in 3.7s with `GenerationError error
-  -1` against code byte-identical to a 38/38 run earlier the same day.
-
-  Options: probe with one trivial generation in a suite-level trait and skip if
-  it throws; or catch `.assetsUnavailable`/`.rateLimited` in the test helper and
-  record a skip rather than a failure. Either way the signal should distinguish
-  "the model would not answer" from "the pipeline is broken".
-  → [TESTING.md](TESTING.md)
+- [x] **Harden the Apple Intelligence test gate** — done 2026-09-28
+  `runOrSkip` in `FullPipelineTests` wraps every model call: catches
+  `PipelineFailure.isEnvironmental` (`.assetsUnavailable`, `.rateLimited`,
+  `GenerationError -1`) and records them as `withKnownIssue(isIntermittent:)`
+  instead of failing. The `.enabled(if:)` guard remains for the degenerate case
+  where the model reports unavailable up-front; `runOrSkip` handles the case
+  where it lies. → [TESTING.md](TESTING.md)
 
 - [ ] **Cover the share extension** — M
   `SharedImportInbox` has no unit tests. `enqueue`/`dequeue` ordering, corrupt
