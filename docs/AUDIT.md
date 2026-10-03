@@ -243,9 +243,11 @@ Checked and healthy:
 
 - **Build is warning-clean.** The only output is a benign "No AppIntents.framework
   dependency found" metadata note.
-- `JuliaTools` (`AddToGroceryListTool`, `CreateRecipeTool`) *is* wired up —
-  `ChefChatView.swift:490` registers both with `LanguageModelSession(tools:)`.
-- `DataController.appSchema` correctly registers all seven `@Model` types at
-  version 2.2.2.
+- `JuliaTools` (`AddToGroceryListTool`, `CreateRecipeTool`, and
+  `UpdateRecipeTool` when viewing an existing recipe) *is* wired up —
+  `ChefChatView.setupSession()` registers them with `LanguageModelSession(tools:)`.
+- `DataController.appSchema` correctly registers all eight `@Model` types
+  (including `InstructionSection`, added for the instruction-sections feature)
+  at version 2.2.3.
 - Foundation Models sessions are created fresh per request, which correctly
   avoids context accumulation between independent classifications.

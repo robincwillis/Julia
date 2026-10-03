@@ -7,6 +7,7 @@
 
 import SwiftUI
 import SwiftData
+import UIKit
 
 
 @main
@@ -36,6 +37,7 @@ struct JuliaApp: App {
                     }
                     // Warm the Foundation Models on-device model for faster first request
                     Task { await FoundationModelsService.shared.prewarm() }
+                    updateAppIconForBuildType()
                 }
                 .alert("Data Isn't Being Saved", isPresented: $showDBError) {
                     Button("OK", role: .cancel) {}
@@ -44,6 +46,27 @@ struct JuliaApp: App {
                 }
         }
         .modelContainer(DataController.appContainer)
+    }
+
+    // True for a Debug build, or a Release build installed through TestFlight (its receipt
+    // lives at a "sandboxReceipt" path; an App Store install's does not). Used to pick the
+    // dev/TestFlight alternate app icon automatically, with no user action required.
+    private var isDevOrTestFlightBuild: Bool {
+        #if DEBUG
+        return true
+        #else
+        return Bundle.main.appStoreReceiptURL?.lastPathComponent == "sandboxReceipt"
+        #endif
+    }
+
+    // Switches to the dev/TestFlight icon (or back to the primary icon) to match the
+    // current build. Guarded against redundant calls — setAlternateIconName shows a
+    // system alert on an actual change, so this must be a no-op once already correct.
+    private func updateAppIconForBuildType() {
+        guard UIApplication.shared.supportsAlternateIcons else { return }
+        let targetIconName = isDevOrTestFlightBuild ? "AppIcon-Dev" : nil
+        guard UIApplication.shared.alternateIconName != targetIconName else { return }
+        UIApplication.shared.setAlternateIconName(targetIconName)
     }
 
     private func setupDebugModeObserver() {

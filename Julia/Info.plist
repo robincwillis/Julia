@@ -17,5 +17,23 @@
 			</array>
 		</dict>
 	</array>
+	<!-- Alternate icon for dev/TestFlight builds, switched to automatically at launch
+	     by JuliaApp -- see isDevOrTestFlightBuild. Placeholder artwork; swap the
+	     AppIcon-Dev.appiconset images for real dev icon art. -->
+	<key>CFBundleIcons</key>
+	<dict>
+		<key>CFBundleAlternateIcons</key>
+		<dict>
+			<key>AppIcon-Dev</key>
+			<dict>
+				<key>CFBundleIconFiles</key>
+				<array>
+					<string>AppIcon-Dev</string>
+				</array>
+				<key>UIPrerenderedIcon</key>
+				<false/>
+			</dict>
+		</dict>
+	</dict>
 </dict>
 </plist>
