@@ -21,7 +21,7 @@ class DataController {
       Note.self,
       Step.self,
       ImageItem.self
-    ], version: Schema.Version(2, 2, 3))
+    ], version: Schema.Version(2, 2, 4))
   }()
 
   static func clearAllData(in context: ModelContext) async throws {

@@ -61,6 +61,7 @@
 		52664EBA2D87B864008E7673 /* ProcessingResultsReconstructedText.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52664EB92D87B864008E7673 /* ProcessingResultsReconstructedText.swift */; };
 		52664EBC2D87B875008E7673 /* ProcessingResultsClassifiedText.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52664EBB2D87B875008E7673 /* ProcessingResultsClassifiedText.swift */; };
 		527A088E2F8010370030EE1C /* ChefChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 527A088C2F8010370030EE1C /* ChefChatView.swift */; };
+		527A088F2F8010370030EE1C /* ImportExportManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 527A088D2F8010370030EE1C /* ImportExportManager.swift */; };
 		527A08942F8031920030EE1C /* CookModeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 527A08922F8031920030EE1C /* CookModeView.swift */; };
 		527A08952F8031920030EE1C /* ScanInstructionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 527A08932F8031920030EE1C /* ScanInstructionView.swift */; };
 		527A08972F8031A30030EE1C /* DocumentClassifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 527A08962F8031A30030EE1C /* DocumentClassifier.swift */; };
@@ -733,6 +734,7 @@
 				527AF2572D8F684000FE6E38 /* Julia/Utilities/PreviewHelpers.swift in Sources */,
 				52852E812F7C9CF500716647 /* RecipeClassificationResult.swift in Sources */,
 				527A088E2F8010370030EE1C /* ChefChatView.swift in Sources */,
+				527A088F2F8010370030EE1C /* ImportExportManager.swift in Sources */,
 				520DE6BE2C346C9300CAF570 /* IngredientList.swift in Sources */,
 				52AEA3412D7BD06D00B514F2 /* RecipeEditSummarySection.swift in Sources */,
 				520DE6AF2C34604500CAF570 /* Recipe.swift in Sources */,

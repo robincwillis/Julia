@@ -62,18 +62,44 @@ annotations on new-in-2.2.3 properties (`Step.section`, `InstructionSection.reci
 might confuse the migration engine — `originalName` is normally a rename hint,
 so SwiftData might look for a column that doesn't exist in the old schema.
 
+**2026-10-04 analysis:** this hypothesis holds up under static review and looks
+like the most likely fix, not just a suspect. `originalName` exists specifically
+to tell SwiftData "this property used to be called X in an earlier schema
+version" — but `Step.section` and `InstructionSection.recipe` are *brand new* in
+2.2.3, so there is no earlier name for them to have had. Inverse-relationship
+pairing between `Step`/`Recipe`/`InstructionSection` doesn't need `originalName`
+either: each type has exactly one `[Step]`-typed property on the other side
+(`Recipe.instructions`, `InstructionSection.steps`), so SwiftData's automatic
+type-based inverse inference should pair them correctly without any hint.
+
+**Fix applied 2026-10-04, confidence tempered:** removed `originalName: "steps"`
+from `Step.section` and `originalName: "instructionSections"` from
+`InstructionSection.recipe` — both new in 2.2.3, neither ever had a prior name.
+Bumped the schema to `Schema.Version(2, 2, 4)`. Left every other `recipe`
+back-reference alone (`Ingredient`, `IngredientSection`, `Note`, `Timing`,
+`Step.recipe` itself) — all four use the identical `originalName:` pattern and
+all predate 2.2.3, which is itself evidence *against* this being the bug: if
+the pattern reliably broke migration, `IngredientSection`'s own introduction
+(an earlier schema bump) should have shown the same symptom and apparently
+didn't. So this fix is safe and worth keeping regardless, but may not be the
+actual cause — still completely unverified on a device, since this sandbox
+cannot run SwiftData migration at all.
+
 **To verify:**
 1. Build to a real device, force-quit, relaunch.
-2. If the "Data Isn't Being Saved" alert appears → container load is throwing.
-   Check console for the error string to decide whether a `SchemaMigrationPlan`
-   is needed or whether the `originalName` annotations need removing.
-3. If the alert does *not* appear and data still disappears → silent store
-   replacement. Add `print` after `ModelContainer(for: appSchema)` succeeds to
-   confirm it's reaching that line, then check whether the store file's
-   modification date changes on relaunch. Add a `SchemaMigrationPlan` with an
-   explicit lightweight stage as the next step.
-4. If neither happens (data persists) → the original report was a development
-   environment artifact (simulator reset, Xcode reinstall). Close this item.
+2. If data now persists → fix confirmed, close this item.
+3. If the "Data Isn't Being Saved" alert still appears → container load is
+   still throwing. Check console for the error string — the `originalName` fix
+   wasn't the (whole) cause, and a `SchemaMigrationPlan` is likely needed next.
+4. If the alert does *not* appear and data still disappears → silent store
+   replacement, a different failure mode than the alert catches. Add `print`
+   after `ModelContainer(for: appSchema)` succeeds to confirm it's reaching
+   that line, then check whether the store file's modification date changes on
+   relaunch. Add a `SchemaMigrationPlan` with an explicit lightweight stage as
+   the next step.
+5. If none of the above and data still disappears even after a clean reinstall
+   → the original report may have been a development environment artifact
+   (simulator reset, Xcode reinstall) rather than a code bug. Close this item.
 
 ---
 
@@ -268,3 +294,14 @@ New capability rather than fixes. Unranked between themselves.
   The `JuliaShareExtension` target was added by editing `project.pbxproj`
   directly. It builds, embeds correctly, and `xcodebuild -list` sees it, but
   worth opening in Xcode to confirm nothing looks off in the UI.
+
+  **Concrete instance found and fixed 2026-10-04:** a direct commit reorganizing
+  file groupings in `project.pbxproj` moved `ImportExportManager.swift`'s
+  `PBXFileReference` into the `Views` group but dropped its `PBXBuildFile`
+  "in Sources" entry entirely — the file was still in the Xcode navigator and
+  still had content edits applied, but was no longer compiled into the app
+  target at all. Re-added the missing build-file entry and its Sources-phase
+  listing. This is exactly the failure mode this item warns about — worth
+  having Robin open the project in Xcode once to sanity-check the rest, since
+  this kind of drop is invisible outside Xcode's UI and this sandbox can't
+  build the project to catch it mechanically either.

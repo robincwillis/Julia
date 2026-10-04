@@ -14,7 +14,7 @@ class Step: Identifiable {
   var value: String
   var position: Int = 0  // Add position property to maintain order
   @Relationship(originalName: "instructions") var recipe: Recipe?
-  @Relationship(originalName: "steps") var section: InstructionSection?
+  @Relationship var section: InstructionSection?
 
   init(
     id: String = UUID().uuidString,

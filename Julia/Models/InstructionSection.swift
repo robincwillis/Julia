@@ -12,7 +12,7 @@ final class InstructionSection: Identifiable, Hashable {
     var name: String
     var position: Int
     @Relationship(deleteRule: .cascade) var steps: [Step] = []
-    @Relationship(originalName: "instructionSections") var recipe: Recipe?
+    @Relationship var recipe: Recipe?
 
     init(id: String = UUID().uuidString, name: String, position: Int = 0, steps: [Step] = [], recipe: Recipe? = nil) {
         self.id = id
