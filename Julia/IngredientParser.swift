@@ -143,13 +143,24 @@ class IngredientParser {
         }
 
         guard let quantity else {
-            // No leading quantity. A single token is a plain item; anything
-            // longer is something the heuristic could not read.
+            // No leading quantity. A single token is a plain item. Longer
+            // inputs may still have the quantity in trailing position —
+            // "Flour, 2 cups" or "Chicken breast 2 lbs" — common when an
+            // ingredient list is name-first, e.g. pasted from a table or
+            // written out by a model doing a scale/convert edit.
             if components.count == 1 {
                 return ScoredParse(
                     ingredient: Ingredient(name: components[0], location: location,
                                            comment: commentOrNil),
                     confidence: 1.0
+                )
+            }
+            if let trailing = trailingQuantity(in: components) {
+                return ScoredParse(
+                    ingredient: Ingredient(name: trailing.name, location: location,
+                                           quantity: trailing.quantity, unit: trailing.unit,
+                                           comment: commentOrNil),
+                    confidence: adjust(1.0, forName: trailing.name)
                 )
             }
             return unparsed()
@@ -234,6 +245,43 @@ class IngredientParser {
               denominator != 0
         else { return nil }
         return numerator / denominator
+    }
+
+    /// Looks for a quantity (optionally with a recognized unit) at the *end*
+    /// of a token list that had none at the start — "Flour, 2 cups" or
+    /// "Chicken breast 2 lbs" rather than "2 cups Flour". Tries
+    /// quantity-plus-unit first since it is the more confident read; falls
+    /// back to a bare trailing quantity ("Eggs, 2"). A trailing comma left
+    /// over from a stripped-but-rejected comment (see `extractTrailingComment`)
+    /// is trimmed off the name.
+    private static func trailingQuantity(
+        in components: [String]
+    ) -> (name: String, quantity: Double, unit: String?)? {
+        guard components.count >= 2 else { return nil }
+
+        func cleanedName(_ tokens: [String]) -> String {
+            tokens.joined(separator: " ")
+                .trimmingCharacters(in: .whitespaces)
+                .trimmingCharacters(in: CharacterSet(charactersIn: ","))
+                .trimmingCharacters(in: .whitespaces)
+        }
+
+        let lastToken = components.last!.lowercased()
+        if components.count >= 3,
+           let quantity = parseQuantity(components[components.count - 2]),
+           MeasurementUnit(from: lastToken) != nil {
+            let name = cleanedName(Array(components.dropLast(2)))
+            guard !name.isEmpty else { return nil }
+            return (name, quantity, lastToken)
+        }
+
+        if let quantity = parseQuantity(components.last!) {
+            let name = cleanedName(Array(components.dropLast()))
+            guard !name.isEmpty else { return nil }
+            return (name, quantity, nil)
+        }
+
+        return nil
     }
 
     // MARK: - Quantity Parsing

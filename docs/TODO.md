@@ -138,6 +138,23 @@ cannot run SwiftData migration at all.
   changes with zero ability to run or iterate on them. Needs a session with
   real device access to build and tune.
 
+- [ ] **Ingredient parser: multi-word units + a real test corpus** — M
+  Found while fixing the parser's trailing-quantity gap (see
+  [DONE.md](DONE.md)). `MeasurementUnit(from:)` only matches single-token
+  units, so "fl oz" / "fluid ounces" never resolve no matter where the
+  quantity sits. More importantly, none of the heuristic's behavior — old or
+  new — is backed by a corpus of real, messy ingredient lines; everything so
+  far is hand-written cases in `IngredientParsingTests`. The "Test coverage"
+  section with the fixture-gathering plan for this was cut as stale earlier
+  this session — worth deciding whether to revive a narrower version of it
+  just for ingredient parsing before extending the heuristic further blind.
+
+- [ ] **Delete dead `AddIngredient.swift`** — S
+  Not instantiated anywhere in the app — `IngredientEditor` is what
+  `IngredientsView` actually presents. Found while auditing ingredient-parser
+  call sites; same category as `Playground.swift`, removed earlier this
+  session.
+
 ## Features — not yet scoped
 
 New capability rather than fixes. Unranked between themselves.

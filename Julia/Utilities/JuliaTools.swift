@@ -22,21 +22,28 @@ struct AddToGroceryListTool: Tool {
     }
 
     func call(arguments: Arguments) async throws -> String {
-        let (count, names) = await MainActor.run {
-            var parsed: [Ingredient] = []
-            for input in arguments.ingredients {
-                if let ingredient = IngredientParser.fromString(input: input, location: .grocery) {
-                    context.insert(ingredient)
-                    parsed.append(ingredient)
-                }
+        // Parsed off the main actor first — fromStringAsync escalates to Foundation
+        // Models for whatever the heuristic is unsure about, which a plain
+        // IngredientParser.fromString call would never do.
+        var parsed: [Ingredient] = []
+        for input in arguments.ingredients {
+            if let ingredient = await IngredientParser.fromStringAsync(input: input, location: .grocery) {
+                parsed.append(ingredient)
+            }
+        }
+
+        let count = await MainActor.run { () -> Int in
+            for ingredient in parsed {
+                context.insert(ingredient)
             }
             try? context.save()
-            return (parsed.count, parsed.map { $0.name }.joined(separator: ", "))
+            return parsed.count
         }
 
         if count == 0 {
             return "No ingredients could be parsed."
         }
+        let names = parsed.map { $0.name }.joined(separator: ", ")
         return "Added \(count) item(s): \(names)."
     }
 }
@@ -78,6 +85,16 @@ struct CreateRecipeTool: Tool {
         let stepCount = arguments.steps.count
         let title = arguments.title
 
+        // Parsed off the main actor first — fromStringAsync escalates to Foundation
+        // Models for whatever the heuristic is unsure about, which a plain
+        // IngredientParser.fromString call would never do.
+        var parsedIngredients: [Ingredient] = []
+        for input in arguments.ingredients {
+            if let ingredient = await IngredientParser.fromStringAsync(input: input, location: .recipe) {
+                parsedIngredients.append(ingredient)
+            }
+        }
+
         await MainActor.run {
             let recipe = Recipe(title: arguments.title)
 
@@ -90,12 +107,10 @@ struct CreateRecipeTool: Tool {
             recipe.sourceType = .manual
             context.insert(recipe)
 
-            for (index, input) in arguments.ingredients.enumerated() {
-                if let ingredient = IngredientParser.fromString(input: input, location: .recipe) {
-                    ingredient.position = index
-                    ingredient.recipe = recipe
-                    context.insert(ingredient)
-                }
+            for (index, ingredient) in parsedIngredients.enumerated() {
+                ingredient.position = index
+                ingredient.recipe = recipe
+                context.insert(ingredient)
             }
 
             for (index, value) in arguments.steps.enumerated() {
@@ -200,6 +215,31 @@ struct UpdateRecipeTool: Tool {
     }
 
     func call(arguments: Arguments) async throws -> String {
+        // Parsed off the main actor first — fromStringAsync escalates to Foundation
+        // Models for whatever the heuristic is unsure about, which a plain
+        // IngredientParser.fromString call would never do.
+        var parsedIngredients: [Ingredient] = []
+        if arguments.replaceIngredients {
+            for input in arguments.ingredients {
+                if let ingredient = await IngredientParser.fromStringAsync(input: input, location: .recipe) {
+                    parsedIngredients.append(ingredient)
+                }
+            }
+        }
+
+        var parsedIngredientSections: [(name: String, ingredients: [Ingredient])] = []
+        if arguments.replaceIngredientSections {
+            for sectionInput in arguments.ingredientSections {
+                var sectionIngredients: [Ingredient] = []
+                for input in sectionInput.ingredients {
+                    if let ingredient = await IngredientParser.fromStringAsync(input: input, location: .recipe) {
+                        sectionIngredients.append(ingredient)
+                    }
+                }
+                parsedIngredientSections.append((sectionInput.name, sectionIngredients))
+            }
+        }
+
         let changed = await MainActor.run { () -> [String] in
             var changes: [String] = []
 
@@ -224,12 +264,10 @@ struct UpdateRecipeTool: Tool {
                 for old in unsectioned { context.delete(old) }
                 recipe.ingredients.removeAll { $0.section == nil }
 
-                for (index, input) in arguments.ingredients.enumerated() {
-                    if let ingredient = IngredientParser.fromString(input: input, location: .recipe) {
-                        ingredient.position = index
-                        ingredient.recipe = recipe
-                        context.insert(ingredient)
-                    }
+                for (index, ingredient) in parsedIngredients.enumerated() {
+                    ingredient.position = index
+                    ingredient.recipe = recipe
+                    context.insert(ingredient)
                 }
                 changes.append("ingredients")
             }
@@ -251,18 +289,16 @@ struct UpdateRecipeTool: Tool {
                 }
                 recipe.sections.removeAll()
 
-                for (sectionIndex, sectionInput) in arguments.ingredientSections.enumerated() {
-                    let section = IngredientSection(name: sectionInput.name, position: sectionIndex, recipe: recipe)
+                for (sectionIndex, parsedSection) in parsedIngredientSections.enumerated() {
+                    let section = IngredientSection(name: parsedSection.name, position: sectionIndex, recipe: recipe)
                     context.insert(section)
                     recipe.sections.append(section)
 
-                    for (index, input) in sectionInput.ingredients.enumerated() {
-                        if let ingredient = IngredientParser.fromString(input: input, location: .recipe) {
-                            ingredient.position = index
-                            ingredient.section = section
-                            context.insert(ingredient)
-                            section.ingredients.append(ingredient)
-                        }
+                    for (index, ingredient) in parsedSection.ingredients.enumerated() {
+                        ingredient.position = index
+                        ingredient.section = section
+                        context.insert(ingredient)
+                        section.ingredients.append(ingredient)
                     }
                 }
                 changes.append("ingredient sections")

@@ -275,6 +275,39 @@ struct IngredientParsingTests {
         #expect(!scored.ingredient.name.isEmpty)
     }
 
+    @Test("A trailing quantity and unit is found when there is no leading one")
+    func trailingQuantityWithUnit() throws {
+        // Name-first phrasing — pasted from a table, or written out by a model
+        // doing a scale/convert edit — rather than "2 cups flour".
+        let scored = try #require(
+            IngredientParser.scoredParseForTesting(input: "Flour, 2 cups", location: .recipe)
+        )
+        #expect(scored.ingredient.name == "Flour")
+        #expect(scored.ingredient.quantity == 2)
+        #expect(scored.ingredient.unit != nil)
+        #expect(scored.confidence >= IngredientParser.escalationThreshold)
+    }
+
+    @Test("A trailing quantity and unit works without a comma too")
+    func trailingQuantityNoComma() throws {
+        let scored = try #require(
+            IngredientParser.scoredParseForTesting(input: "Chicken breast 2 lbs", location: .recipe)
+        )
+        #expect(scored.ingredient.name == "Chicken breast")
+        #expect(scored.ingredient.quantity == 2)
+        #expect(scored.ingredient.unit != nil)
+    }
+
+    @Test("A bare trailing quantity with no unit is still found")
+    func trailingQuantityNoUnit() throws {
+        let scored = try #require(
+            IngredientParser.scoredParseForTesting(input: "Eggs, 2", location: .recipe)
+        )
+        #expect(scored.ingredient.name == "Eggs")
+        #expect(scored.ingredient.quantity == 2)
+        #expect(scored.ingredient.unit == nil)
+    }
+
     @Test("Round trip through toString keeps the quantity and name")
     func roundTrip() throws {
         let ingredient = try #require(

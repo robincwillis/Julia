@@ -9,6 +9,56 @@ Open work lives in [TODO.md](TODO.md). Findings and their status are in
 
 ---
 
+## 2026-10-04 — Ingredient parser: trailing quantity, escalation wired to chat tools
+
+Prompted by a strategy question — "is our LLM strategy for ingredients any
+good, or should we lean more on a deterministic parser?" — which led to
+actually reading `IngredientParser.swift` instead of trusting
+`docs/bugs/ingredient-quantity-parsing.md`'s historical description of it.
+**That doc is now stale and should not be read as describing current
+behavior**: `legacyParse`/`legacyParseScored` has since grown parenthetical
+extraction, trailing-comment extraction, space-separated mixed-number
+handling ("1 1/2 cups"), and confidence scoring — it is not the naive
+`split(separator: " ")` parser the bug doc describes. The real, current gap
+was narrower than first assumed:
+
+1. **Quantity was only ever looked for in leading position.** "Flour, 2 cups"
+   or "Chicken breast 2 lbs" — name-first phrasing, common when a list is
+   pasted from a table or rewritten by a model doing a scale/convert edit —
+   fell all the way through to "unparsed" (whole string becomes the name).
+   Added `trailingQuantity(in:)`: tries quantity-plus-recognized-unit at the
+   end of the token list first, falls back to a bare trailing quantity. Only
+   engages when no leading quantity was found, so existing behavior for
+   every previously-passing case is unchanged. Three new tests in
+   `RecipeProcessingTests.swift`'s `IngredientParsingTests` suite pin it.
+2. **The chat tools never got to escalate to Foundation Models at all.**
+   `AddToGroceryListTool`, `CreateRecipeTool`, and `UpdateRecipeTool` (both
+   its unsectioned and newly-added sectioned paths) all called
+   `IngredientParser.fromString` — heuristic only, hard ceiling, no matter
+   how low-confidence the parse. Restructured all four call sites to parse
+   with `await IngredientParser.fromStringAsync` *before* entering their
+   `MainActor.run` mutation block (mirroring the established pattern in
+   `RecipeData.convertToSwiftDataModelAsync`), so a parse the heuristic
+   scores below 0.7 now gets the same Foundation Models rescue that recipe
+   import already had.
+
+**Deliberately left alone:** `IngredientEditor`'s auto-parse-on-blur and
+`AddIngredient.swift`'s manual add both still call the sync `fromString`.
+`IngredientEditor` already has its own explicit "fix with AI" sparkle button
+as a separate, user-invoked upgrade path, so defaulting to heuristic-only on
+every blur is the right call, not a gap. `AddIngredient.swift` turns out to
+be dead code — not instantiated anywhere in the app — so it wasn't worth
+touching either way; flagged in [TODO.md](TODO.md) as a cleanup candidate.
+
+**Still genuinely open, not attempted this round:** `MeasurementUnit(from:)`
+only matches single-token units, so "fl oz" / "fluid ounces" never resolve
+regardless of position. And none of this is backed by a real test corpus of
+messy, real-world ingredient lines — the fixtures that would exercise this
+properly were part of the "Test coverage" TODO section cut as stale earlier
+this session. Both are scoping questions for a follow-up, not bugs.
+
+---
+
 ## 2026-10-04 — Design consistency review closed
 
 Closed per explicit instruction: assume the Figma screen-by-screen review (in
