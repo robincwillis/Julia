@@ -140,10 +140,28 @@ struct CreateRecipeTool: Tool {
 /// has a recipe in scope — there's nothing to update in the generic chat.
 struct UpdateRecipeTool: Tool {
     let name = "updateRecipe"
-    let description = "Update and save changes to the recipe currently being viewed — title, description, servings, ingredients, and/or instructions. Use this when the user asks to change, fix, edit, improve, scale, or otherwise modify this recipe. Only set the fields that should change; leave the rest at their defaults (empty string, 0, or false) to leave them unchanged."
+    let description = "Update and save changes to the recipe currently being viewed — title, description, servings, ingredients, and/or instructions, including ones organized into named sections (e.g. 'For the Sauce'). Use this when the user asks to change, fix, edit, improve, scale, or otherwise modify this recipe. Only set the fields that should change; leave the rest at their defaults (empty string, 0, or false) to leave them unchanged."
 
     nonisolated(unsafe) let context: ModelContext
     nonisolated(unsafe) let recipe: Recipe
+
+    @Generable
+    struct IngredientSectionUpdate {
+        @Guide(description: "Section heading, e.g. 'For the Sauce'")
+        var name: String
+
+        @Guide(description: "Ingredient strings with quantities for this section, e.g. '2 cups flour'")
+        var ingredients: [String]
+    }
+
+    @Generable
+    struct InstructionSectionUpdate {
+        @Guide(description: "Section heading, e.g. 'For the Sauce'")
+        var name: String
+
+        @Guide(description: "Step-by-step instructions for this section")
+        var steps: [String]
+    }
 
     @Generable
     struct Arguments {
@@ -156,22 +174,38 @@ struct UpdateRecipeTool: Tool {
         @Guide(description: "New serving count, 0 to leave unchanged")
         var servings: Int
 
-        @Guide(description: "Set true to replace the whole ingredient list with `ingredients` below — required for any ingredient change, even a small one (the entire list must be given, not just the changed items). False leaves the existing ingredients untouched and `ingredients` is ignored.")
+        @Guide(description: "Set true to replace the whole UNSECTIONED ingredient list with `ingredients` below — required for any change to ingredients that aren't under a section heading, even a small one (the entire unsectioned list must be given, not just the changed items). Does not touch sectioned ingredients — use replaceIngredientSections for those. False leaves the existing unsectioned ingredients untouched and `ingredients` is ignored.")
         var replaceIngredients: Bool
 
-        @Guide(description: "Full replacement ingredient list with quantities (e.g. '2 cups flour'), in order. Only used when replaceIngredients is true.")
+        @Guide(description: "Full replacement unsectioned ingredient list with quantities (e.g. '2 cups flour'), in order. Only used when replaceIngredients is true.")
         var ingredients: [String]
 
-        @Guide(description: "Set true to replace the whole instructions list with `steps` below — required for any instruction change, even a small one. False leaves the existing instructions untouched and `steps` is ignored.")
+        @Guide(description: "Set true to replace the whole UNSECTIONED instructions list with `steps` below — required for any change to instructions that aren't under a section heading, even a small one. Does not touch sectioned instructions — use replaceInstructionSections for those. False leaves the existing unsectioned instructions untouched and `steps` is ignored.")
         var replaceInstructions: Bool
 
-        @Guide(description: "Full replacement step-by-step instructions, in order. Only used when replaceInstructions is true.")
+        @Guide(description: "Full replacement step-by-step unsectioned instructions, in order. Only used when replaceInstructions is true.")
         var steps: [String]
+
+        @Guide(description: "Set true to replace every ingredient SECTION with `ingredientSections` below — required if the recipe has sections (e.g. 'For the Sauce') and any of their ingredients change, including scaling. Does not touch unsectioned ingredients. False leaves existing sections untouched and `ingredientSections` is ignored. Pass an empty list with this set true to remove all ingredient sections.")
+        var replaceIngredientSections: Bool
+
+        @Guide(description: "Full replacement list of ingredient sections, in order. Only used when replaceIngredientSections is true.")
+        var ingredientSections: [IngredientSectionUpdate]
+
+        @Guide(description: "Set true to replace every instruction SECTION with `instructionSections` below — required if the recipe has sections and any of their steps change. Does not touch unsectioned instructions. False leaves existing sections untouched and `instructionSections` is ignored. Pass an empty list with this set true to remove all instruction sections.")
+        var replaceInstructionSections: Bool
+
+        @Guide(description: "Full replacement list of instruction sections, in order. Only used when replaceInstructionSections is true.")
+        var instructionSections: [InstructionSectionUpdate]
     }
 
     func call(arguments: Arguments) async throws -> String {
         let changed = await MainActor.run { () -> [String] in
             var changes: [String] = []
+
+            context.undoManager?.beginUndoGrouping()
+            context.undoManager?.setActionName("Update Recipe")
+            defer { context.undoManager?.endUndoGrouping() }
 
             if !arguments.title.isEmpty && arguments.title != recipe.title {
                 recipe.title = arguments.title
@@ -209,6 +243,49 @@ struct UpdateRecipeTool: Tool {
                     context.insert(step)
                 }
                 changes.append("instructions")
+            }
+            if arguments.replaceIngredientSections {
+                for old in recipe.sections {
+                    for ingredient in old.ingredients { context.delete(ingredient) }
+                    context.delete(old)
+                }
+                recipe.sections.removeAll()
+
+                for (sectionIndex, sectionInput) in arguments.ingredientSections.enumerated() {
+                    let section = IngredientSection(name: sectionInput.name, position: sectionIndex, recipe: recipe)
+                    context.insert(section)
+                    recipe.sections.append(section)
+
+                    for (index, input) in sectionInput.ingredients.enumerated() {
+                        if let ingredient = IngredientParser.fromString(input: input, location: .recipe) {
+                            ingredient.position = index
+                            ingredient.section = section
+                            context.insert(ingredient)
+                            section.ingredients.append(ingredient)
+                        }
+                    }
+                }
+                changes.append("ingredient sections")
+            }
+            if arguments.replaceInstructionSections {
+                for old in recipe.instructionSections {
+                    for step in old.steps { context.delete(step) }
+                    context.delete(old)
+                }
+                recipe.instructionSections.removeAll()
+
+                for (sectionIndex, sectionInput) in arguments.instructionSections.enumerated() {
+                    let section = InstructionSection(name: sectionInput.name, position: sectionIndex, recipe: recipe)
+                    context.insert(section)
+                    recipe.instructionSections.append(section)
+
+                    for (index, value) in sectionInput.steps.enumerated() {
+                        let step = Step(value: value, position: index, section: section)
+                        context.insert(step)
+                        section.steps.append(step)
+                    }
+                }
+                changes.append("instruction sections")
             }
 
             try? context.save()

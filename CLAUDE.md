@@ -59,7 +59,14 @@ structured data, and falls back to Foundation Models on the page text.
 
 ## Data Models
 
-**SwiftData models** (`Julia/Models/`): `Recipe` (root), `Ingredient`, `Step`, `Timing`, `Note`, `IngredientSection`, `ImageItem`. All use `@Model final class`.
+**SwiftData models** (`Julia/Models/`): `Recipe` (root), `Ingredient`, `Step`, `Timing`, `Note`, `IngredientSection`, `InstructionSection`, `ImageItem`. All use `@Model final class`.
+
+`IngredientSection` and `InstructionSection` mirror each other: a named,
+positioned group owned by a `Recipe`, holding its own ordered `Ingredient`/`Step`
+rows. A recipe's `ingredients`/`instructions` arrays hold only the *unsectioned*
+items; sectioned items live exclusively under their section, never duplicated
+into the flat array. `Recipe.allIngredients`/`allInstructions` flatten both for
+callers that just want everything, sectioned or not.
 
 **RecipeData** (struct): intermediate container used throughout processing. Holds arrays of raw strings before conversion. Call `.convertToSwiftDataModel()` to persist as a `Recipe`.
 

@@ -103,144 +103,85 @@ cannot run SwiftData migration at all.
 
 ---
 
-## Design consistency
+## Scoped, ready to build
 
-Was P3. Yours, and gated on the Figma review.
+- [ ] **Classify by recipe section, not one monolithic pass** — L, un-deferred 2026-10-04, goal: accuracy
+  Added 2026-09-03; deferred 2026-09-04 for lack of evidence; **Robin decided
+  2026-10-04 to pursue it anyway**, without waiting for the real-scan stress
+  test (that evidence item was in the "Test coverage" section removed as
+  stale, and isn't coming back as a prerequisite). Goal is explicitly
+  **accuracy**, not token budget — narrower per-section schemas should reduce
+  misclassification even though prompt overhead is already fairly spent
+  (393 tokens today).
 
-- [ ] **Review designs in Figma, screen by screen** — M *(Robin, in progress)*
-  Screenshots taken 2026-09-03; mapping in
-  [figma-screenshot-mapping.md](figma-screenshot-mapping.md) and
-  [figma-build-spec.md](figma-build-spec.md). The color token pass below is
-  the first output of this review; the rest lands as Robin goes screen by
-  screen. **This gates the items below.**
-  → [design-tokens.md](design-tokens.md)
+  **Scoped design:**
+  1. **Boundary identification** — a cheap heuristic pre-pass over
+     `RecipeTextReconstructor`'s output, not a second model call: blank-line
+     gaps plus heading-like lines (short, title-case, ends with `:` — the
+     same shape `looksLikeSectionHeading` in `RecipeDetails.swift` already
+     uses for a related purpose) to carve the line list into title/summary,
+     ingredients, and instructions chunks before classification.
+  2. **Per-section schemas** — `FoundationModelsRecipeClassifier`'s one long
+     instruction set and `ClassifiedRecipe` schema split into narrower
+     per-section instructions/schemas that only describe the line types
+     relevant to that section (an ingredients-only call doesn't need to know
+     about instruction or title line types).
+  3. **Composes with, doesn't replace, existing chunking** — section-splitting
+     happens first (coarse, free); the existing 40-line halve-and-retry
+     chunking still applies *within* a section if that section alone is long
+     (e.g. a 60-line ingredient list), unchanged from today.
 
-- [x] **Settle one colour rule and apply it — reds** — M, done 2026-09-12
-  Consolidated `brand/primary`/`brand/danger`/`ios/systemRed`/
-  `xcode/AccentColor` to one value (`#FF3900`/`#FF7445`). `danger.colorset`
-  updated; `Dot.swift:28`'s hard-coded `Color(red: 1.0, green: 0.30, blue:
-  0.15)` now reads `Color.app.primary`. → [design-tokens.md](design-tokens.md)
-
-- [ ] **Reassign `background.secondary`'s call sites** — M
-  New Figma tokens split the old `background.secondary` colorset into a true
-  `background-secondary` (recipe details/chat, black in dark mode — decided,
-  not yet applied) and a `backdrop` role now living in the new
-  `background.card` colorset (`backgroundKeyboardToolbar` /
-  `backgroundCard` in `Theme.swift`). The 11 existing
-  `Color.app.backgroundSecondary` call sites need auditing one by one against
-  the screen review to see which they actually mean — only then can
-  `background.secondary` itself move to the new black-in-dark value.
-  → [design-tokens.md](design-tokens.md) flag 5
-
-- [ ] **Move `secondary` off background duty** — S
-  New token notes: `brand/secondary` (`#9FC9F6`, corrected 2026-09-13 from a
-  mistranscribed teal) is "not a background color, it's an alternative pop
-  color, wait for special." Currently used as a `.background()`/`.fill()`
-  fill well beyond the original 3 call sites — the 2026-09-13 systemBlue
-  migration added the tab bar active pill, the ingredient editor's number
-  pad 0 button, the instructions step-number badge, and the Ask Julia user
-  chat bubble on top of the pre-existing `IngredientEditor.swift:235`,
-  `RecipeEditTagsSection.swift:34`, `RecipeRawTextSection.swift:40`. Robin
-  will pick the replacement per screen during the review rather than a
-  blanket swap. → [design-tokens.md](design-tokens.md) flag 3
-
-- [x] **`ios/systemBlue` "same as brand/secondary" note** — resolved
-  2026-09-13: the teal hex was a transcription error, but `brand/secondary`
-  turned out not to be identical to `ios/systemBlue` either — Robin's
-  reference screenshots sample to `#9FC9F6`/`#5C7A99`, a lighter, more muted
-  blue. `secondary.colorset` updated to that value.
-  → [design-tokens.md](design-tokens.md) flag 2
-
-- [ ] **Resolve remaining open semantic question from the token table** — S
-  `brand/background-primary` vs. `brand/background-sheet` differ only by a
-  few points in dark mode (`#242424` vs `#1C1C1E`) — intentional depth cue or
-  picker rounding? → [design-tokens.md](design-tokens.md) flag 6
-
-- [ ] **Audit `backgroundSecondary` vs. `backgroundSheet` call sites, especially dark mode** — M
-  Found and fixed two concrete mismatches this session: `RecipeSuggestionsView`'s
-  list rows and pantry/grocery filter bar, and `RecipeSuggestionDetailView`'s
-  screen background, were all set to `Color.app.backgroundSheet` (`#2C2C2E`
-  dark — the lighter, elevated-card tone) when the surrounding sheet actually
-  uses `Color.app.backgroundSecondary` (`#1C1C1E` dark), producing a visibly
-  lighter patch. Both are now `backgroundSecondary`. Given how easy this
-  mismatch is to introduce (the two tokens are close enough in light mode to
-  not notice, but diverge sharply in dark mode), worth a deliberate pass over
-  every `Color.app.backgroundSheet` / `Color.app.backgroundSecondary` call site
-  to confirm each one matches its actual container rather than catching these
-  one screen at a time as they're noticed. Related to the two token-semantics
-  items above — may fold into that review.
-
-- [ ] **Reconcile toolbar button styling** — S
-  `NavigationView.swift:300` and `RecipeDetails.editingMenu` use
-  `Color.app.white` at 40×40; `main`'s other toolbar buttons are 30×30
-  `.regularMaterial`. Look at both in the simulator and pick one.
-
-> Note: `ProcessingResults.swift` has been touched twice recently (async save,
-> then the in-flight saving state). If the UI pass lands there too, that is the
-> likely collision point.
-
-## Deferred — waiting on evidence
-
-Not skipped, but not worth scoping until there is data to justify the size.
-
-- [ ] **Classify by recipe section, not one monolithic pass** — L
-  Added 2026-09-03; **deferred 2026-09-04.**
-
-  Chunking by line count treats a recipe as an undifferentiated list of lines,
-  so a boundary can cut through a section heading and separate it from the
-  ingredients it introduces. The alternative is splitting the *classification
-  task itself* by section — title/summary as one small call, ingredients as
-  another, instructions as another — instead of one call classifying every line
-  type at once. Each call's instructions and schema would then describe only the
-  categories relevant to that section.
-
-  **Why deferred.** Both legs of the original rationale moved:
-
-  - *Prompt overhead per call* — largely spent. Instructions are 393 tokens now,
-    and per-section prompts would only shave part of that.
-  - *Context fragmentation* — chunk overlap mitigates it. And when the three
-    misclassifications on a 46-line recipe were mapped to their windows, **none
-    were boundary artifacts**: two were mid-window-0, one was window-1 primary
-    with proper context. They were prompt problems, fixed by restoring the
-    glossary.
-
-  So there is currently **no evidence of fragmentation harm** to justify an
-  L-sized redesign. The evidence that would settle it is the real-scan stress
-  test above.
-
-  **If pursued anyway, decide the target first:** budget or accuracy? Narrower
-  per-section schemas might improve accuracy independently of tokens, which is a
-  legitimate reason on its own — but a different design than one aimed at the
-  budget.
-
-  Open scoping questions: how sections get identified in the first place (a
-  cheap pre-pass? a heuristic on blank lines and headings?), whether it composes
-  with or replaces line-count chunking, and how it interacts with halve-and-retry.
+  **Cannot be tested from this sandbox at all** — Foundation Models requires
+  on-device Apple Intelligence, and this environment is Linux with no
+  device/simulator access. This is a scoped plan ready to implement, not
+  implemented code; building it here would mean writing classifier prompt
+  changes with zero ability to run or iterate on them. Needs a session with
+  real device access to build and tune.
 
 ## Features — not yet scoped
 
 New capability rather than fixes. Unranked between themselves.
 
-- [ ] **Edit or update a recipe with Foundation Models** — L
-  Let the model modify an existing recipe, not just import one: "make this
-  vegetarian", "double it", "convert to metric", "swap the cream for something
-  lighter".
+- [x] **Edit or update a recipe with Foundation Models** — confirmed merged 2026-10-04, two of three gaps closed same day
+  Built, via two separate mechanisms rather than the single `UpdateRecipeTool`
+  originally sketched here:
 
-  Hooks that already exist: `JuliaTools.swift` has `CreateRecipeTool` and
-  `AddToGroceryListTool` registered with `LanguageModelSession(tools:)` at
-  `ChefChatView:490`. An `UpdateRecipeTool` is the natural third and would work
-  conversationally with no new UI.
+  1. **Conversational** — `UpdateRecipeTool` (`JuliaTools.swift`), registered
+     with `LanguageModelSession(tools:)` in `ChefChatView.setupSession()`
+     alongside `CreateRecipeTool`/`AddToGroceryListTool`. Applies directly, no
+     review step — confirmed as the intended flow, not just a stopgap. Takes
+     title/description/servings/full-ingredient-replace/full-instruction-replace;
+     "replace" fields delete-and-rebuild rather than reconcile in place.
+  2. **Menu-driven** — `RecipeDetails`' "Edit with AI" (`editingMenu` →
+     `runAIEdit`/`applyAIEdit`), a larger pipeline that also detects and
+     restructures ingredient/instruction *sections*, with an optional custom
+     instruction field.
 
-  The distinction that matters: import operates on `RecipeData` (a struct of
-  string arrays), but editing operates on a persisted `Recipe` (`@Model`, with
-  relationships to `Ingredient`, `Step`, `Timing`, `Note`, `IngredientSection`).
-  A tool that rewrites a `Recipe` must reconcile relationships rather than
-  replace arrays — deleting and recreating `Ingredient` rows loses their
-  `position` ordering and any grocery-list membership.
+  **Closed 2026-10-04:**
+  - **Section blindness in `UpdateRecipeTool`** — added `replaceIngredientSections`/
+    `replaceInstructionSections` (plus `IngredientSectionUpdate`/
+    `InstructionSectionUpdate` generable structs) alongside the existing
+    unsectioned-only fields, same delete-and-rebuild pattern. Also fixed
+    `ChefChatView.buildRecipeContext` — it only ever read the unsectioned
+    `recipe.ingredients`/`.instructions` arrays, so the model never saw a
+    recipe's sections existed at all; the new tool fields would have been
+    unreachable without this. Untested on a device — can't run Foundation
+    Models from this sandbox.
+  - **No undo** — `ModelContext.undoManager` set once at launch
+    (`JuliaApp.onAppear`, shared via `.modelContainer(...)`'s environment
+    injection). `UpdateRecipeTool.call` and `RecipeDetails.applyAIEdit` now
+    wrap their mutations in `beginUndoGrouping()`/`endUndoGrouping()` so one
+    AI edit = one undo step, exposed as "Undo Last Edit" in `editingMenu`
+    (disabled when `canUndo` is false). SwiftData registers undo actions for
+    context mutations automatically once `undoManager` is set — the grouping
+    is just to make multi-change edits revert as one unit. Untested on a
+    device.
 
-  Open questions: does an edit apply directly or land in a review sheet like
-  imports do? Is it undoable? And which operations should be AI at all — scaling
-  is arithmetic, and "double it" through an LLM will occasionally get it wrong.
+  **Still open:**
+  - **No arithmetic-vs-AI split** — scaling ("double it"), unit conversion, and
+    substitutions all go through the LLM's free-text generation rather than a
+    deterministic path for the parts of this that are just math. Not yet a
+    reported problem, but the known failure mode is still live.
 
 - [ ] **Two app icons** — M, scaffolded 2026-10-03, **needs real art + device verification**
   Decided: the icon is **not** tied to the `debugMode` settings toggle at all

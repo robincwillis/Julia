@@ -516,18 +516,14 @@ struct ChefChatView: View {
         if !ingredients.isEmpty {
             lines.append("Ingredients:")
             for ing in ingredients {
-                var parts: [String] = []
-                if let qty = ing.quantity {
-                    parts.append(formatQuantity(qty))
-                }
-                if let unit = ing.unit {
-                    parts.append(unit.displayName)
-                }
-                parts.append(ing.name)
-                if let comment = ing.comment, !comment.isEmpty {
-                    parts.append("(\(comment))")
-                }
-                lines.append("- " + parts.joined(separator: " "))
+                lines.append("- " + formatIngredient(ing))
+            }
+        }
+
+        for section in recipe.sections.sorted(by: { $0.position < $1.position }) {
+            lines.append("Ingredients — \(section.name):")
+            for ing in section.sortedIngredients {
+                lines.append("- " + formatIngredient(ing))
             }
         }
 
@@ -539,7 +535,29 @@ struct ChefChatView: View {
             }
         }
 
+        for section in recipe.instructionSections.sorted(by: { $0.position < $1.position }) {
+            lines.append("Instructions — \(section.name):")
+            for (i, step) in section.sortedSteps.enumerated() {
+                lines.append("\(i + 1). \(step.value)")
+            }
+        }
+
         return lines.joined(separator: "\n")
+    }
+
+    private func formatIngredient(_ ing: Ingredient) -> String {
+        var parts: [String] = []
+        if let qty = ing.quantity {
+            parts.append(formatQuantity(qty))
+        }
+        if let unit = ing.unit {
+            parts.append(unit.displayName)
+        }
+        parts.append(ing.name)
+        if let comment = ing.comment, !comment.isEmpty {
+            parts.append("(\(comment))")
+        }
+        return parts.joined(separator: " ")
     }
 
     private func formatQuantity(_ qty: Double) -> String {

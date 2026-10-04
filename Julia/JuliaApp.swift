@@ -35,6 +35,12 @@ struct JuliaApp: App {
                         dbError = DataController.containerLoadError
                         showDBError = true
                     }
+                    // Enables Undo for AI-driven recipe edits (see RecipeDetails/UpdateRecipeTool,
+                    // which group their changes into a single undo step). `.modelContainer(...)`
+                    // above makes this the same context every `@Environment(\.modelContext)` sees.
+                    if DataController.appContainer.mainContext.undoManager == nil {
+                        DataController.appContainer.mainContext.undoManager = UndoManager()
+                    }
                     // Warm the Foundation Models on-device model for faster first request
                     Task { await FoundationModelsService.shared.prewarm() }
                     updateAppIconForBuildType()

@@ -347,6 +347,13 @@ struct RecipeDetails: View {
       .tint(Color.app.primary)
       .disabled(isRunningAIEdit)
 
+      Button("Undo Last Edit", systemImage: "arrow.uturn.backward") {
+        context.undoManager?.undo()
+        try? context.save()
+      }
+      .tint(Color.app.primary)
+      .disabled(!(context.undoManager?.canUndo ?? false))
+
       Divider()
 
       Button("Show Raw Text", systemImage: "text.quote") {
@@ -756,6 +763,10 @@ struct RecipeDetails: View {
     needsTimings: Bool,
     hasCustomInstruction: Bool
   ) {
+    context.undoManager?.beginUndoGrouping()
+    context.undoManager?.setActionName("Edit with AI")
+    defer { context.undoManager?.endUndoGrouping() }
+
     if result.ingredients.count == sentIngredients.count {
       for (ingredient, parsed) in zip(sentIngredients, result.ingredients) {
         guard !parsed.name.isEmpty else { continue }

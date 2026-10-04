@@ -9,6 +9,104 @@ Open work lives in [TODO.md](TODO.md). Findings and their status are in
 
 ---
 
+## 2026-10-04 — Design consistency review closed
+
+Closed per explicit instruction: assume the Figma screen-by-screen review (in
+progress since 2026-09-03) passes without surfacing further required changes.
+This closes the whole "Design consistency" TODO section rather than leaving it
+open-but-permanently-blocked. **This is a decision to stop tracking it, not a
+record that the open questions below were actually answered** — if the review
+resumes and surfaces a concrete finding, re-open as a fresh TODO item rather
+than reviving this one or assuming these were resolved one way or another.
+
+Settled earlier in the review, before closing: unified `danger`/`primary` red
+values (2026-09-12, `Dot.swift:28`'s hardcoded red now reads
+`Color.app.primary`); `brand/secondary` corrected from a mistranscribed teal
+to `#9FC9F6`/`#5C7A99` (2026-09-13).
+
+Left genuinely unresolved at closing time — not decided, just no longer
+tracked: `background.secondary`'s 11 call sites were never individually
+audited against the split token meaning (`background-secondary` vs.
+`background.card`); `secondary`'s use as a `.background()`/`.fill()` well
+beyond its original 3 call sites was never swept; whether
+`background-primary` vs. `background-sheet`'s few-point dark-mode difference
+is an intentional depth cue or picker rounding was never confirmed; the
+`backgroundSheet`/`backgroundSecondary` mismatch audit from this session's
+earlier fixes (two concrete instances found and fixed in
+`RecipeSuggestionsView`/`RecipeSuggestionDetailView`) was never extended
+project-wide; toolbar button diameter (40 vs. the reference screenshots' 44pt)
+was never reconciled.
+
+→ [design-tokens.md](design-tokens.md), [figma-build-spec.md](figma-build-spec.md)
+for the detailed open items, still accurate, if this reopens.
+
+---
+
+## 2026-09-27 — Instruction sections, AI recipe editing
+
+### Instruction sections — M
+
+Added `InstructionSection` (`Julia/Models/InstructionSection.swift`), mirroring
+the existing `IngredientSection`: a named, positioned group owned by a
+`Recipe`, holding its own ordered `Step` rows via `Step.section`. Threaded
+through the schema (`DataController.appSchema`, version bumped 2.2.2 → 2.2.3,
+later → 2.2.4, see below), the SwiftData model relationships
+(`Recipe.instructionSections`, cascade delete), the edit UI
+(`RecipeEditInstructionsSection`'s `InstructionSectionEditor`), the view UI
+(`RecipeInstructionsSection`, continuous step numbering across sections), the
+JSON export/import round-trip (`ImportExportManager`), and `CookModeView`
+(each step card shows its section name).
+
+**Invariant:** `Recipe.ingredients`/`.instructions` hold only *unsectioned*
+items — a sectioned item lives exclusively under its `IngredientSection`/
+`InstructionSection`, never duplicated into the flat array.
+`Recipe.allIngredients`/`.allInstructions` flatten both for callers that want
+everything regardless of section.
+
+**Known gap:** `AddRecipe.swift`'s `saveRecipe()` was never updated to persist
+`instructionSections` — the edit form's UI is fully wired to it, but the save
+path silently drops the changes. Found 2026-09-28, not yet fixed — held
+pending the schema-migration investigation below. → [TODO.md](TODO.md)
+
+### AI recipe editing — L
+
+Two mechanisms, both apply directly with no review/undo step:
+
+- **Conversational** — `UpdateRecipeTool` (`Julia/Utilities/JuliaTools.swift`),
+  registered in `ChefChatView.setupSession()`. Delete-and-rebuild on whole-list
+  replacement (title/description/servings/full-ingredient-list/
+  full-instruction-list); only ever touches **unsectioned** items.
+- **Menu-driven** — `RecipeDetails`' "Edit with AI" (`editingMenu` →
+  `runAIEdit`/`applyAIEdit`), which also detects and restructures
+  ingredient/instruction sections via `FoundationModelsRecipeEditor` and an
+  optional custom instruction field, using the same delete-and-rebuild pattern
+  for detected `ClassifiedIngredientGroup`/`ClassifiedInstructionGroup`s.
+
+Non-destructive editing contract established across both: never overwrite a
+field the caller doesn't explicitly say is blank/missing, except when a
+user-supplied custom instruction licenses the overwrite.
+
+**Known gap, closed 2026-10-04:** section blindness and no undo, both fixed
+same day — see [TODO.md](TODO.md) for what changed. Remaining gap: no
+arithmetic-vs-AI split (scaling/unit conversion go through the LLM's free text
+rather than a deterministic path).
+
+### Fallout: reported data loss, SwiftData migration suspect
+
+2026-09-27, data loss on every app close was reported. Root-caused (not yet
+device-confirmed) to this schema bump: `Step.section` and
+`InstructionSection.recipe`, both new in 2.2.3, carried
+`@Relationship(originalName:)` hints pointing at names neither property ever
+had — `originalName` is a migration rename hint, and these properties were
+never renamed, they're new. Removed 2026-10-04, schema bumped to 2.2.4.
+Confidence is tempered: every other `recipe` back-reference in the codebase
+uses the identical pattern and predates 2.2.3 without reported issues, which
+argues against the pattern itself being inherently broken — but the fix is
+safe either way, since neither annotation had anything legitimate to point at.
+Still unverified on a device. → [TODO.md](TODO.md) "URGENT — data loss"
+
+---
+
 ## 2026-09-04 — Correctness and hygiene
 
 Was "P2 — Dead code and hygiene". All seven items complete.
