@@ -36,12 +36,8 @@ struct RecipeDetails: View {
   @State private var showCookMode = false
   @State private var unitSystem: UnitSystem? = nil
 
-  @State private var showCompleteRecipeConfirmation = false
   @State private var showAddedToGroceryAlert = false
-  @State private var showCompleteRecipeResult = false
   @State private var addedToGroceryCount = 0
-  @State private var usedFromPantryCount = 0
-  @State private var skippedFromPantryCount = 0
 
   @State private var titleIsVisible: Bool = true
   @State private var focusedField: RecipeFocusedField = .none
@@ -323,9 +319,6 @@ struct RecipeDetails: View {
                 addAllToGroceryList()
               }
             }
-            Button("Complete Recipe", systemImage: "checkmark.seal", role: .destructive) {
-              showCompleteRecipeConfirmation = true
-            }
           }
         } label: {
           Image(systemName: "ellipsis")
@@ -470,30 +463,10 @@ struct RecipeDetails: View {
         deleteRecipe()
       }
     }
-    .confirmationDialog(
-      "Complete Recipe",
-      isPresented: $showCompleteRecipeConfirmation,
-      titleVisibility: .visible
-    ) {
-      Button("Remove from Pantry", role: .destructive) {
-        completeRecipe()
-      }
-    } message: {
-      Text("Matching ingredients will be removed from your pantry. This cannot be undone.")
-    }
     .alert("Added to Grocery List", isPresented: $showAddedToGroceryAlert) {
       Button("OK", role: .cancel) { }
     } message: {
       Text("Added \(addedToGroceryCount) ingredient\(addedToGroceryCount == 1 ? "" : "s") to your grocery list.")
-    }
-    .alert("Recipe Complete", isPresented: $showCompleteRecipeResult) {
-      Button("OK", role: .cancel) { }
-    } message: {
-      if skippedFromPantryCount > 0 {
-        Text("Removed \(usedFromPantryCount) item\(usedFromPantryCount == 1 ? "" : "s") from your pantry. \(skippedFromPantryCount) ingredient\(skippedFromPantryCount == 1 ? "" : "s") weren't in your pantry.")
-      } else {
-        Text("Removed \(usedFromPantryCount) item\(usedFromPantryCount == 1 ? "" : "s") from your pantry.")
-      }
     }
     .alert("Nothing to Fix", isPresented: $showAIEditNothingToFix) {
       Button("OK", role: .cancel) { }
@@ -915,56 +888,6 @@ struct RecipeDetails: View {
     }
   }
 
-  private func completeRecipe() {
-    let ingredients = allRecipeIngredients()
-
-    // Fetch all pantry items — filter in Swift to avoid enum predicate complexity
-    let descriptor = FetchDescriptor<Ingredient>()
-    guard let allStored = try? context.fetch(descriptor) else { return }
-    let pantryItems = allStored.filter { $0.location == .pantry }
-
-    var used = 0
-    var skipped = 0
-
-    for recipeIngredient in ingredients {
-      let scaledQty: Double? = recipeIngredient.quantity.map { $0 * servingMultiplier }
-      let matches = pantryItems.filter {
-        $0.name.lowercased() == recipeIngredient.name.lowercased()
-      }
-
-      if matches.isEmpty {
-        skipped += 1
-        continue
-      }
-
-      for pantryItem in matches {
-        if let pantryQty = pantryItem.quantity, let needed = scaledQty,
-           pantryItem.unit == recipeIngredient.unit {
-          // Same unit — subtract quantity
-          let remaining = pantryQty - needed
-          if remaining <= 0 {
-            context.delete(pantryItem)
-          } else {
-            pantryItem.quantity = remaining
-          }
-        } else if pantryItem.quantity == nil {
-          // No quantity tracking — remove entirely
-          context.delete(pantryItem)
-        }
-        // Units differ — leave the pantry item untouched (can't convert)
-      }
-      used += 1
-    }
-
-    do {
-      try context.save()
-      usedFromPantryCount = used
-      skippedFromPantryCount = skipped
-      showCompleteRecipeResult = true
-    } catch {
-      print("Error completing recipe: \(error)")
-    }
-  }
 }
 
 #Preview("Recipe Details") {

@@ -52,7 +52,6 @@ struct ChefChatView: View {
     @State private var showRecipeTextImport = false
     @State private var photosPickerItem: PhotosPickerItem?
 
-    @AppStorage("hasSeenJuliaSuggestions") private var hasSeenSuggestions = false
     @AppStorage("hasSeenScanInstruction") private var hasSeenScanInstruction = false
 
     @FocusState private var isInputFocused: Bool
@@ -213,11 +212,6 @@ struct ChefChatView: View {
                 .padding(.horizontal, 48)
                 .padding(.bottom, 32)
 
-            if isAvailable && !hasSeenSuggestions {
-                Spacer(minLength: 20)
-                firstUseSuggestions
-            }
-
             Spacer()
             // Reserve space so content isn't behind the FAB (only needed when FAB is shown)
             if showImportOptions {
@@ -231,32 +225,6 @@ struct ChefChatView: View {
         isAvailable
             ? "Ask me anything about cooking, or use the menu to import a recipe."
             : "Import a recipe using the menu below, or enable Apple Intelligence in Settings to unlock chat."
-    }
-
-    private var firstUseSuggestions: some View {
-        VStack(alignment: .center, spacing: 8) {
-            ForEach([
-                "Add pasta carbonara ingredients",
-                "Create a chicken stir fry recipe",
-                "What temp for medium-rare steak?"
-            ], id: \.self) { text in
-                Button {
-                    hasSeenSuggestions = true
-                    inputText = text
-                    sendMessage()
-                } label: {
-                    Text(text)
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 9)
-                        .background(.fill.tertiary, in: Capsule())
-                }
-                .buttonStyle(.plain)
-            }
-        }
-        .frame(maxWidth: .infinity, alignment: .center)
-        .padding(.horizontal, 40)
     }
 
     private var importFABItems: some View {
@@ -568,7 +536,6 @@ struct ChefChatView: View {
         let text = inputText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty, let session else { return }
 
-        if !hasSeenSuggestions { hasSeenSuggestions = true }
         isInputFocused = false
         inputText = ""
         messages.append(ChatMessage(role: .user, text: text))

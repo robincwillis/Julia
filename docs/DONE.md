@@ -9,6 +9,52 @@ Open work lives in [TODO.md](TODO.md). Findings and their status are in
 
 ---
 
+## 2026-10-17 — Removed RecipeDetails' standalone "Complete Recipe" toolbar action
+
+Robin's call: "Complete Recipe" was sitting in the recipe details screen's
+main `...` toolbar menu, outside of live Cook Mode, and didn't make sense
+there. Investigating found it wasn't just misplaced UI — it was a near-exact
+duplicate of `CookModeView.completeRecipe()` (same pantry-deduction logic:
+match recipe ingredients to pantry items by name, subtract the scaled
+quantity or remove the pantry row entirely), minus the one thing that makes
+Cook Mode's version the real "I finished cooking this" moment: the
+App Store review prompt (`requestReview()`, gated by `rateReviewEnabled` —
+deliberately scoped to only fire from an actual cook-mode completion earlier
+this session). The toolbar version was a backdoor into "mark as cooked,
+touch my pantry" without ever cooking, undermining that same design
+decision.
+
+Removed entirely from `RecipeDetails.swift`: the toolbar menu button, its
+`confirmationDialog`/result `.alert`, the `completeRecipe()` function, and
+the four now-unused `@State` vars (`showCompleteRecipeConfirmation`,
+`showCompleteRecipeResult`, `usedFromPantryCount`, `skippedFromPantryCount`).
+"Completing" a recipe — and the pantry deduction that comes with it — now
+only happens through Cook Mode, matching the one real entry point for it.
+
+---
+
+## 2026-10-17 — Removed ChefChatView's first-use suggestion pills — anti-pattern
+
+Robin's call: remove, and flag as an anti-pattern so it doesn't come back.
+Removed `firstUseSuggestions` (three canned prompt chips — "Add pasta
+carbonara ingredients", etc.) from `ChefChatView`'s empty state, along with
+the `hasSeenJuliaSuggestions`/`hasSeenSuggestions` `@AppStorage` flag that
+gated it and the one-time-dismiss write in `sendMessage()`. Nothing else in
+the codebase referenced any of it.
+
+**Why this shape of feature is a trap, for next time:** it's gated to show
+*once per install* via a persisted flag with no way back — so the moment a
+user sends their first message (any message, not just a tapped chip), it's
+gone for that install forever. That means the suggestions only ever existed
+for a user's very first few seconds in the chat, while permanently adding
+three hardcoded example prompts that lock in a specific (and easily stale)
+idea of "what this chat is for." An empty state that explains itself in
+words (`capabilityDescription` already does this) doesn't need canned chips
+standing in for that explanation — they're a one-shot crutch dressed up as a
+feature.
+
+---
+
 ## 2026-10-04 — Ingredient parser: trailing quantity, escalation wired to chat tools
 
 Prompted by a strategy question — "is our LLM strategy for ingredients any
